@@ -1,5 +1,5 @@
 .idea
-.vscode
+.vscode/
 
-server/.venv
+server/.venv/
 server/**/__pycache__/
