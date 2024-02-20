@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 20.02.2024
 Alexander Tyamin.
