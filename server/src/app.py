@@ -9,6 +9,20 @@ from fastapi import FastAPI, WebSocket
 
 app = FastAPI()
 
+
+@app.get('/api/v1/projects')
+async def items():
+    return [
+        {
+            "id": 1,
+            "name": "Project 1",
+        },
+        {
+            "id": 2,
+            "name": "Project 2",
+        }
+    ]
+
 project = '''{ "elements":[ { "id":1, "attributes":{ "name":"Element 1", "x":0, "y":0, "width":100, "height":100 } }, { "id":1, "attributes":{ "name":"Element 1", "x":0, "y":0, "width":100, "height":100 } } ] }'''
 
 clients = set()
