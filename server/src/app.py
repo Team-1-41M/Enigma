@@ -6,8 +6,34 @@ This file contains the FastAPI application instance.
 """
 
 from fastapi import FastAPI, WebSocket
+from starlette.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://127.0.0.1:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.get('/api/v1/projects')
+async def items():
+    return {
+        "data": [
+            {
+                "id": 1,
+                "name": "Project 1",
+            },
+            {
+                "id": 2,
+                "name": "Project 2",
+            }
+        ]
+    }
+
 
 project = '''{ "elements":[ { "id":1, "attributes":{ "name":"Element 1", "x":0, "y":0, "width":100, "height":100 } }, { "id":1, "attributes":{ "name":"Element 1", "x":0, "y":0, "width":100, "height":100 } } ] }'''
 
