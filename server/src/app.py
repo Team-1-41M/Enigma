@@ -25,11 +25,11 @@ async def items():
         "data": [
             {
                 "id": 1,
-                "name": "Project 1",
+                "title": "Project 1",
             },
             {
                 "id": 2,
-                "name": "Project 2",
+                "title": "Project 2",
             }
         ]
     }
