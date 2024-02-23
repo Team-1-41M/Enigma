@@ -1,3 +1,10 @@
+"""
+23.02.2024
+Alexander Tyamin.
+
+Constants for the project: prefixes, urls, etc.
+"""
+
 API_PREFIX = '/api'
 API_VERSION_1_PREFIX = API_PREFIX + '/v1'
 
