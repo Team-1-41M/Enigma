@@ -20,3 +20,5 @@ SIGN_IN_URL = '/sign-in'
 SIGN_OUT_URL = '/sign-out'
 
 SESSION_TTL = 3 * 24 * 60 * 60
+
+DB_PATH = BASE_PATH / "enigma.sqlite3"
