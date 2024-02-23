@@ -40,7 +40,7 @@ async def authenticate_user(
 ) -> Optional[User]:
     """Trying to find a user with same name and password."""
 
-    user = await User.by_email(name, db)
+    user = await User.by_name(name, db)
     if user and await verify_password(password, user.password, context):
         return user
     return None
