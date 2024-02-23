@@ -22,3 +22,4 @@ SIGN_OUT_URL = '/sign-out'
 SESSION_TTL = 3 * 24 * 60 * 60
 
 DB_PATH = BASE_PATH / "enigma.sqlite3"
+DB_URL = f"sqlite+aiosqlite:///{DB_PATH}"
