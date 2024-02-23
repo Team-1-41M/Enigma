@@ -24,6 +24,25 @@ class CacheStorage(ABC):
         pass
 
 
+class DictCacheStorage(CacheStorage):
+    """
+    Provides a key-value storage
+    based on a standard Python dictionary.
+    """
+
+    def __init__(self):
+        self.storage = {}
+
+    async def get(self, key):
+        return self.storage.get(key)
+
+    async def set(self, key, value):
+        self.storage[key] = value
+
+    async def delete(self, key):
+        self.storage.pop(key, None)
+
+
 async def get_cache_storage() -> CacheStorage:
     """
     Provides a key-value storage.
@@ -31,5 +50,5 @@ async def get_cache_storage() -> CacheStorage:
     return: CacheStorage interface
     """
 
-    storage = {}
+    storage = DictCacheStorage()
     yield storage
