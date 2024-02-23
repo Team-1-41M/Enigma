@@ -10,7 +10,7 @@ import datetime
 from typing import Optional
 
 from starlette import status
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Cookie
 from passlib.context import CryptContext
 from starlette.responses import JSONResponse
 from starlette.exceptions import HTTPException
@@ -106,8 +106,30 @@ async def sign_in(
 
 
 @router.post(SIGN_OUT_URL)
-async def sign_out():
-    pass
+async def sign_out(
+        session: str = Cookie(),
+        cache_storage=Depends(get_cache_storage),
+) -> JSONResponse:
+    """
+    Deletes a user session.
+
+    raises: HTTPException if session not found in cookie
+
+    return: JSONResponse with message that session was successfully removed
+    """
+
+    if session in cache_storage:
+        cache_storage.delete(session)
+
+        response = JSONResponse({"detail": f"Session {session} was removed"})
+        response.delete_cookie('session')
+
+        return response
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Session {session} not found"
+        )
 
 
 @router.get(ME_URL)
