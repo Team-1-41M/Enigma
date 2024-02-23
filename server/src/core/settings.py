@@ -1,0 +1,2 @@
+API_PREFIX = '/api'
+API_VERSION_1_PREFIX = API_PREFIX + '/v1'
