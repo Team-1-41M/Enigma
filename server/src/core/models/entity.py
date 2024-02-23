@@ -10,6 +10,7 @@ like id, created_at, updated_at etc.
 import datetime
 
 from sqlalchemy import func
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from server.src.core.models.base import Base
@@ -26,3 +27,30 @@ class Entity(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     created_at: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime.datetime] = mapped_column(server_default=None, onupdate=func.now(), nullable=True)
+
+    async def update(
+            self,
+            data: dict,
+            session: AsyncSession,
+    ) -> None:
+        """
+        Update object with new data.
+
+        :params:
+            data: new data to update the object
+            session: db async session
+
+        :raises:
+            AttributeError: if the attribute to update does not exist in the source object
+
+        :return: None
+        """
+
+        for attribute, value in data.items():
+            if hasattr(self, attribute):
+                setattr(self, attribute, value)
+            else:
+                raise AttributeError("The attribute to update does not exist in the source object")
+
+        await session.commit()
+        return await session.refresh(self)
