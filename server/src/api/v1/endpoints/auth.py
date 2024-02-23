@@ -97,7 +97,7 @@ async def sign_in(
     response.set_cookie("session", session_id, max_age=SESSION_TTL)
 
     updated_login_time = {
-        "login_at": datetime.datetime.now()
+        "login_at": datetime.datetime.now(datetime.UTC),
     }
     await user.update(updated_login_time, db)
 
