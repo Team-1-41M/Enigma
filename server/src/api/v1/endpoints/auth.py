@@ -18,10 +18,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from server.src.core.utils.db import get_db
 from server.src.core.models.users import User
-from server.src.core.utils.auth import authenticate_user
 from server.src.core.utils.crypt import get_crypt_context
 from server.src.core.utils.cache import get_cache_storage
-from server.src.api.v1.schemas.users import UserSignInSchema, UserSignUpSchema
+from server.src.core.utils.auth import authenticate_user, get_current_user
+from server.src.api.v1.schemas.users import UserSignInSchema, UserSignUpSchema, UserDBSchema
 from server.src.core.settings import AUTH_ROUTER_PREFIX, SIGN_UP_URL, SIGN_IN_URL, SIGN_OUT_URL, ME_URL, SESSION_TTL
 
 router = APIRouter(prefix=AUTH_ROUTER_PREFIX)
@@ -132,6 +132,7 @@ async def sign_out(
         )
 
 
-@router.get(ME_URL)
-async def me():
-    pass
+@router.get(ME_URL, response_model=UserDBSchema)
+async def me(current_user: User = Depends(get_current_user)) -> Optional[User]:
+    """Current user data based on session value from cookie."""
+    return current_user
