@@ -65,7 +65,7 @@ async def sign_up(
 
     return await sign_in(
         UserSignInSchema(
-            account_name=data.name,
+            name=data.name,
             password=data.password,
         ),
         db,
@@ -79,7 +79,7 @@ async def sign_in(
         db: AsyncSession = Depends(get_db),
         cache_storage=Depends(get_cache_storage),
 ) -> JSONResponse:
-    """User authentication into the system with setting the session valueю."""
+    """User authentication into the system with setting the session value."""
 
     user: Optional[User] = await authenticate_user(data.name, data.password, db)
     if user is None:
