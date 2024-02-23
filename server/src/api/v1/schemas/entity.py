@@ -1,0 +1,22 @@
+"""
+23.02.2024
+Alexander Tyamin.
+
+Entity validation schema. Used to other API schemas as a base class.
+"""
+
+import datetime
+from typing import Optional
+
+from pydantic import BaseModel
+
+
+class EntityDBSchema(BaseModel):
+    """
+    Entity validation schema.
+    Used to other API schemas as a base class.
+    """
+
+    id: int
+    created_at: datetime.datetime
+    updated_at: Optional[datetime.datetime]
