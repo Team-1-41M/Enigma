@@ -117,7 +117,7 @@ async def sign_out(
     return: JSONResponse with message that session was successfully removed
     """
 
-    if session in cache_storage:
+    if await cache_storage.get(session):
         cache_storage.delete(session)
 
         response = JSONResponse({"detail": f"Session {session} was removed"})
