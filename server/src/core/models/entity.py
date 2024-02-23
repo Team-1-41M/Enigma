@@ -16,7 +16,8 @@ from server.src.core.models.base import Base
 
 
 class Entity(Base):
-    """Used as base class for all models
+    """
+    Used as base class for all models
     with useful base fields.
     """
 

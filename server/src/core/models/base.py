@@ -10,7 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncAttrs
 
 
 class Base(DeclarativeBase, AsyncAttrs):
-    """Base class for all models.
+    """
+    Base class for all models.
     Primarily used for Entity class.
     """
 
