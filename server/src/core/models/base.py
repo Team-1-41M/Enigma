@@ -11,4 +11,5 @@ from sqlalchemy.ext.asyncio import AsyncAttrs
 
 class Base(DeclarativeBase, AsyncAttrs):
     """Base class for all models."""
+
     pass
