@@ -18,8 +18,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from server.src.core.utils.db import get_db
 from server.src.core.models.users import User
-from server.src.core.utils.crypt import crypt_context
 from server.src.core.utils.auth import authenticate_user
+from server.src.core.utils.crypt import get_crypt_context
 from server.src.core.utils.cache import get_cache_storage
 from server.src.api.v1.schemas.users import UserSignInSchema, UserSignUpSchema
 from server.src.core.settings import AUTH_ROUTER_PREFIX, SIGN_UP_URL, SIGN_IN_URL, SIGN_OUT_URL, ME_URL, SESSION_TTL
@@ -32,7 +32,7 @@ async def sign_up(
         data: UserSignUpSchema,
         db: AsyncSession = Depends(get_db),
         cache_storage=Depends(get_cache_storage),
-        context: CryptContext = Depends(crypt_context),
+        context: CryptContext = Depends(get_crypt_context),
 ):
     """
     User account creation.
