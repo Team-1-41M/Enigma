@@ -39,8 +39,8 @@ async def sign_up(
     Login immediately.
     """
 
+    same_name_user = await User.by_name(data.name, db)
     same_email_user = await User.by_email(data.email, db)
-    same_name_user = await User.by_name(data.account_name, db)
 
     if same_email_user:
         raise HTTPException(
