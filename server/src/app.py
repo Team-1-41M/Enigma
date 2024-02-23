@@ -8,6 +8,8 @@ This file contains the FastAPI application instance.
 from fastapi import FastAPI, WebSocket
 from starlette.middleware.cors import CORSMiddleware
 
+from server.src.api.v1.api import router as api_v1_router
+
 app = FastAPI()
 
 app.add_middleware(
@@ -17,6 +19,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(api_v1_router)
 
 
 @app.get('/api/v1/projects')
