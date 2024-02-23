@@ -7,7 +7,9 @@ Connecting to a database and providing a DB instance.
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession, AsyncEngine
 
-engine: AsyncEngine = create_async_engine("sqlite+aiosqlite:///enigma.sqlite3")
+from server.src.core.settings import DB_URL
+
+engine: AsyncEngine = create_async_engine(DB_URL)
 
 
 async def get_db() -> AsyncSession:
