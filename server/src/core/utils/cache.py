@@ -12,6 +12,10 @@ class CacheStorage(ABC):
     """Provides a key-value storage."""
 
     @abstractmethod
+    async def items(self):
+        pass
+
+    @abstractmethod
     async def get(self, key):
         pass
 
@@ -32,6 +36,9 @@ class DictCacheStorage(CacheStorage):
 
     def __init__(self):
         self.storage = {}
+
+    async def items(self):
+        return self.storage.items()
 
     async def get(self, key):
         return self.storage.get(key)
