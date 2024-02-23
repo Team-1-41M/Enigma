@@ -24,8 +24,12 @@ class CacheStorage(ABC):
         pass
 
 
-async def get_cache_storage():
-    """Provides a key-value storage."""
+async def get_cache_storage() -> CacheStorage:
+    """
+    Provides a key-value storage.
+
+    return: CacheStorage interface
+    """
 
     storage = {}
     yield storage
