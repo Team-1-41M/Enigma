@@ -43,6 +43,9 @@ class DictCacheStorage(CacheStorage):
         self.storage.pop(key, None)
 
 
+storage = DictCacheStorage()
+
+
 async def get_cache_storage() -> CacheStorage:
     """
     Provides a key-value storage.
@@ -50,5 +53,4 @@ async def get_cache_storage() -> CacheStorage:
     return: CacheStorage interface
     """
 
-    storage = DictCacheStorage()
-    yield storage
+    return storage
