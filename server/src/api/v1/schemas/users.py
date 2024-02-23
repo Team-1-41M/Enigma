@@ -16,8 +16,8 @@ from server.src.api.v1.schemas.entity import EntityDBSchema
 class UserSignInSchema(BaseModel):
     """Data for user authentication."""
 
+    name: str
     password: str
-    account_name: str
 
 
 class UserSignUpSchema(UserSignInSchema):
