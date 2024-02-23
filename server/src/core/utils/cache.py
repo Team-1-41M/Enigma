@@ -23,6 +23,10 @@ class CacheStorage(ABC):
     async def delete(self, key):
         pass
 
+    @abstractmethod
+    async def expire(self, key, ttl: int):
+        pass
+
 
 class DictCacheStorage(CacheStorage):
     """
@@ -41,6 +45,9 @@ class DictCacheStorage(CacheStorage):
 
     async def delete(self, key):
         self.storage.pop(key, None)
+
+    async def expire(self, key, ttl: int):
+        pass
 
 
 storage = DictCacheStorage()
