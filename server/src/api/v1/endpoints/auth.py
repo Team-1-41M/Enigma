@@ -1,3 +1,10 @@
+"""
+23.02.2024
+Alexander Tyamin.
+
+Routes for user authentication.
+"""
+
 import uuid
 import datetime
 from typing import Optional
