@@ -65,8 +65,8 @@ async def sign_up(
 
     return await sign_in(
         UserSignInSchema(
-            account_name=data.account_name,
-            password=data.password
+            account_name=data.name,
+            password=data.password,
         ),
         db,
         cache_storage
