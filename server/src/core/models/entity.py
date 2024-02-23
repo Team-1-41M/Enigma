@@ -79,3 +79,12 @@ class Entity(Base):
 
         await session.commit()
         return await session.refresh(self)
+
+    def dict(self) -> dict:
+        """
+        Model attributes excluding SQLAlchemy attributes.
+
+        :return: dict without SQLAlchemy attributes.
+        """
+
+        return {k: v for (k, v) in self.__dict__.items() if '_sa_' != k[:4]}
