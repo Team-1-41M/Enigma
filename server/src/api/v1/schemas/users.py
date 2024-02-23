@@ -30,5 +30,4 @@ class UserDBSchema(EntityDBSchema, UserSignUpSchema):
     """User data in the database."""
 
     is_active: bool
-    displayed_name: str
     login_at: Optional[datetime.datetime]
