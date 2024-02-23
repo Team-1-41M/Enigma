@@ -28,6 +28,31 @@ class Entity(Base):
     created_at: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime.datetime] = mapped_column(server_default=None, onupdate=func.now(), nullable=True)
 
+    @classmethod
+    async def create(
+            cls,
+            data,
+            session: AsyncSession,
+    ) -> "Entity":
+        """
+        Creates a new object.
+
+        :params:
+            data: new object data
+            session: db async session
+
+        :return: new object
+        """
+
+        # TODO: is it safety? Maybe need some validation
+        item = cls(**data.dict())
+
+        session.add(item)
+        await session.commit()
+        await session.flush()
+
+        return item
+
     async def update(
             self,
             data: dict,
