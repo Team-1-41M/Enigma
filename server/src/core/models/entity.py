@@ -8,8 +8,9 @@ like id, created_at, updated_at etc.
 """
 
 import datetime
+from typing import Optional
 
-from sqlalchemy import func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -27,6 +28,19 @@ class Entity(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     created_at: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime.datetime] = mapped_column(server_default=None, onupdate=func.now(), nullable=True)
+
+    @classmethod
+    async def by_id(
+            cls,
+            item_id: int,
+            session: AsyncSession,
+    ) -> Optional:
+        """
+        Get an object by id.
+        return: optional object or None
+        """
+
+        return await session.scalar(select(cls).where(cls.id == item_id))
 
     @classmethod
     async def create(
