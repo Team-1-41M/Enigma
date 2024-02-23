@@ -91,8 +91,7 @@ async def sign_in(
     session_id = str(uuid.uuid4())
     await cache_storage.set(session_id, user.id)
 
-    # TODO: later for Redis storage
-    # await session_storage.expire(session_id, SESSION_TTL)
+    await cache_storage.expire(session_id, SESSION_TTL)
 
     response = JSONResponse({"detail": "Logged in successfully"})
     response.set_cookie("session", session_id, max_age=SESSION_TTL)
