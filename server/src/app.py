@@ -9,6 +9,8 @@ from fastapi import FastAPI, WebSocket
 from starlette.middleware.cors import CORSMiddleware
 
 from server.src.api.v1.api import router as api_v1_router
+from server.src.core.models.base import Base
+from server.src.core.utils.db import engine
 
 app = FastAPI()
 
@@ -21,6 +23,14 @@ app.add_middleware(
 )
 
 app.include_router(api_v1_router)
+
+
+@app.on_event("startup")
+async def startup_event() -> None:
+    """Creating models at application startup."""
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 
 @app.get('/api/v1/projects')
