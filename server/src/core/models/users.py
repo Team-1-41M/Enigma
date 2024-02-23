@@ -34,3 +34,12 @@ class User(Entity):
         """Finds a user by email."""
 
         return await session.scalar(select(User).where(User.email == email))
+
+    @staticmethod
+    async def by_name(
+            name: str,
+            session: AsyncSession,
+    ) -> Optional:
+        """Finds a user by name."""
+
+        return await session.scalar(select(User).where(User.name == name))
