@@ -27,12 +27,12 @@ from .schemas import UserSignUpSchema, UserSignInSchema, UserDBSchema
 router = APIRouter(prefix='/auth')
 
 
-@router.post('/sign-up', response_model=UserDBSchema)
+@router.post('/sign-up', status_code=status.HTTP_204_NO_CONTENT)
 async def sign_up(
         data: UserSignUpSchema,
         db: AsyncSession = Depends(get_db),
         context: CryptContext = Depends(get_crypt_context),
-) -> User:
+) -> None:
     """
     User account creation.
 
@@ -67,8 +67,7 @@ async def sign_up(
         password=context.hash(data.password),
         is_active=True,
     )
-
-    return await User.create(user, db)
+    await User.create(user, db)
 
 
 @router.post('/sign-in')
