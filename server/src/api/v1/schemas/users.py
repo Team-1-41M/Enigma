@@ -8,7 +8,7 @@ API schemas for working with user accounts, including registration and login.
 import datetime
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 from server.src.api.v1.schemas.entity import EntityDBSchema
 
@@ -16,7 +16,11 @@ from server.src.api.v1.schemas.entity import EntityDBSchema
 class UserSignInSchema(BaseModel):
     """Data for user authentication."""
 
-    name: str
+    name: str = Field(
+        min_length=3,
+        max_length=32,
+        pattern=r"^[a-zA-Z0-9_]{3,32}$",
+    )
     password: str
 
 
