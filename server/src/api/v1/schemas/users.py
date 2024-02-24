@@ -24,7 +24,7 @@ class UserSignInSchema(BaseModel):
     )
     password: str = Field(
         min_length=12,
-        max_length=32,
+        max_length=64,
     )
 
     @field_validator("password")
