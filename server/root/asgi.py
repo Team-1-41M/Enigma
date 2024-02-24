@@ -9,7 +9,6 @@ from fastapi import FastAPI, WebSocket, APIRouter
 from starlette.middleware.cors import CORSMiddleware
 
 from .db import engine
-# TODO: why server.* works?
 from server.shared.models import Base
 from server.auth.routes import router as auth_router
 
