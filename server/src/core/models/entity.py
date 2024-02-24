@@ -10,6 +10,7 @@ like id, created_at, updated_at etc.
 import datetime
 from typing import Optional
 
+from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -45,7 +46,7 @@ class Entity(Base):
     @classmethod
     async def create(
             cls,
-            data,
+            data: BaseModel,
             session: AsyncSession,
     ) -> "Entity":
         """
@@ -58,8 +59,12 @@ class Entity(Base):
         :return: new object
         """
 
-        # TODO: is it safety? Maybe need some validation
-        item = cls(**data.dict())
+        item = cls()
+        for attribute, value in data.items():
+            if hasattr(item, attribute):
+                setattr(item, attribute, value)
+            else:
+                raise AttributeError(f"The attribute ${attribute} does not exist in the ${cls}")
 
         session.add(item)
         await session.commit()
