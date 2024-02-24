@@ -16,18 +16,18 @@ from starlette.responses import JSONResponse
 from starlette.exceptions import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from server.root.db import get_db
+from ..root.db import get_db
 from ..auth.models import User
-from server.root.crypt import get_crypt_context
-from server.root.cache import get_cache_storage
-from server.root.auth import authenticate_user, get_current_user
+from ..root.settings import SESSION_TTL
+from ..root.crypt import get_crypt_context
+from ..root.cache import get_cache_storage
+from ..root.auth import authenticate_user, get_current_user
 from .schemas import UserSignUpSchema, UserSignInSchema, UserDBSchema
-from ..root.settings import AUTH_ROUTER_PREFIX, SIGN_UP_URL, SIGN_IN_URL, SIGN_OUT_URL, ME_URL, SESSION_TTL
 
-router = APIRouter(prefix=AUTH_ROUTER_PREFIX)
+router = APIRouter(prefix='/auth')
 
 
-@router.post(SIGN_UP_URL, response_model=UserDBSchema)
+@router.post('/sign-up', response_model=UserDBSchema)
 async def sign_up(
         data: UserSignUpSchema,
         db: AsyncSession = Depends(get_db),
@@ -71,7 +71,7 @@ async def sign_up(
     return await User.create(user, db)
 
 
-@router.post(SIGN_IN_URL)
+@router.post('/sign-in')
 async def sign_in(
         data: UserSignInSchema,
         db: AsyncSession = Depends(get_db),
@@ -102,7 +102,7 @@ async def sign_in(
     return response
 
 
-@router.post(SIGN_OUT_URL)
+@router.post('/sign-out')
 async def sign_out(
         session: str = Cookie(),
         cache_storage=Depends(get_cache_storage),
@@ -129,7 +129,7 @@ async def sign_out(
         )
 
 
-@router.get(ME_URL, response_model=UserDBSchema)
+@router.get('/me', response_model=UserDBSchema)
 async def me(current_user: User = Depends(get_current_user)) -> Optional[User]:
     """Current user data based on session value from cookie."""
 
