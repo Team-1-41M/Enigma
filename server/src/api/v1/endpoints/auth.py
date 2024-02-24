@@ -56,7 +56,7 @@ async def sign_up(
         is_active=True,
     )
 
-    return User.create(user, db)
+    return await User.create(user, db)
 
 
 @router.post(SIGN_IN_URL)
