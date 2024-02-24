@@ -6,9 +6,10 @@ API schemas for working with user accounts, including registration and login.
 """
 
 import datetime
+import re
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from server.src.api.v1.schemas.entity import EntityDBSchema
 
@@ -24,8 +25,15 @@ class UserSignInSchema(BaseModel):
     password: str = Field(
         min_length=12,
         max_length=32,
-        pattern=r"^(?=.*[a-zA-Z])(?=.*\d)(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,32}$"
     )
+
+    @field_validator("password")
+    @classmethod
+    def check_password_correct(cls, password: str) -> str:
+        pattern: re.Pattern[str] = re.compile(r"^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{12,}$")
+        if not pattern.match(password):
+            raise ValueError("Invalid password")
+        return password
 
 
 class UserSignUpSchema(UserSignInSchema):
