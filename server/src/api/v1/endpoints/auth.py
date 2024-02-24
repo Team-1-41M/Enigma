@@ -33,7 +33,19 @@ async def sign_up(
         db: AsyncSession = Depends(get_db),
         context: CryptContext = Depends(get_crypt_context),
 ) -> User:
-    """User account creation."""
+    """
+    User account creation.
+
+    :params:
+        data: user data as UserSignUpSchema
+        db: db async session
+        context: helper with hashing algorithms
+
+    :raises:
+        HTTPException: 409 conflict if user with the same name or email already exists
+
+    :return: created user
+    """
 
     same_name_user = await User.by_name(data.name, db)
     if same_name_user:
