@@ -9,10 +9,11 @@ from fastapi import FastAPI, WebSocket, APIRouter
 from starlette.middleware.cors import CORSMiddleware
 
 from .db import engine
+from .settings import CONFIG
 from server.shared.models import Base
 from server.auth.routes import router as auth_router
 
-app = FastAPI()
+app = FastAPI(debug=CONFIG["DEBUG"])
 
 app.add_middleware(
     CORSMiddleware,
