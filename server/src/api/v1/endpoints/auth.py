@@ -31,13 +31,9 @@ router = APIRouter(prefix=AUTH_ROUTER_PREFIX)
 async def sign_up(
         data: UserSignUpSchema,
         db: AsyncSession = Depends(get_db),
-        cache_storage=Depends(get_cache_storage),
         context: CryptContext = Depends(get_crypt_context),
 ):
-    """
-    User account creation.
-    Login immediately.
-    """
+    """User account creation."""
 
     same_name_user = await User.by_name(data.name, db)
     if same_name_user:
@@ -60,16 +56,7 @@ async def sign_up(
         is_active=True,
     )
 
-    _ = await User.create(user, db)
-
-    return await sign_in(
-        UserSignInSchema(
-            name=data.name,
-            password=data.password,
-        ),
-        db,
-        cache_storage
-    )
+    return User.create(user, db)
 
 
 @router.post(SIGN_IN_URL)
