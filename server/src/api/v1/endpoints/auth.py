@@ -32,7 +32,7 @@ async def sign_up(
         data: UserSignUpSchema,
         db: AsyncSession = Depends(get_db),
         context: CryptContext = Depends(get_crypt_context),
-):
+) -> User:
     """User account creation."""
 
     same_name_user = await User.by_name(data.name, db)
