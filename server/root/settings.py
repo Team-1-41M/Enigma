@@ -7,9 +7,10 @@ Constants for the project: prefixes, urls, etc.
 
 from pathlib import Path
 
+from dotenv import dotenv_values
+
 BASE_PATH = Path(__file__).resolve().parent.parent.parent
 
-SESSION_TTL = 3 * 24 * 60 * 60
+CONFIG = dotenv_values(BASE_PATH / '.env')
 
-DB_PATH = BASE_PATH / "enigma.sqlite3"
-DB_URL = f"sqlite+aiosqlite:///{DB_PATH}"
+SESSION_TTL = 3 * 24 * 60 * 60
