@@ -31,7 +31,10 @@ class UserSignInSchema(BaseModel):
 class UserSignUpSchema(UserSignInSchema):
     """Data for creating a user account."""
 
-    email: EmailStr
+    email: EmailStr = Field(
+        min_length=3,
+        max_length=256,
+    )
 
 
 class UserDBSchema(EntityDBSchema, UserSignUpSchema):
