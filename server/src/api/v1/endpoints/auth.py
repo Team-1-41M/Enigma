@@ -40,18 +40,17 @@ async def sign_up(
     """
 
     same_name_user = await User.by_name(data.name, db)
-    same_email_user = await User.by_email(data.email, db)
-
-    if same_email_user:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="User with the same email address already exists"
-        )
-
     if same_name_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="User with the same name already exists"
+        )
+
+    same_email_user = await User.by_email(data.email, db)
+    if same_email_user:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="User with the same email address already exists"
         )
 
     user = User(
