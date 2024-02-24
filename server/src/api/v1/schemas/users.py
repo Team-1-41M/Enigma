@@ -21,7 +21,11 @@ class UserSignInSchema(BaseModel):
         max_length=32,
         pattern=r"^[a-zA-Z0-9_]{3,32}$",
     )
-    password: str
+    password: str = Field(
+        min_length=12,
+        max_length=32,
+        pattern=r"^(?=.*[a-zA-Z])(?=.*\d)(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,32}$"
+    )
 
 
 class UserSignUpSchema(UserSignInSchema):
