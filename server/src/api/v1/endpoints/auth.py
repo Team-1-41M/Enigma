@@ -27,7 +27,7 @@ from server.src.core.settings import AUTH_ROUTER_PREFIX, SIGN_UP_URL, SIGN_IN_UR
 router = APIRouter(prefix=AUTH_ROUTER_PREFIX)
 
 
-@router.post(SIGN_UP_URL)
+@router.post(SIGN_UP_URL, response_model=UserDBSchema)
 async def sign_up(
         data: UserSignUpSchema,
         db: AsyncSession = Depends(get_db),
