@@ -2,9 +2,7 @@
 23.02.2024
 Alexander Tyamin.
 
-Entity - base class for models
-with some common fields
-like id, created_at, updated_at etc.
+Contains the base SQLAlchemy classes for all models.
 """
 
 import datetime
@@ -12,16 +10,26 @@ from typing import Optional
 
 from pydantic import BaseModel
 from sqlalchemy import func, select
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from server.src.core.models.base import Base
+
+class Base(DeclarativeBase, AsyncAttrs):
+    """
+    Base class to work with SQLAlchemy functionality.
+    Primarily used for Entity class.
+    """
+
+    pass
 
 
 class Entity(Base):
     """
     Used as base class for all models
-    with useful base fields.
+    with useful base fields
+    like id, created_at, updated_at etc.
     """
 
     __abstract__ = True

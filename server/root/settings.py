@@ -7,7 +7,7 @@ Constants for the project: prefixes, urls, etc.
 
 from pathlib import Path
 
-BASE_PATH = Path(__file__).resolve().parent.parent.parent.parent
+BASE_PATH = Path(__file__).resolve().parent.parent.parent
 
 API_PREFIX = '/api'
 API_VERSION_1_PREFIX = API_PREFIX + '/v1'

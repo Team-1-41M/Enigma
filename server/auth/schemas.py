@@ -5,13 +5,13 @@ Alexander Tyamin.
 API schemas for working with user accounts, including registration and login.
 """
 
-import datetime
 import re
+import datetime
 from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
-from server.src.api.v1.schemas.entity import EntityDBSchema
+from ..shared.schemas import EntityDBSchema
 
 
 class UserSignInSchema(BaseModel):

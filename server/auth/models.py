@@ -2,7 +2,7 @@
 23.02.2024
 Alexander Tyamin.
 
-User model.
+Models for user authentication.
 """
 
 import datetime
@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from server.src.core.models.entity import Entity
+from ..shared.models import Entity
 
 
 class User(Entity):

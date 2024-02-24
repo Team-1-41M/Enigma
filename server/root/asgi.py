@@ -5,12 +5,14 @@ Alexander Tyamin.
 This file contains the FastAPI application instance.
 """
 
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, APIRouter
 from starlette.middleware.cors import CORSMiddleware
 
-from server.src.api.v1.api import router as api_v1_router
-from server.src.core.models.base import Base
-from server.src.core.utils.db import engine
+# TODO: why server.* works?
+from .db import engine
+from server.shared.models import Base
+from .settings import API_VERSION_1_PREFIX
+from server.auth.routes import router as auth_router
 
 app = FastAPI()
 
@@ -24,6 +26,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+api_v1_router = APIRouter(prefix=API_VERSION_1_PREFIX)
+api_v1_router.include_router(auth_router)
 
 app.include_router(api_v1_router)
 
