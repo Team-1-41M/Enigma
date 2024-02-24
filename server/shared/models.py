@@ -8,7 +8,6 @@ Contains the base SQLAlchemy classes for all models.
 import datetime
 from typing import Optional
 
-from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.ext.asyncio import AsyncAttrs
@@ -54,7 +53,7 @@ class Entity(Base):
     @classmethod
     async def create(
             cls,
-            data: BaseModel,
+            data,
             session: AsyncSession,
     ) -> "Entity":
         """
