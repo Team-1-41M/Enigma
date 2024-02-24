@@ -60,7 +60,7 @@ class Entity(Base):
         """
 
         item = cls()
-        for attribute, value in data.items():
+        for attribute, value in data.dict().items():
             if hasattr(item, attribute):
                 setattr(item, attribute, value)
             else:
