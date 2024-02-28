@@ -11,7 +11,7 @@ from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
-from ..shared.schemas import EntityDBSchema
+from server.shared.schemas import EntityDBSchema
 
 
 class UserSignInSchema(BaseModel):

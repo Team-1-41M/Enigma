@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from ..shared.schemas import EntityDBSchema
+from server.shared.schemas import EntityDBSchema
 
 class ProjectBase(BaseModel):
     title: str
