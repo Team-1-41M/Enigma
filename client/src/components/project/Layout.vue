@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import { useProjectContextMenuStore } from '~/stores/projectContextMenu';
 import type { Project } from '~/types/project';
 
 interface Props {
     list: Project[],
 }
 const props = defineProps<Props>();
+
+const contextMenuStore = useProjectContextMenuStore();
 </script>
 
 <template>
@@ -12,6 +15,7 @@ const props = defineProps<Props>();
         <ProjectAddButton></ProjectAddButton>
         <ProjectItem v-for="project in list" :project="project"/>
     </div>
+    <ProjectContextMenu/>
 </template>
 
 <style scoped>
@@ -20,5 +24,8 @@ const props = defineProps<Props>();
     flex-wrap: wrap;
     gap: 8px;
     width: 100%;
+    height: 100%;
+    padding: 40px;
+    background-color: var(--primary);
 }
 </style>

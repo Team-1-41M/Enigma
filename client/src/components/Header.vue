@@ -4,7 +4,8 @@
 
 <template>
     <header>
-        <h1>Заголовок</h1>
+        <img src="~/assets/icons/logo.svg" alt="Discover Nuxt 3" />
+        <h1>Enigma</h1>
     </header>
 </template>
 
@@ -17,6 +18,13 @@ header {
     padding-left: 1vw;
     background-color: var(--primary);
     border-bottom: 2px solid var(--secondary)
+}
+
+h1 {
+    font-weight: 400;
+    font-style: italic;
+    font-size: 24px;
+    margin-left: 6px;
 }
 
 </style>
