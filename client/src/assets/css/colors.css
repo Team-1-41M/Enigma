@@ -1,7 +1,8 @@
 :root {
     --background: #DEDBDB;
-    --text: #FFFFFF;
+    --text: rgba(222, 219, 219, 1);
     --primary: #270334;
-    --primary-light: #3C1C48;
+    --primary-light: #2F0D3B;
+    --accent: #C63E3E;
     --secondary: #CBCFD5;
 }

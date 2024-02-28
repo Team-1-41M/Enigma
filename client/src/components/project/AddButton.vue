@@ -19,15 +19,16 @@ const handleClick = () => {
 
 <style scoped>
 .project-add-button-wrapper {
-    width: 14em;
-    height: 20em;
+    width: 19em;
+    height: 14em;
     text-align: center;
-    border-radius: 4px;  
-    background-color: var(--primary);
+    border: 1px solid transparent;
+    border-radius: 9px;  
+    background-color: #492149;
 }
 
 .project-add-button-wrapper:hover {
-    background-color: var(--primary-light);
+    border: 1px solid var(--accent);
     cursor: pointer;
 }
 
@@ -36,7 +37,7 @@ const handleClick = () => {
     margin: auto;
     position: relative;
     top: 50%;
-    color: var(--text);
+    color: var(--accent);
     -ms-transform: translateY(-50%);
     transform: translateY(-50%);
     font-size: 60px;
