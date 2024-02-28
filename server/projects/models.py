@@ -1,0 +1,10 @@
+from sqlalchemy.orm import Mapped
+from sqlalchemy import String
+
+
+from ..shared.models import Entity
+
+class Project(Entity):
+    __tablename__ = "projects"
+
+    title: Mapped[str]
