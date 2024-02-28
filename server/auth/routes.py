@@ -16,13 +16,13 @@ from starlette.responses import JSONResponse
 from starlette.exceptions import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..root.db import get_db
-from ..auth.models import User
-from ..root.settings import SESSION_TTL
-from ..root.crypt import get_crypt_context
-from ..root.cache import get_cache_storage
-from ..root.auth import authenticate_user, get_current_user
-from .schemas import UserSignUpSchema, UserSignInSchema, UserDBSchema
+from server.root.db import get_db
+from server.auth.models import User
+from server.root.settings import SESSION_TTL
+from server.root.crypt import get_crypt_context
+from server.root.cache import get_cache_storage
+from server.root.auth import authenticate_user, get_current_user
+from server.auth.schemas import UserSignUpSchema, UserSignInSchema, UserDBSchema
 
 router = APIRouter(prefix='/auth')
 

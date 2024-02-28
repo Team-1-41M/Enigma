@@ -7,7 +7,7 @@ Connecting to a database and providing a DB instance.
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession, AsyncEngine
 
-from .settings import CONFIG
+from server.root.settings import CONFIG
 
 engine: AsyncEngine = create_async_engine(CONFIG["DB_URL"])
 

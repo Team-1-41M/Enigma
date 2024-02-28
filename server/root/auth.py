@@ -13,10 +13,10 @@ from passlib.context import CryptContext
 from starlette.exceptions import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .db import get_db
-from ..auth.models import User
-from .crypt import crypt_context
-from .cache import get_cache_storage
+from server.root.db import get_db
+from server.auth.models import User
+from server.root.crypt import crypt_context
+from server.root.cache import get_cache_storage
 
 
 async def verify_password(
