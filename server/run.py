@@ -12,7 +12,7 @@ from pathlib import Path
 
 import uvicorn
 
-from server.root.settings import CONFIG
+from root.settings import CONFIG
 
 if __name__ == '__main__':
     sys.path.append(str(Path(__file__).resolve().parent.parent))
