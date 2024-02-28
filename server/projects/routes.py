@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..root.db import get_db
 from .schemas import ProjectCreate, ProjectDB
+from ..root.db import get_db
 from .models import Project
 
 router = APIRouter(prefix='/projects')
