@@ -8,9 +8,9 @@ This file contains the FastAPI application instance.
 from fastapi import FastAPI, WebSocket, APIRouter
 from starlette.middleware.cors import CORSMiddleware
 
-from .db import engine
-from .settings import CONFIG
+from server.root.db import engine
 from server.shared.models import Base
+from server.root.settings import CONFIG
 from server.auth.routes import router as auth_router
 from server.projects.routes import router as projects_router
 

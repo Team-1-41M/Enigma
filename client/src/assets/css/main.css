@@ -1,0 +1,18 @@
+@import './colors.css';
+
+html, body {
+  margin: 0px;
+  padding: 0px;
+  height: 100%;
+  background-color: var(--background);
+}
+
+h1, h2, h3, h4, h5, h6, p, label {
+    color: var(--text);
+}
+
+#__nuxt {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
