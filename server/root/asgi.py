@@ -12,6 +12,7 @@ from server.root.db import engine
 from server.shared.models import Base
 from server.root.settings import CONFIG
 from server.auth.routes import router as auth_router
+from server.projects.routes import router as projects_router
 
 app = FastAPI(debug=CONFIG["DEBUG"])
 
@@ -29,6 +30,8 @@ app.add_middleware(
 api_v1_router = APIRouter(prefix="/api/v1")
 
 api_v1_router.include_router(auth_router)
+
+api_v1_router.include_router(projects_router)
 
 app.include_router(api_v1_router)
 

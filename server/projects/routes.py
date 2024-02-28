@@ -7,6 +7,7 @@ from server.projects.schemas import ProjectCreate, ProjectDB
 
 router = APIRouter(prefix='/projects')
 
+
 @router.post('/',response_model = ProjectDB)
 async def create_project(
         project: ProjectCreate,
