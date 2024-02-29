@@ -44,22 +44,6 @@ async def startup_event() -> None:
         await conn.run_sync(Base.metadata.create_all)
 
 
-@app.get('/api/v1/projects')
-async def items():
-    return {
-        "data": [
-            {
-                "id": 1,
-                "title": "Project 1",
-            },
-            {
-                "id": 2,
-                "title": "Project 2",
-            }
-        ]
-    }
-
-
 project = '''{ "elements":[ { "id":1, "attributes":{ "name":"Element 1", "x":0, "y":0, "width":100, "height":100 } }, { "id":1, "attributes":{ "name":"Element 1", "x":0, "y":0, "width":100, "height":100 } } ] }'''
 
 clients = set()
