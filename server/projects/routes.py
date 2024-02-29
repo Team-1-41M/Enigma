@@ -8,7 +8,14 @@ from server.projects.schemas import ProjectCreate, ProjectDB
 router = APIRouter(prefix='/projects')
 
 
-@router.post('/',response_model = ProjectDB)
+@router.get('/')
+async def items(db: AsyncSession = Depends(get_db)) -> dict:
+    return {
+        "data": [_.dict() async for _ in Project.every(db)]
+    }
+
+
+@router.post('/', response_model = ProjectDB)
 async def create_project(
         project: ProjectCreate,
         db: AsyncSession = Depends(get_db)):
