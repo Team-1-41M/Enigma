@@ -6,7 +6,7 @@ Contains the base SQLAlchemy classes for all models.
 """
 
 import datetime
-from typing import Optional
+from typing import Optional, AsyncIterator
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import DeclarativeBase
@@ -36,6 +36,21 @@ class Entity(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     created_at: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime.datetime] = mapped_column(server_default=None, onupdate=func.now(), nullable=True)
+
+    @classmethod
+    async def every(cls, session: AsyncSession) -> AsyncIterator:
+        """
+        Get all objects.
+        
+        :params:
+            session: db async session
+
+        :return: AsyncIterator
+        """
+
+        scalars = await session.stream_scalars(select(cls))
+        async for scalar in scalars:
+            yield scalar
 
     @classmethod
     async def by_id(
