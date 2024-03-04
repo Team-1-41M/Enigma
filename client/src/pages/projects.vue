@@ -7,6 +7,7 @@ store.fetchProjects();
 </script>
 
 <template>
+    <Header/>
     <ProjectLayout
         :list="store.projectList"/>
 </template>
