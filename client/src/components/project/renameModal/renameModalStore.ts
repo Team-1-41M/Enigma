@@ -6,10 +6,10 @@ export const useRenameModalStore = defineStore('renameModal', () => {
   const selectedProject = ref(null as null | Project);
   const newTitle = ref('');
 
-  const openModal = (project?: Project) => {
+  const openModal = (project: Project) => {
     isVisible.value = true;
-    selectedProject.value = project ?? null;
-    newTitle.value = project?.title ?? '';
+    selectedProject.value = project;
+    newTitle.value = project.title ?? '';
   }
 
   const closeModal = () => {
