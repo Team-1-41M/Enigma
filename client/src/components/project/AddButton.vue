@@ -3,6 +3,7 @@ import { Icon } from '@iconify/vue';
 
 const projectStore = useProjectStore();
 
+
 const handleClick = async () => {
     //TODO: Открытие модалки тут
     await projectStore.createProject('test');
