@@ -15,13 +15,6 @@ async def items(db: AsyncSession = Depends(get_db)) -> dict:
     }
 
 
-@router.get('/')
-async def items(db: AsyncSession = Depends(get_db)) -> dict:
-    return {
-        "data": [_.dict() async for _ in Project.every(db)]
-    }
-
-
 @router.get('/{item_id}/')
 async def item(
         item_id: int,
