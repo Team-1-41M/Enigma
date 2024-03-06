@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useProjectContextMenuStore } from '~/stores/projectContextMenu';
 import type { Project } from '~/types/project';
+import { useCreateModalStore } from './createModal/createModalStore';
+import { useRenameModalStore } from './renameModal/renameModalStore';
 import { useDeleteConfirmationModalStore } from './deleteConfirmationModal/deleteConfirmationModalStore';
 
 interface Props {
@@ -9,7 +11,17 @@ interface Props {
 const props = defineProps<Props>();
 
 const contextMenuStore = useProjectContextMenuStore();
+const createModalStore = useCreateModalStore();
+const renameModalStore = useRenameModalStore();
 const deleteModalStore = useDeleteConfirmationModalStore();
+
+const handleCreate = () => {
+    createModalStore.openModal()
+}
+
+const handleRename = (project: Project) => {
+    renameModalStore.openModal(project)
+}
 
 const handleDeletion = (project: Project) => {
     deleteModalStore.openModal(project)
@@ -18,11 +30,14 @@ const handleDeletion = (project: Project) => {
 
 <template>
     <div class="layout-wrapper">
-        <ProjectAddButton></ProjectAddButton>
+        <ProjectAddButton @create="handleCreate" />
         <ProjectItem v-for="project in list" :project="project"/>
     </div>
     <ProjectContextMenu
+        @rename="handleRename"
         @delete="handleDeletion"/>
+    <ProjectCreateModal/>
+    <ProjectRenameModal/>
     <ProjectDeleteConfirmationModal/>
 </template>
 

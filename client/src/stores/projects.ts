@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia';
-import { 
+import {
   getProjectsAsync,
   createProjectAsync,
-  deleteProjectAsync
+  deleteProjectAsync,
+  renameProjectAsync
 } from '~/actions/projects';
 import type { Project } from '~/types/project';
 
@@ -20,6 +21,10 @@ export const useProjectStore = defineStore('projects', {
     },
     async deleteProject(id: number) {
       await deleteProjectAsync(id);
+      await this.fetchProjects();
+    },
+    async renameProject(id: number, title: string) {
+      await renameProjectAsync(id, title);
       await this.fetchProjects();
     }
   }
