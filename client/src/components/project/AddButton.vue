@@ -3,9 +3,9 @@ import { Icon } from '@iconify/vue';
 
 const projectStore = useProjectStore();
 
-const handleClick = () => {
+const handleClick = async () => {
     //TODO: Открытие модалки тут
-    projectStore.createProject('test');
+    await projectStore.createProject('test');
 }
 
 </script>
