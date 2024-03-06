@@ -20,3 +20,10 @@ export const deleteProjectAsync = async (id: number) => {
     const response = await $api.delete(`/api/v1/projects/${id}`);
     return response;
 }
+
+export const renameProjectAsync = async (id: number, title: string) => {
+    const { $api } = useNuxtApp();
+
+    const response = await $api.put(`/api/v1/projects/${id}`, { title });
+    return response;
+}

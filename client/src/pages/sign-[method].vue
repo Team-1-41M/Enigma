@@ -21,7 +21,7 @@ function tabSelect(variant: string) {
 function successfulSignIn() {
     // TODO toast
     console.log("signed in successfully")
-    router.push({ path: '/' })
+    router.push({ path: '/projects' })
 }
 
 function successfulSignUp() {

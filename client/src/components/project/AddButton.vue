@@ -3,17 +3,19 @@ import { Icon } from '@iconify/vue';
 
 const projectStore = useProjectStore();
 
+const emit = defineEmits<{
+    'create': [],
+}>();
 
-const handleClick = async () => {
-    //TODO: Открытие модалки тут
-    await projectStore.createProject('test');
+const handleClick = () => {
+    emit('create');
 }
 
 </script>
 
 <template>
     <div class="project-add-button-wrapper"
-    @click="handleClick">
+        @click="handleClick">
         <Icon 
             class="alert-icon"
             icon="majesticons:file-plus">

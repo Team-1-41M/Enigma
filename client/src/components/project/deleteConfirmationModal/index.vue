@@ -37,12 +37,11 @@ const handleCancellation = () => {
 <style scoped>
 .project-delete-modal-wrapper {
   background-color: var(--modal-background);
-  padding: 2%;
+  padding: 25px 50px;
   width: 444px;
   border-radius: 7px;
   display: flex;
   flex-direction: column;
-  gap: $gap;
 }
 
 .modal-button-container {
@@ -52,41 +51,29 @@ const handleCancellation = () => {
 }
 
 button {
-  width: 90px;
-  height: 26px;
   border-radius: 7px;
+  padding: 5px 20px;
+  cursor: pointer;
+  font: inherit;
+  color: var(--text);
 }
 
 .modal-confirm-button {
   background-color: var(--accent);
   border: none;
-  color: var(--text);
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 400;
-  font-size: 14px;
-  line-height: 17px;
 }
 
 .modal-confirm-button:hover {
   filter: brightness(140%);
-  cursor: pointer;
 }
 
 .modal-reject-button {
   background-color: transparent;
   border: 1px solid var(--text); 
-  color: var(--text);
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 400;
-  font-size: 14px;
-  line-height: 17px;
 }
 
 .modal-reject-button:hover {
   background-color: rgba(255, 255, 255, 0.2);
-  cursor: pointer;
 }
 
 p, h2 {
@@ -96,7 +83,8 @@ p, h2 {
 }
 
 h2 {
-  margin-top: 0;
+  margin: 0;
+  font-weight: inherit;
   size: 20px;
   line-height: 24px;
 }
