@@ -1,4 +1,6 @@
+from starlette import status
 from fastapi import APIRouter, Depends
+from starlette.exceptions import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from server.root.db import get_db
@@ -37,5 +39,11 @@ async def update(
         db: AsyncSession=Depends(get_db)
 ):
     project = await Project.by_id(item_id, db)
+    if project is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"ERROR: can't find a project with id {item_id}"
+        )
+
     await project.update(data.dict(), db)
     return project
