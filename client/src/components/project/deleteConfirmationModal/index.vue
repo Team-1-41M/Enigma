@@ -19,14 +19,14 @@ const handleCancellation = () => {
     :is-visible="modalStore.isVisible">
     <div class="project-delete-modal-wrapper">
       <h2 class="modal-header">
-        Удаление проекта
+        Удалить проект
       </h2>
       <p class="modal-text">Вы собираетесь удалить проект {{ modalStore.selectedProject!.title }}</p>
       <div class="modal-button-container">
-        <button @click="handleConfirmation">
+        <button class="modal-confirm-button" @click="handleConfirmation">
           Удалить
         </button>
-        <button @click="handleCancellation">
+        <button class="modal-reject-button" @click="handleCancellation">
           Отмена
         </button>
       </div>
@@ -37,7 +37,7 @@ const handleCancellation = () => {
 <style scoped>
 .project-delete-modal-wrapper {
   background-color: var(--modal-background);
-  padding: 1%;
+  padding: 2%;
   width: 444px;
   border-radius: 7px;
   display: flex;
@@ -45,7 +45,59 @@ const handleCancellation = () => {
   gap: $gap;
 }
 
+.modal-button-container {
+  margin-left: auto;
+  display: flex;
+  gap: 7px;
+}
+
+button {
+  width: 90px;
+  height: 26px;
+  border-radius: 7px;
+}
+
+.modal-confirm-button {
+  background-color: var(--accent);
+  border: none;
+  color: var(--text);
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 17px;
+}
+
+.modal-confirm-button:hover {
+  filter: brightness(140%);
+  cursor: pointer;
+}
+
+.modal-reject-button {
+  background-color: transparent;
+  border: 1px solid var(--text); 
+  color: var(--text);
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 17px;
+}
+
+.modal-reject-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+}
+
+p, h2 {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+}
+
 h2 {
-  margin-top: 0
+  margin-top: 0;
+  size: 20px;
+  line-height: 24px;
 }
 </style>
