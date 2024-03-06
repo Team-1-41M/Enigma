@@ -7,11 +7,13 @@ Contains the base SQLAlchemy classes for all models.
 
 import datetime
 from typing import Optional, AsyncIterator
+from fastapi.exceptions import HTTPException
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Mapped, mapped_column
 
 
@@ -129,3 +131,21 @@ class Entity(Base):
         """
 
         return {k: v for (k, v) in self.__dict__.items() if '_sa_' != k[:4]}
+    
+    @classmethod
+    async def delete(
+                     cls,
+                     item_id: int,
+                     db: AsyncSession
+    ):
+        """Deletes an object"""
+
+        item = await cls.by_id(item_id,db)
+        if item is None:
+            raise HTTPException(
+                status_code=404, 
+                detait="Item not found"
+            )
+
+        await db.delete(item)
+        await db.commit()

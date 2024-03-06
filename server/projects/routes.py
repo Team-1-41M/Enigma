@@ -47,3 +47,15 @@ async def update(
 
     await project.update(data.dict(), db)
     return project
+
+@router.delete('/{item_id}/')
+async def delete_project(
+        item_id: int, 
+        db: AsyncSession = Depends(get_db)
+):
+    try:
+       await Project.delete(item_id, db)
+    except HTTPException as e:
+       raise e
+    
+    return {'detail': 'Project deleted'}
