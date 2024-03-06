@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
 
+const projectStore = useProjectStore();
+
 const handleClick = () => {
-    //TODO: Создание проекта, переход к нему через navigateTo
+    //TODO: Открытие модалки тут
+    projectStore.createProject('test');
 }
 
 </script>
