@@ -15,16 +15,16 @@ async def items(db: AsyncSession = Depends(get_db)) -> dict:
     }
 
 
+@router.post('/', response_model = ProjectDB)
+async def create_project(
+        project: ProjectCreate,
+        db: AsyncSession = Depends(get_db)):
+    return await Project.create(project,db)
+
+
 @router.get('/{item_id}/')
 async def item(
         item_id: int,
         db: AsyncSession=Depends(get_db)
 ):
     return await Project.by_id(item_id, db)
-
-
-@router.post('/', response_model = ProjectDB)
-async def create_project(
-        project: ProjectCreate,
-        db: AsyncSession = Depends(get_db)):
-    return await Project.create(project,db)
