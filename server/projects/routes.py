@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from server.root.db import get_db
 from server.projects.models import Project
-from server.projects.schemas import ProjectCreate, ProjectDB
+from server.projects.schemas import ProjectCreate, ProjectUpdate, ProjectDB
 
 router = APIRouter(prefix='/projects')
 
@@ -28,3 +28,14 @@ async def item(
         db: AsyncSession=Depends(get_db)
 ):
     return await Project.by_id(item_id, db)
+
+
+@router.put('/{item_id}/')
+async def update(
+        item_id: int,
+        data: ProjectUpdate,
+        db: AsyncSession=Depends(get_db)
+):
+    project = await Project.by_id(item_id, db)
+    await project.update(data.dict(), db)
+    return project
