@@ -119,7 +119,7 @@ class Entity(Base):
                 raise AttributeError("The attribute to update does not exist in the source object")
 
         await session.commit()
-        return await session.refresh(self)
+        await session.refresh(self)
 
     def dict(self) -> dict:
         """
