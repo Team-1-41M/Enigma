@@ -37,9 +37,16 @@ class UserSignInSchema(BaseModel):
         max_length=64,
     )
 
-    @field_validator("password")
     @classmethod
-    def check_password_correct(cls, password: str) -> str:
+    @field_validator("password")
+    def check_password(cls, password: str) -> str:
+        """
+        Password validation.
+
+        Raises:
+            ValueError: if password doesn't meet the requirements.
+        """
+
         pattern: re.Pattern[str] = re.compile(r"^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{12,}$")
         if not pattern.match(password):
             raise ValueError("Invalid password")
