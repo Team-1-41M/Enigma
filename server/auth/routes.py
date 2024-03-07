@@ -48,14 +48,14 @@ async def sign_up(
         HTTPException: 409 conflict if user with the same name or email already exists.
     """
 
-    same_name_user = await User.by_name(data.name, db)
+    same_name_user: Optional[User] = await User.by_name(data.name, db)
     if same_name_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="User with the same name already exists"
         )
 
-    same_email_user = await User.by_email(data.email, db)
+    same_email_user: Optional[User] = await User.by_email(data.email, db)
     if same_email_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
