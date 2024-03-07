@@ -15,7 +15,17 @@ from server.shared.schemas import EntityDBSchema
 
 
 class UserSignInSchema(BaseModel):
-    """Data for user authentication."""
+    """
+    Data for user authentication.
+
+    Name must be between 3 and 32 characters long and contain only letters (a-zA-Z), numbers and underscores.
+    Password must meet the following requirements: 
+        contain at least one capital letter (A-Z),
+        contain at least one lowercase letter (a-z),
+        contain at least one digit (0-9),
+        contain at least one special character from the #?!@$%^&*- ,
+        be 12 characters to 64 characters long.
+    """
 
     name: str = Field(
         min_length=3,
