@@ -36,15 +36,16 @@ async def sign_up(
     """
     User account creation.
 
-    :params:
-        data: user data as UserSignUpSchema
-        db: db async session
-        context: helper with hashing algorithms
+    Args:
+        data: user data as UserSignUpSchema.
+        db: db async session.
+        context: helper with hashing algorithms.
 
-    :raises:
-        HTTPException: 409 conflict if user with the same name or email already exists
+    Returns: 
+        None.
 
-    :return: created user
+    Raises:
+        HTTPException: 409 conflict if user with the same name or email already exists.
     """
 
     same_name_user = await User.by_name(data.name, db)
