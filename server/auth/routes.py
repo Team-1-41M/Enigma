@@ -66,7 +66,6 @@ async def sign_up(
         name=data.name,
         email=data.email,
         password=context.hash(data.password),
-        is_active=True,
     )
     await User.create(user, db)
 

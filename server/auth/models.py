@@ -23,7 +23,7 @@ class User(Entity):
     name: Mapped[str]
     email: Mapped[str]
     password: Mapped[str]
-    is_active: Mapped[bool]
+    is_active: Mapped[bool] = mapped_column(default=True)
     login_at: Mapped[datetime.datetime] = mapped_column(server_default=None, nullable=True)
 
     @staticmethod
