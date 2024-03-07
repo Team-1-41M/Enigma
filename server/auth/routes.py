@@ -52,14 +52,14 @@ async def sign_up(
     if same_name_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="User with the same name already exists"
+            detail="User with the same name already exists."
         )
 
     same_email_user: Optional[User] = await User.by_email(data.email, db)
     if same_email_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="User with the same email address already exists"
+            detail="User with the same email address already exists."
         )
 
     user = User(
@@ -85,7 +85,7 @@ async def sign_in(
         cache_storage: key-value storage interface.
 
     Returns:
-        JSONResponse with message that session was successfully created.
+        JSONResponse: message about successful login.
 
     Raises:
         HTTPException: 401 if user name or password is incorrect.
@@ -95,7 +95,7 @@ async def sign_in(
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect name or password"
+            detail="Incorrect name or password."
         )
 
     updated_login_time = {
@@ -107,7 +107,7 @@ async def sign_in(
     await cache_storage.set(session_id, user.id)
     await cache_storage.expire(session_id, SESSION_TTL)
 
-    response = JSONResponse({"detail": "Logged in successfully"})
+    response = JSONResponse({"detail": "Logged in successfully."})
     response.set_cookie("session", session_id, max_age=SESSION_TTL)
 
     return response
@@ -115,29 +115,33 @@ async def sign_in(
 
 @router.post('/sign-out')
 async def sign_out(
-        session: str = Cookie(),
+        _: User = Depends(get_current_user),
+        session: Optional[str] = Cookie(None),
         cache_storage=Depends(get_cache_storage),
 ) -> JSONResponse:
     """
     Deletes a user session.
 
-    raises: HTTPException if session not found in cookie
+    Args:
+        _: current user object, not used, just need session check.
+        session: session uuid from cookie.
+        cache_storage: key-value storage interface.
 
-    return: JSONResponse with message that session was successfully removed
+    Returns: 
+        JSONResponse: with message that session was successfully removed.
+
+    Raises: 
+        HTTPException: 401 if session is not provided or expired.
     """
 
-    if await cache_storage.get(session):
-        await cache_storage.delete(session)
+    # No need to check if session is not None here, 
+    # it's already checked in get_current_user
+    await cache_storage.delete(session)
 
-        response = JSONResponse({"detail": f"Session {session} was removed"})
-        response.delete_cookie('session')
+    response = JSONResponse({"detail": f"Session {session} was removed."})
+    response.delete_cookie('session')
 
-        return response
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Session {session} not found"
-        )
+    return response
 
 
 @router.get('/me', response_model=UserDBSchema)
