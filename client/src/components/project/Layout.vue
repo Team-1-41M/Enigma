@@ -46,8 +46,9 @@ const handleDeletion = (project: Project) => {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    width: 100%;
-    height: 100%;
+    width: calc(100% - 80px);
+    height: calc(100% - 80px);
+    overflow-y: auto;
     padding: 40px;
     background-color: var(--primary);
 }

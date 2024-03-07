@@ -4,8 +4,10 @@
 
 <template>
     <header>
-        <img src="~/assets/icons/logo.svg" alt="Discover Nuxt 3" />
+        <img src="~/assets/icons/logo.svg" />
         <h1>Enigma</h1>
+        <div class="spacer" />
+        <UserDisplay />
     </header>
 </template>
 
@@ -14,10 +16,14 @@ header {
     display: flex;
     align-items: center;
     box-sizing: border-box;
-    height: 7vh;
-    padding-left: 1vw;
+    height: 75px;
+    padding: 20px 32px;
     background-color: var(--primary);
     border-bottom: 2px solid var(--secondary)
+}
+
+.spacer {
+    flex-grow: 1;
 }
 
 h1 {
