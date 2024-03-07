@@ -30,7 +30,7 @@ class User(Entity):
     async def by_email(
             email: str,
             session: AsyncSession,
-    ) -> Optional:
+    ) -> Optional["User"]:
         """Finds a user by email."""
 
         return await session.scalar(select(User).where(User.email == email))
