@@ -53,7 +53,7 @@ function successfulSignUp() {
                 <Form :submit="signUp" :success="successfulSignUp">
                     <Input name="name" type='text'>Логин</Input>
                     <Input name="email" type='email'>Email</Input>
-                    <Input name="password" type='password'>Пароль</Input>
+                    <Input name="password" type='password' autocomplete="new-password">Пароль</Input>
                     <template #submitText>ОК</template>
                 </Form>
             </template>

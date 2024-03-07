@@ -4,7 +4,7 @@ import SubmitButton from "~/components/form/SubmitButton.vue";
 
 const props = withDefaults(
     defineProps<{
-        submit: (data: I) => Promise<AxiosResponse<S, E>>;
+        submit: (data: I) => Promise<S>;
         success: (result: S) => void;
         parseError?: (error: E) => string;
     }>(),
@@ -37,7 +37,7 @@ async function submitFunction(e: Event) {
 
     props
         .submit(i as I)
-        .then(s => props.success(s.data))
+        .then(s => props.success(s))
         .catch(e => currentError.value = props.parseError(e as E));
 }
 </script>
