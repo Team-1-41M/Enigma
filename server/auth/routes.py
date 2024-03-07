@@ -76,7 +76,20 @@ async def sign_in(
         db: AsyncSession = Depends(get_db),
         cache_storage=Depends(get_cache_storage),
 ) -> JSONResponse:
-    """User authentication into the system with setting the session value."""
+    """
+    User authentication into the system with setting the session value.
+
+    Args:
+        data: user data as UserSignInSchema.
+        db: db async session.
+        cache_storage: key-value storage interface.
+
+    Returns:
+        JSONResponse with message that session was successfully created.
+
+    Raises:
+        HTTPException: 401 if user name or password is incorrect.
+    """
 
     user: Optional[User] = await authenticate_user(data.name, data.password, db)
     if user is None:
