@@ -6,7 +6,7 @@ Models for user authentication.
 """
 
 import datetime
-from typing import Optional
+from typing import Optional, Awaitable
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,7 +30,7 @@ class User(Entity):
     async def by_email(
             email: str,
             session: AsyncSession,
-    ) -> Optional["User"]:
+    ) -> Awaitable[Optional["User"]]:
         """Finds a user by email."""
 
         return await session.scalar(select(User).where(User.email == email))
@@ -39,7 +39,7 @@ class User(Entity):
     async def by_name(
             name: str,
             session: AsyncSession,
-    ) -> Optional["User"]:
+    ) -> Awaitable[Optional["User"]]:
         """Finds a user by name."""
 
         return await session.scalar(select(User).where(User.name == name))
