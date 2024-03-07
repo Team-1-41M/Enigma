@@ -98,18 +98,17 @@ async def sign_in(
             detail="Incorrect name or password"
         )
 
-    session_id = str(uuid.uuid4())
-    await cache_storage.set(session_id, user.id)
-
-    await cache_storage.expire(session_id, SESSION_TTL)
-
-    response = JSONResponse({"detail": "Logged in successfully"})
-    response.set_cookie("session", session_id, max_age=SESSION_TTL)
-
     updated_login_time = {
         "login_at": datetime.datetime.now(datetime.UTC),
     }
     await user.update(updated_login_time, db)
+
+    session_id = str(uuid.uuid4())
+    await cache_storage.set(session_id, user.id)
+    await cache_storage.expire(session_id, SESSION_TTL)
+
+    response = JSONResponse({"detail": "Logged in successfully"})
+    response.set_cookie("session", session_id, max_age=SESSION_TTL)
 
     return response
 
