@@ -146,6 +146,14 @@ async def sign_out(
 
 @router.get('/me', response_model=UserDBSchema)
 async def me(current_user: User = Depends(get_current_user)) -> Optional[User]:
-    """Current user data based on session value from cookie."""
+    """
+    Current user data based on session value from cookie.
+
+    Args:
+        current_user: current user object.
+    
+    Returns:
+        Optional[User]: current user object or None if user is not found.
+    """
 
     return current_user
