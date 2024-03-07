@@ -39,7 +39,7 @@ class User(Entity):
     async def by_name(
             name: str,
             session: AsyncSession,
-    ) -> Optional:
+    ) -> Optional["User"]:
         """Finds a user by name."""
 
         return await session.scalar(select(User).where(User.name == name))
