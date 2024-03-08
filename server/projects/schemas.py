@@ -32,3 +32,10 @@ class ProjectDBSchema(EntityDBSchema, ProjectCreateSchema):
     """Project data in the database."""
 
     pass
+
+
+class ProjectItemsSchema(BaseModel):
+    """Details of requested projects with some additional information."""
+
+    length: int
+    data: list[ProjectDBSchema]
