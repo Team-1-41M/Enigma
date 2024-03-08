@@ -10,17 +10,17 @@ from pydantic import BaseModel
 from server.shared.schemas import EntityDBSchema
 
 
-class ProjectBase(BaseModel):
+class ProjectBaseSchema(BaseModel):
     title: str
 
       
-class ProjectCreate(ProjectBase):
+class ProjectCreateSchema(ProjectBaseSchema):
     pass
 
 
-class ProjectUpdate(ProjectBase):
+class ProjectUpdateSchema(ProjectBaseSchema):
     pass
 
 
-class ProjectDB(EntityDBSchema, ProjectCreate):
+class ProjectDBSchema(EntityDBSchema, ProjectCreateSchema):
     pass
