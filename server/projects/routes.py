@@ -126,6 +126,21 @@ async def delete(
         item_id: int, 
         db: AsyncSession = Depends(get_db),
 ) -> None:
+    """
+    Delete project.
+
+    Args:
+        item_id: project id as integer.
+        db: db async session.
+
+    Raises:
+        HTTPException: 404 if project with specified id not found.
+
+    Returns:
+        None
+
+    """
+
     try:
        await Project.delete(item_id, db)
     except RuntimeError as e:
