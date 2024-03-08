@@ -20,7 +20,7 @@ from server.projects.schemas import ProjectCreateSchema, ProjectUpdateSchema, Pr
 router = APIRouter(prefix='/projects')
 
 
-@router.get('/', response_model=ProjectItemsSchema)
+@router.get('/', response_model = ProjectItemsSchema)
 async def items(db: AsyncSession = Depends(get_db)) -> Awaitable[dict[str, Any]]:
     """
     Get all projects.
@@ -44,7 +44,7 @@ async def items(db: AsyncSession = Depends(get_db)) -> Awaitable[dict[str, Any]]
 async def create(
         project: ProjectCreateSchema,
         db: AsyncSession = Depends(get_db),
-):
+) -> Awaitable[Project]:
     """
     Create new project.
 
