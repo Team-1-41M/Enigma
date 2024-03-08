@@ -47,7 +47,7 @@ class UserSignInSchema(BaseModel):
             ValueError: if password doesn't meet the requirements.
         """
 
-        pattern: re.Pattern[str] = re.compile(r"^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{12,}$")
+        pattern: re.Pattern[str] = re.compile(r"^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{12,64}$")
         if not pattern.match(password):
             raise ValueError("Invalid password")
         return password
