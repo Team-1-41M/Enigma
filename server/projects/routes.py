@@ -121,13 +121,13 @@ async def update(
     return project
 
 @router.delete('/{item_id}/')
-async def delete_project(
+async def delete(
         item_id: int, 
         db: AsyncSession = Depends(get_db)
 ):
     try:
        await Project.delete(item_id, db)
-    except HTTPException as e:
-       raise e
+    except RuntimeError as e:
+       raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     
     return {'detail': 'Project deleted'}
