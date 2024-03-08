@@ -88,20 +88,36 @@ async def item(
     return project
 
 
-@router.put('/{item_id}/')
+@router.put('/{item_id}/', response_model = ProjectDBSchema)
 async def update(
         item_id: int,
         data: ProjectUpdateSchema,
         db: AsyncSession=Depends(get_db)
-):
+) -> Awaitable[Project]:
+    """
+    Update project.
+
+    Args:
+        item_id: project id as integer.
+        data: project data as ProjectUpdateSchema.
+        db: db async session.
+
+    Returns:
+        Project: updated project data.
+
+    Raises:
+        HTTPException: 404 if project with specified id not found.
+    """
+
     project = await Project.by_id(item_id, db)
     if project is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"ERROR: can't find a project with id {item_id}"
+            detail=f"Project with id {item_id} doesn't exist.",
         )
 
     await project.update(data.dict(), db)
+    
     return project
 
 @router.delete('/{item_id}/')
