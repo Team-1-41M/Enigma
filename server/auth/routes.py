@@ -22,7 +22,7 @@ from server.root.settings import SESSION_TTL
 from server.root.crypt import get_crypt_context
 from server.root.cache import get_cache_storage
 from server.root.auth import authenticate_user, get_current_user
-from server.auth.schemas import UserSignUpSchema, UserSignInSchema, UserDBSchema
+from server.auth.schemas import UserSignUpSchema, UserSignInSchema
 
 router = APIRouter(prefix='/auth')
 
