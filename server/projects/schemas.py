@@ -11,6 +11,8 @@ from server.shared.schemas import EntityDBSchema
 
 
 class ProjectBaseSchema(BaseModel):
+    """Minimal information about the project."""
+
     title: str
 
       
