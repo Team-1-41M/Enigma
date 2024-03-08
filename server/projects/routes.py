@@ -22,6 +22,17 @@ router = APIRouter(prefix='/projects')
 
 @router.get('/', response_model=ProjectItemsSchema)
 async def items(db: AsyncSession = Depends(get_db)) -> Awaitable[dict[str, Any]]:
+    """
+    Get all projects.
+
+    Args:
+        db: db async session.
+
+    Returns:
+        dict[str, Any]: dict with data as a list of projects and length of the list.
+    
+    """
+
     data = [_ async for _ in Project.every(db)]
     return {
         "data": data,
