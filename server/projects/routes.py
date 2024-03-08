@@ -6,6 +6,8 @@ Alexander Tyamin.
 Routes for projects management.
 """
 
+from typing import Awaitable, Any
+
 from starlette import status
 from fastapi import APIRouter, Depends
 from starlette.exceptions import HTTPException
@@ -13,15 +15,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from server.root.db import get_db
 from server.projects.models import Project
-from server.projects.schemas import ProjectCreateSchema, ProjectUpdateSchema, ProjectDBSchema
+from server.projects.schemas import ProjectCreateSchema, ProjectUpdateSchema, ProjectDBSchema, ProjectItemsSchema
 
 router = APIRouter(prefix='/projects')
 
 
-@router.get('/')
-async def items(db: AsyncSession = Depends(get_db)) -> dict:
+@router.get('/', response_model=ProjectItemsSchema)
+async def items(db: AsyncSession = Depends(get_db)) -> Awaitable[dict[str, Any]]:
+    data = [_ async for _ in Project.every(db)]
     return {
-        "data": [_.dict() async for _ in Project.every(db)]
+        "data": data,
+        "length": len(data),
     }
 
 
