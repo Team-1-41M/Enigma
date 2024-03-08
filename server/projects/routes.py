@@ -53,17 +53,28 @@ async def create(
         db: db async session.
 
     Returns:
-        ProjectDBSchema: created project data.
+        Project: created project data.
     """
 
     return await Project.create(project, db)
 
 
-@router.get('/{item_id}/')
+@router.get('/{item_id}/', response_model = ProjectDBSchema)
 async def item(
         item_id: int,
         db: AsyncSession=Depends(get_db)
-):
+) -> Awaitable[Project]:
+    """
+    Get project by id.
+
+    Args:
+        item_id: project id as integer.
+        db: db async session.
+
+    Returns:
+        Project: project data.
+    """
+
     return await Project.by_id(item_id, db)
 
 
