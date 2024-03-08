@@ -45,6 +45,17 @@ async def create(
         project: ProjectCreateSchema,
         db: AsyncSession = Depends(get_db),
 ):
+    """
+    Create new project.
+
+    Args:
+        project: project data as ProjectCreateSchema.
+        db: db async session.
+
+    Returns:
+        ProjectDBSchema: created project data.
+    """
+
     return await Project.create(project, db)
 
 
