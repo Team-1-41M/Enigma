@@ -73,9 +73,19 @@ async def item(
 
     Returns:
         Project: project data.
+
+    Raises:
+        HTTPException: 404 if project with specified id not found.
     """
 
-    return await Project.by_id(item_id, db)
+    project = await Project.by_id(item_id, db)
+    if project is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Project with id {item_id} doesn't exist.",
+        )
+
+    return project
 
 
 @router.put('/{item_id}/')
