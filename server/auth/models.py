@@ -20,7 +20,7 @@ class User(Entity):
 
     __tablename__ = "users"
 
-    name: Mapped[str]
+    name: Mapped[str] = mapped_column(unique=True)
     email: Mapped[str]
     password: Mapped[str]
     is_active: Mapped[bool] = mapped_column(default=True)
