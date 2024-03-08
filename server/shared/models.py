@@ -134,18 +134,15 @@ class Entity(Base):
     
     @classmethod
     async def delete(
-                     cls,
-                     item_id: int,
-                     db: AsyncSession
+            cls,
+            item_id: int,
+            db: AsyncSession,
     ):
         """Deletes an object"""
 
-        item = await cls.by_id(item_id,db)
+        item = await cls.by_id(item_id, db)
         if item is None:
-            raise HTTPException(
-                status_code=404, 
-                detait="Item not found"
-            )
+            raise RuntimeError(f"Item with id {item_id} not found.")
 
         await db.delete(item)
         await db.commit()
