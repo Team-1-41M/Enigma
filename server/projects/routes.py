@@ -10,6 +10,7 @@ from typing import Awaitable, Any
 
 from starlette import status
 from fastapi import APIRouter, Depends
+from starlette.responses import JSONResponse
 from starlette.exceptions import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -120,14 +121,12 @@ async def update(
     
     return project
 
-@router.delete('/{item_id}/')
+@router.delete('/{item_id}/', status_code=status.HTTP_204_NO_CONTENT)
 async def delete(
         item_id: int, 
-        db: AsyncSession = Depends(get_db)
-):
+        db: AsyncSession = Depends(get_db),
+) -> None:
     try:
        await Project.delete(item_id, db)
     except RuntimeError as e:
        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    
-    return {'detail': 'Project deleted'}
