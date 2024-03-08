@@ -17,6 +17,8 @@ class ProjectBaseSchema(BaseModel):
 
       
 class ProjectCreateSchema(ProjectBaseSchema):
+    """Information that the user must provide to create a project."""
+
     pass
 
 
