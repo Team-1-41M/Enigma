@@ -33,18 +33,19 @@ async def items(db: AsyncSession = Depends(get_db)) -> Awaitable[dict[str, Any]]
     
     """
 
-    data = [_ async for _ in Project.every(db)]
+    data: list[Project] = [_ async for _ in Project.every(db)]
     return {
         "data": data,
         "length": len(data),
     }
 
 
-@router.post('/', response_model = ProjectDBSchema)
-async def create_project(
+@router.post('/', response_model = ProjectDBSchema, status_code = status.HTTP_201_CREATED)
+async def create(
         project: ProjectCreateSchema,
-        db: AsyncSession = Depends(get_db)):
-    return await Project.create(project,db)
+        db: AsyncSession = Depends(get_db),
+):
+    return await Project.create(project, db)
 
 
 @router.get('/{item_id}/')
