@@ -1,3 +1,11 @@
+"""
+28.02.2024
+Daniil Stenyushkin.
+Alexander Tyamin.
+
+Routes for projects management.
+"""
+
 from starlette import status
 from fastapi import APIRouter, Depends
 from starlette.exceptions import HTTPException
