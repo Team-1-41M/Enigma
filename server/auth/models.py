@@ -21,7 +21,7 @@ class User(Entity):
     __tablename__ = "users"
 
     name: Mapped[str] = mapped_column(unique=True)
-    email: Mapped[str]
+    email: Mapped[str] = mapped_column(unique=True)
     password: Mapped[str]
     is_active: Mapped[bool] = mapped_column(default=True)
     login_at: Mapped[datetime.datetime] = mapped_column(server_default=None, nullable=True)
