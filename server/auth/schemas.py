@@ -65,5 +65,5 @@ class UserSignUpSchema(UserSignInSchema):
 class UserDBSchema(EntityDBSchema, UserSignUpSchema):
     """User data in the database."""
 
-    is_active: bool
-    login_at: Optional[datetime.datetime]
+    is_active: bool = True
+    login_at: Optional[datetime.datetime] = None
