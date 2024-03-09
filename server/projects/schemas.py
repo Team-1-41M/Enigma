@@ -5,9 +5,7 @@ Daniil Stenyushkin.
 API schemas for projects.
 """
 
-from typing import Any
-
-from pydantic import BaseModel, Json
+from pydantic import BaseModel
 
 from server.shared.schemas import EntityDBSchema
 
