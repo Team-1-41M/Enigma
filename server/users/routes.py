@@ -17,7 +17,7 @@ from server.auth.schemas import UserDBSchema
 from server.root.auth import get_current_user
 from server.projects.schemas import ProjectItemsSchema
 
-router = APIRouter(prefix='/users')
+router = APIRouter(prefix='/users', tags=["Users"])
 
 
 @router.get('/me', response_model=UserDBSchema)

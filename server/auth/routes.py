@@ -24,7 +24,7 @@ from server.root.cache import get_cache_storage
 from server.root.auth import authenticate_user, get_current_user
 from server.auth.schemas import UserSignUpSchema, UserSignInSchema
 
-router = APIRouter(prefix='/auth')
+router = APIRouter(prefix='/auth', tags=["Authentication"])
 
 
 @router.post('/sign-up', status_code=status.HTTP_204_NO_CONTENT)

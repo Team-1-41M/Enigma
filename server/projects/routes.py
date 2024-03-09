@@ -19,7 +19,7 @@ from server.projects.models import Project
 from server.root.auth import get_current_user
 from server.projects.schemas import ProjectCreateSchema, ProjectUpdateSchema, ProjectDBSchema
 
-router = APIRouter(prefix='/projects')
+router = APIRouter(prefix='/projects', tags=["Projects"])
 
 
 @router.post('', response_model = ProjectDBSchema, status_code = status.HTTP_201_CREATED)
