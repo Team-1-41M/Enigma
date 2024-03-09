@@ -15,7 +15,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from server.root.db import get_db
 from server.auth.models import User
-from server.root.crypt import get_crypt_context
 from server.root.cache import get_cache_storage
 
 
