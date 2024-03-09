@@ -5,7 +5,9 @@ Daniil Stenyushkin.
 API schemas for projects.
 """
 
-from pydantic import BaseModel
+from typing import Any
+
+from pydantic import BaseModel, Json
 
 from server.shared.schemas import EntityDBSchema
 
@@ -32,6 +34,7 @@ class ProjectDBSchema(EntityDBSchema, ProjectCreateSchema):
     """Project data in the database."""
 
     author_id: int
+    content: str
 
 
 class ProjectItemsSchema(BaseModel):
