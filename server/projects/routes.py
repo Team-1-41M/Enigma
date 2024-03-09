@@ -45,6 +45,7 @@ async def create(
 
     data = data.dict()
     data['author_id'] = current_user.id
+    data['content'] = '{"elements": []}'
 
     try:
         project = await Project.create(data, db)
