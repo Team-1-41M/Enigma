@@ -9,10 +9,9 @@ Routes for projects management.
 from typing import Awaitable
 
 from starlette import status
-from fastapi import APIRouter, Depends
 from starlette.exceptions import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from fastapi import APIRouter, Depends, WebSocket
 
 from server.root.db import get_db
 from server.auth.models import User
@@ -144,3 +143,48 @@ async def delete(
        await Project.delete(item_id, db)
     except RuntimeError as e:
        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+# TODO: Where to put it?
+clients = set()
+
+
+@router.websocket("/{item_id}/content")
+async def process(
+        item_id: int, 
+        socket: WebSocket, 
+        db: AsyncSession = Depends(get_db),
+) -> None:
+    """
+    Collects project content changes from the client
+    and notifies other clients about this.
+
+    Args:
+        socket: client socket.
+    
+    Returns:
+        None.
+    """
+
+    project = await Project.by_id(item_id, db)
+    if project is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Project with id {item_id} doesn't exist.",
+        )
+
+    await socket.accept()
+    clients.add(socket)
+
+    await socket.send_text(project.content)
+
+    while True:
+        content = await socket.receive_text()
+
+        try:
+            await project.update({"content": content}, db)
+        except AttributeError as e:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+        for client in clients:
+            if client != socket:
+                await client.send_text(content)
