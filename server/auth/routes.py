@@ -78,6 +78,7 @@ async def sign_in(
         data: UserSignInSchema,
         db: AsyncSession = Depends(get_db),
         cache_storage=Depends(get_cache_storage),
+        context: CryptContext = Depends(get_crypt_context),
 ) -> JSONResponse:
     """
     User authentication into the system with setting the session value.
@@ -94,7 +95,7 @@ async def sign_in(
         HTTPException: 401 if user name or password is incorrect.
     """
 
-    user: Optional[User] = await authenticate_user(data.name, data.password, db)
+    user: Optional[User] = await authenticate_user(data.name, data.password, db, context)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

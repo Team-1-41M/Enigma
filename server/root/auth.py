@@ -22,7 +22,7 @@ from server.root.cache import get_cache_storage
 async def verify_password(
         plain_password: str,
         hashed_password: str,
-        context: CryptContext=Depends(get_crypt_context),
+        context: CryptContext,
 ) -> Awaitable[bool]:
     """
     Verify hashed password.
@@ -43,7 +43,7 @@ async def authenticate_user(
         name: str,
         password: str,
         db: AsyncSession,
-        context: CryptContext=Depends(get_crypt_context),
+        context: CryptContext,
 ) -> Awaitable[Optional[User]]:
     """
     Trying to find a user with same name and password.
@@ -67,7 +67,7 @@ async def authenticate_user(
 async def get_current_user(
         session: str = Cookie(None),
         db: AsyncSession = Depends(get_db),
-        cache_storage=Depends(get_cache_storage),
+        cache_storage = Depends(get_cache_storage),
 ) -> Awaitable[Optional[User]]:
     """
     Get current user by session value.
