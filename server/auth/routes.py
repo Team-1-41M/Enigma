@@ -103,7 +103,7 @@ async def sign_in(
         )
 
     try:
-        await user.update({"login_at": datetime.datetime.now(datetime.UTC)}, db)
+        await user.update({"login_at": datetime.datetime.utcnow()}, db)
     except AttributeError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
