@@ -10,12 +10,14 @@ from typing import Awaitable, Any
 
 from starlette import status
 from fastapi import APIRouter, Depends
-from starlette.responses import JSONResponse
 from starlette.exceptions import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+
 from server.root.db import get_db
+from server.auth.models import User
 from server.projects.models import Project
+from server.root.auth import get_current_user
 from server.projects.schemas import ProjectCreateSchema, ProjectUpdateSchema, ProjectDBSchema, ProjectItemsSchema
 
 router = APIRouter(prefix='/projects')
@@ -43,8 +45,9 @@ async def items(db: AsyncSession = Depends(get_db)) -> Awaitable[dict[str, Any]]
 
 @router.post('/', response_model = ProjectDBSchema, status_code = status.HTTP_201_CREATED)
 async def create(
-        project: ProjectCreateSchema,
+        data: ProjectCreateSchema,
         db: AsyncSession = Depends(get_db),
+        current_user: User = Depends(get_current_user),
 ) -> Awaitable[Project]:
     """
     Create new project.
@@ -55,9 +58,20 @@ async def create(
 
     Returns:
         Project: created project data.
+
+    Raises:
+        HTTPException: 400 if some attribute from data doesn't exist in the constructed object.
     """
 
-    return await Project.create(project.dict(), db)
+    data = data.dict()
+    data['author_id'] = current_user.id
+
+    try:
+        project = await Project.create(data, db)
+    except AttributeError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    
+    return project
 
 
 @router.get('/{item_id}/', response_model = ProjectDBSchema)
