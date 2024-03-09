@@ -6,7 +6,7 @@ Alexander Tyamin.
 Routes for projects management.
 """
 
-from typing import Awaitable, Any
+from typing import Awaitable
 
 from starlette import status
 from fastapi import APIRouter, Depends
@@ -18,29 +18,9 @@ from server.root.db import get_db
 from server.auth.models import User
 from server.projects.models import Project
 from server.root.auth import get_current_user
-from server.projects.schemas import ProjectCreateSchema, ProjectUpdateSchema, ProjectDBSchema, ProjectItemsSchema
+from server.projects.schemas import ProjectCreateSchema, ProjectUpdateSchema, ProjectDBSchema
 
 router = APIRouter(prefix='/projects')
-
-
-@router.get('', response_model = ProjectItemsSchema)
-async def items(db: AsyncSession = Depends(get_db)) -> Awaitable[dict[str, Any]]:
-    """
-    Get all projects.
-
-    Args:
-        db: db async session.
-
-    Returns:
-        dict[str, Any]: dict with data as a list of projects and length of the list.
-    
-    """
-
-    data: list[Project] = [_ async for _ in Project.every(db)]
-    return {
-        "data": data,
-        "length": len(data),
-    }
 
 
 @router.post('', response_model = ProjectDBSchema, status_code = status.HTTP_201_CREATED)
