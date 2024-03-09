@@ -18,9 +18,9 @@ from server.auth.models import User
 from server.projects.models import Project
 from server.root.auth import get_current_user
 from server.projects.schemas import (
+    ProjectDBSchema,
     ProjectCreateSchema,
     ProjectUpdateSchema,
-    ProjectDBSchema,
 )
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
