@@ -124,16 +124,6 @@ class Entity(Base):
 
         await session.commit()
         await session.refresh(self)
-
-    # def dict(self) -> dict:
-    #     """
-    #     Model attributes excluding SQLAlchemy attributes.
-
-    #     Returns: 
-    #         dict: without SQLAlchemy attributes.
-    #     """
-
-    #     return {k: v for (k, v) in self.__dict__.items() if '_sa_' != k[:4]}
     
     @classmethod
     async def delete(
