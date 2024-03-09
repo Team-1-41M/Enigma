@@ -105,7 +105,7 @@ async def get_cache_storage() -> CacheStorage:
     Provides a key-value storage.
 
     Returns:
-        CacheStorage: key-value storage
+        CacheStorage: key-value storage.
     """
 
     return storage

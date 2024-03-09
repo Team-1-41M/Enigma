@@ -15,24 +15,25 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from server.root.db import get_db
 from server.auth.models import User
-from server.root.crypt import crypt_context
+from server.root.crypt import get_crypt_context
 from server.root.cache import get_cache_storage
 
 
 async def verify_password(
         plain_password: str,
         hashed_password: str,
-        context: CryptContext = crypt_context,
+        context: CryptContext=Depends(get_crypt_context),
 ) -> bool:
     """
     Verify hashed password.
 
-    params:
-        plain_password: raw user password
-        hashed_password: hashed password stored in the database
-        context: helper with hashing algorithms
+    Args:
+        plain_password: raw user password.
+        hashed_password: hashed password stored in the database.
+        context: helper with hashing algorithms.
 
-    :return bool: True if passwords match, False otherwise.
+    Returns: 
+        bool: True if passwords match, False otherwise.
     """
 
     return context.verify(plain_password, hashed_password)
@@ -42,7 +43,7 @@ async def authenticate_user(
         name: str,
         password: str,
         db: AsyncSession,
-        context: CryptContext = crypt_context,
+        context: CryptContext=Depends(get_crypt_context),
 ) -> Optional[User]:
     """Trying to find a user with same name and password."""
 
