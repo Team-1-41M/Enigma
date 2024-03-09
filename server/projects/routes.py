@@ -23,7 +23,7 @@ from server.projects.schemas import ProjectCreateSchema, ProjectUpdateSchema, Pr
 router = APIRouter(prefix='/projects')
 
 
-@router.get('/', response_model = ProjectItemsSchema)
+@router.get('', response_model = ProjectItemsSchema)
 async def items(db: AsyncSession = Depends(get_db)) -> Awaitable[dict[str, Any]]:
     """
     Get all projects.
@@ -43,7 +43,7 @@ async def items(db: AsyncSession = Depends(get_db)) -> Awaitable[dict[str, Any]]
     }
 
 
-@router.post('/', response_model = ProjectDBSchema, status_code = status.HTTP_201_CREATED)
+@router.post('', response_model = ProjectDBSchema, status_code = status.HTTP_201_CREATED)
 async def create(
         data: ProjectCreateSchema,
         db: AsyncSession = Depends(get_db),
@@ -74,7 +74,7 @@ async def create(
     return project
 
 
-@router.get('/{item_id}/', response_model = ProjectDBSchema)
+@router.get('/{item_id}', response_model = ProjectDBSchema)
 async def item(
         item_id: int,
         db: AsyncSession=Depends(get_db)
@@ -103,7 +103,7 @@ async def item(
     return project
 
 
-@router.put('/{item_id}/', response_model = ProjectDBSchema)
+@router.put('/{item_id}', response_model = ProjectDBSchema)
 async def update(
         item_id: int,
         data: ProjectUpdateSchema,
@@ -135,7 +135,7 @@ async def update(
     
     return project
 
-@router.delete('/{item_id}/', status_code=status.HTTP_204_NO_CONTENT)
+@router.delete('/{item_id}', status_code=status.HTTP_204_NO_CONTENT)
 async def delete(
         item_id: int, 
         db: AsyncSession = Depends(get_db),
