@@ -24,6 +24,7 @@ class Project(Entity):
 
     title: Mapped[str]
     author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    content: Mapped[str]
 
     @staticmethod
     async def by_author(
