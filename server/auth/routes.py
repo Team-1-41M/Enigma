@@ -61,13 +61,11 @@ async def sign_up(
             status_code=status.HTTP_409_CONFLICT,
             detail="User with the same email address already exists."
         )
+    
+    data = data.dict()
+    data["password"] = context.hash(data["password"])
 
-    user = User(
-        name=data.name,
-        email=data.email,
-        password=context.hash(data.password),
-    )
-    await User.create(user, db)
+    await User.create(data, db)
 
 
 @router.post('/sign-in')

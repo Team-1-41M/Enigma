@@ -129,7 +129,8 @@ class Entity(Base):
     #     """
     #     Model attributes excluding SQLAlchemy attributes.
 
-    #     :return: dict without SQLAlchemy attributes.
+    #     Returns: 
+    #         dict: without SQLAlchemy attributes.
     #     """
 
     #     return {k: v for (k, v) in self.__dict__.items() if '_sa_' != k[:4]}
