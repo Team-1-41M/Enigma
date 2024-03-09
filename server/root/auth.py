@@ -20,9 +20,9 @@ from server.root.cache import get_cache_storage
 
 
 async def verify_password(
-        plain_password: str,
-        hashed_password: str,
-        context: CryptContext,
+    plain_password: str,
+    hashed_password: str,
+    context: CryptContext,
 ) -> Awaitable[bool]:
     """
     Verify hashed password.
@@ -32,7 +32,7 @@ async def verify_password(
         hashed_password: hashed password stored in the database.
         context: helper with hashing algorithms.
 
-    Returns: 
+    Returns:
         bool: True if passwords match, False otherwise.
     """
 
@@ -40,10 +40,10 @@ async def verify_password(
 
 
 async def authenticate_user(
-        name: str,
-        password: str,
-        db: AsyncSession,
-        context: CryptContext,
+    name: str,
+    password: str,
+    db: AsyncSession,
+    context: CryptContext,
 ) -> Awaitable[Optional[User]]:
     """
     Trying to find a user with same name and password.
@@ -53,7 +53,7 @@ async def authenticate_user(
         password: raw user password.
         db: db async session.
         context: helper with hashing algorithms.
-    
+
     Returns:
         Optional[User]: user object if found, None otherwise.
     """
@@ -65,9 +65,9 @@ async def authenticate_user(
 
 
 async def get_current_user(
-        session: str = Cookie(None),
-        db: AsyncSession = Depends(get_db),
-        cache_storage = Depends(get_cache_storage),
+    session: str = Cookie(None),
+    db: AsyncSession = Depends(get_db),
+    cache_storage=Depends(get_cache_storage),
 ) -> Awaitable[Optional[User]]:
     """
     Get current user by session value.
@@ -77,7 +77,7 @@ async def get_current_user(
         db: db async session.
         cache_storage: key-value storage interface.
 
-    Returns: 
+    Returns:
         Optional[User]: user object if found, None otherwise.
 
     Raises:
@@ -86,15 +86,14 @@ async def get_current_user(
 
     if session is None:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Session ID not provided"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Session ID not provided"
         )
 
     user_id = await cache_storage.get(session)
     if user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="The session has expired. Please re-login"
+            detail="The session has expired. Please re-login",
         )
 
     return await User.by_id(int(user_id), db)

@@ -14,7 +14,7 @@ import uvicorn
 
 from root.settings import CONFIG
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.path.append(str(Path(__file__).resolve().parent.parent))
 
     uvicorn.run(

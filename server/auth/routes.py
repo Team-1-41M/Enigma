@@ -24,14 +24,14 @@ from server.root.cache import get_cache_storage
 from server.root.auth import authenticate_user, get_current_user
 from server.auth.schemas import UserSignUpSchema, UserSignInSchema
 
-router = APIRouter(prefix='/auth', tags=["Authentication"])
+router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-@router.post('/sign-up', status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/sign-up", status_code=status.HTTP_204_NO_CONTENT)
 async def sign_up(
-        data: UserSignUpSchema,
-        db: AsyncSession = Depends(get_db),
-        context: CryptContext = Depends(get_crypt_context),
+    data: UserSignUpSchema,
+    db: AsyncSession = Depends(get_db),
+    context: CryptContext = Depends(get_crypt_context),
 ) -> None:
     """
     User account creation.
@@ -41,7 +41,7 @@ async def sign_up(
         db: db async session.
         context: helper with hashing algorithms.
 
-    Returns: 
+    Returns:
         None.
 
     Raises:
@@ -52,16 +52,16 @@ async def sign_up(
     if same_name_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="User with the same name already exists."
+            detail="User with the same name already exists.",
         )
 
     same_email_user: Optional[User] = await User.by_email(data.email, db)
     if same_email_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="User with the same email address already exists."
+            detail="User with the same email address already exists.",
         )
-    
+
     await User.create(
         UserSignUpSchema(
             name=data.name,
@@ -73,12 +73,12 @@ async def sign_up(
     )
 
 
-@router.post('/sign-in')
+@router.post("/sign-in")
 async def sign_in(
-        data: UserSignInSchema,
-        db: AsyncSession = Depends(get_db),
-        cache_storage=Depends(get_cache_storage),
-        context: CryptContext = Depends(get_crypt_context),
+    data: UserSignInSchema,
+    db: AsyncSession = Depends(get_db),
+    cache_storage=Depends(get_cache_storage),
+    context: CryptContext = Depends(get_crypt_context),
 ) -> JSONResponse:
     """
     User authentication into the system with setting the session value.
@@ -95,11 +95,13 @@ async def sign_in(
         HTTPException: 401 if user name or password is incorrect.
     """
 
-    user: Optional[User] = await authenticate_user(data.name, data.password, db, context)
+    user: Optional[User] = await authenticate_user(
+        data.name, data.password, db, context
+    )
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect name or password."
+            detail="Incorrect name or password.",
         )
 
     try:
@@ -117,11 +119,11 @@ async def sign_in(
     return response
 
 
-@router.post('/sign-out')
+@router.post("/sign-out")
 async def sign_out(
-        _: User = Depends(get_current_user),
-        session: Optional[str] = Cookie(None),
-        cache_storage=Depends(get_cache_storage),
+    _: User = Depends(get_current_user),
+    session: Optional[str] = Cookie(None),
+    cache_storage=Depends(get_cache_storage),
 ) -> JSONResponse:
     """
     Deletes a user session.
@@ -131,18 +133,18 @@ async def sign_out(
         session: session uuid from cookie.
         cache_storage: key-value storage interface.
 
-    Returns: 
+    Returns:
         JSONResponse: with message that session was successfully removed.
 
-    Raises: 
+    Raises:
         HTTPException: 401 if session is not provided or expired.
     """
 
-    # No need to check if session is not None here, 
+    # No need to check if session is not None here,
     # it's already checked in get_current_user
     await cache_storage.delete(session)
 
     response = JSONResponse({"detail": f"Session {session} was removed."})
-    response.delete_cookie('session')
+    response.delete_cookie("session")
 
     return response

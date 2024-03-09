@@ -21,6 +21,5 @@ class EntityDBSchema(BaseModel):
     created_at: datetime.datetime
     updated_at: Optional[datetime.datetime]
 
-
     class Config:
         from_attributes = True

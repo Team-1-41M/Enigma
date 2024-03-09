@@ -17,16 +17,20 @@ from server.root.db import get_db
 from server.auth.models import User
 from server.projects.models import Project
 from server.root.auth import get_current_user
-from server.projects.schemas import ProjectCreateSchema, ProjectUpdateSchema, ProjectDBSchema
+from server.projects.schemas import (
+    ProjectCreateSchema,
+    ProjectUpdateSchema,
+    ProjectDBSchema,
+)
 
-router = APIRouter(prefix='/projects', tags=["Projects"])
+router = APIRouter(prefix="/projects", tags=["Projects"])
 
 
-@router.post('', response_model = ProjectDBSchema, status_code = status.HTTP_201_CREATED)
+@router.post("", response_model=ProjectDBSchema, status_code=status.HTTP_201_CREATED)
 async def create(
-        data: ProjectCreateSchema,
-        db: AsyncSession = Depends(get_db),
-        current_user: User = Depends(get_current_user),
+    data: ProjectCreateSchema,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> Awaitable[Project]:
     """
     Create new project.
@@ -43,22 +47,19 @@ async def create(
     """
 
     data = data.dict()
-    data['author_id'] = current_user.id
-    data['content'] = '{"elements": []}'
+    data["author_id"] = current_user.id
+    data["content"] = '{"elements": []}'
 
     try:
         project = await Project.create(data, db)
     except AttributeError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    
+
     return project
 
 
-@router.get('/{item_id}', response_model = ProjectDBSchema)
-async def item(
-        item_id: int,
-        db: AsyncSession=Depends(get_db)
-) -> Awaitable[Project]:
+@router.get("/{item_id}", response_model=ProjectDBSchema)
+async def item(item_id: int, db: AsyncSession = Depends(get_db)) -> Awaitable[Project]:
     """
     Get project by id.
 
@@ -83,11 +84,9 @@ async def item(
     return project
 
 
-@router.put('/{item_id}', response_model = ProjectDBSchema)
+@router.put("/{item_id}", response_model=ProjectDBSchema)
 async def update(
-        item_id: int,
-        data: ProjectUpdateSchema,
-        db: AsyncSession=Depends(get_db)
+    item_id: int, data: ProjectUpdateSchema, db: AsyncSession = Depends(get_db)
 ) -> Awaitable[Project]:
     """
     Update project.
@@ -116,13 +115,14 @@ async def update(
         await project.update(data.dict(), db)
     except AttributeError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    
+
     return project
 
-@router.delete('/{item_id}', status_code=status.HTTP_204_NO_CONTENT)
+
+@router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete(
-        item_id: int, 
-        db: AsyncSession = Depends(get_db),
+    item_id: int,
+    db: AsyncSession = Depends(get_db),
 ) -> None:
     """
     Delete project.
@@ -140,9 +140,10 @@ async def delete(
     """
 
     try:
-       await Project.delete(item_id, db)
+        await Project.delete(item_id, db)
     except RuntimeError as e:
-       raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
 
 # TODO: Where to put it?
 clients = set()
@@ -150,9 +151,9 @@ clients = set()
 
 @router.websocket("/{item_id}/content")
 async def process(
-        item_id: int, 
-        socket: WebSocket, 
-        db: AsyncSession = Depends(get_db),
+    item_id: int,
+    socket: WebSocket,
+    db: AsyncSession = Depends(get_db),
 ) -> None:
     """
     Collects project content changes from the client
@@ -160,7 +161,7 @@ async def process(
 
     Args:
         socket: client socket.
-    
+
     Returns:
         None.
     """

@@ -16,7 +16,7 @@ from server.shared.models import Entity
 
 class Project(Entity):
     """
-    Application interface layout/prototype 
+    Application interface layout/prototype
     project created on the platform by the user.
     """
 
@@ -28,10 +28,12 @@ class Project(Entity):
 
     @staticmethod
     async def by_author(
-            author_id: int,
-            session: AsyncSession,
+        author_id: int,
+        session: AsyncSession,
     ) -> AsyncIterator:
-        scalars = await session.stream_scalars(select(Project).where(Project.author_id == author_id))
+        scalars = await session.stream_scalars(
+            select(Project).where(Project.author_id == author_id)
+        )
 
         async for scalar in scalars:
             yield scalar

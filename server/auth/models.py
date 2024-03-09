@@ -24,12 +24,14 @@ class User(Entity):
     email: Mapped[str] = mapped_column(unique=True)
     password: Mapped[str]
     is_active: Mapped[bool] = mapped_column(default=True)
-    login_at: Mapped[datetime.datetime] = mapped_column(server_default=None, nullable=True)
+    login_at: Mapped[datetime.datetime] = mapped_column(
+        server_default=None, nullable=True
+    )
 
     @staticmethod
     async def by_email(
-            email: str,
-            session: AsyncSession,
+        email: str,
+        session: AsyncSession,
     ) -> Awaitable[Optional["User"]]:
         """Finds a user by email."""
 
@@ -37,8 +39,8 @@ class User(Entity):
 
     @staticmethod
     async def by_name(
-            name: str,
-            session: AsyncSession,
+        name: str,
+        session: AsyncSession,
     ) -> Awaitable[Optional["User"]]:
         """Finds a user by name."""
 

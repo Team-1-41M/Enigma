@@ -15,7 +15,7 @@ class ProjectBaseSchema(BaseModel):
 
     title: str
 
-      
+
 class ProjectCreateSchema(ProjectBaseSchema):
     """Information that the user must provide to create a project."""
 

@@ -33,13 +33,15 @@ class Entity(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     created_at: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
-    updated_at: Mapped[datetime.datetime] = mapped_column(server_default=None, onupdate=func.now(), nullable=True)
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        server_default=None, onupdate=func.now(), nullable=True
+    )
 
     @classmethod
     async def every(cls, session: AsyncSession) -> AsyncIterator:
         """
         Get all objects.
-        
+
         Args:
             session: db async session.
 
@@ -52,9 +54,9 @@ class Entity(Base):
 
     @classmethod
     async def by_id(
-            cls,
-            item_id: int,
-            session: AsyncSession,
+        cls,
+        item_id: int,
+        session: AsyncSession,
     ) -> Awaitable[Optional["Entity"]]:
         """
         Get an object by id.
@@ -62,8 +64,8 @@ class Entity(Base):
         Args:
             item_id: object id.
             session: db async session.
-        
-        Returns: 
+
+        Returns:
             Optional[Entity]: object if found, None otherwise.
         """
 
@@ -71,9 +73,9 @@ class Entity(Base):
 
     @classmethod
     async def create(
-            cls,
-            data: dict,
-            session: AsyncSession,
+        cls,
+        data: dict,
+        session: AsyncSession,
     ) -> Awaitable["Entity"]:
         """
         Creates a new object.
@@ -84,7 +86,7 @@ class Entity(Base):
 
         Returns:
             Entity: new object.
-        
+
         Raises:
             AttributeError: if some attribute does not exist in the constructed object.
         """
@@ -100,9 +102,9 @@ class Entity(Base):
         return item
 
     async def update(
-            self,
-            data: dict,
-            session: AsyncSession,
+        self,
+        data: dict,
+        session: AsyncSession,
     ) -> None:
         """
         Update object with new data.
@@ -111,7 +113,7 @@ class Entity(Base):
             data: new data to update the object.
             session: db async session.
 
-        Returns: 
+        Returns:
             None.
 
         Raises:
@@ -125,12 +127,12 @@ class Entity(Base):
 
         await session.commit()
         await session.refresh(self)
-    
+
     @classmethod
     async def delete(
-            cls,
-            item_id: int,
-            db: AsyncSession,
+        cls,
+        item_id: int,
+        db: AsyncSession,
     ):
         """
         Deletes an object.
@@ -138,7 +140,7 @@ class Entity(Base):
         Args:
             item_id: object id.
 
-        Returns: 
+        Returns:
             None.
 
         Raises:
@@ -153,7 +155,7 @@ class Entity(Base):
         await db.commit()
 
     @classmethod
-    def _verify_attributes(cls, **kwargs)  -> bool:
+    def _verify_attributes(cls, **kwargs) -> bool:
         """
         Verify if the attributes exist in the constructed object.
 
@@ -169,4 +171,6 @@ class Entity(Base):
 
         for attribute, _ in kwargs.items():
             if not hasattr(cls, attribute):
-                raise AttributeError(f"Impossible create {cls}: non-existent attribute {attribute}.")
+                raise AttributeError(
+                    f"Impossible create {cls}: non-existent attribute {attribute}."
+                )
