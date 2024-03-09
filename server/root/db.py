@@ -15,7 +15,9 @@ engine: AsyncEngine = create_async_engine(CONFIG["DB_URL"])
 async def get_db() -> AsyncSession:
     """
     Provides a database session.
-    :return: AsyncSession
+    
+    Returns:
+        AsyncSession: database session
     """
 
     session_maker = async_sessionmaker(
