@@ -31,7 +31,7 @@ class ProjectUpdateSchema(ProjectBaseSchema):
 class ProjectDBSchema(EntityDBSchema, ProjectCreateSchema):
     """Project data in the database."""
 
-    pass
+    author_id: int
 
 
 class ProjectItemsSchema(BaseModel):
