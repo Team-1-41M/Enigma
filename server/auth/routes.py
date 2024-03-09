@@ -102,10 +102,10 @@ async def sign_in(
             detail="Incorrect name or password."
         )
 
-    updated_login_time = {
-        "login_at": datetime.datetime.now(datetime.UTC),
-    }
-    await user.update(updated_login_time, db)
+    try:
+        await user.update({"login_at": datetime.datetime.now(datetime.UTC)}, db)
+    except AttributeError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
     session_id = str(uuid.uuid4())
     await cache_storage.set(session_id, user.id)
