@@ -122,6 +122,9 @@ class Entity(Base):
 
         self._verify_attributes(**data)
 
+        for attribute, value in data.items():
+            setattr(self, attribute, value)
+
         await session.commit()
         await session.refresh(self)
     
