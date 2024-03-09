@@ -62,10 +62,15 @@ async def sign_up(
             detail="User with the same email address already exists."
         )
     
-    data = data.dict()
-    data["password"] = context.hash(data["password"])
-
-    await User.create(data, db)
+    await User.create(
+        UserSignUpSchema(
+            name=data.name,
+            email=data.email,
+            is_active=True,
+            password=context.hash(data.password),
+        ).dict(),
+        db,
+    )
 
 
 @router.post('/sign-in')
