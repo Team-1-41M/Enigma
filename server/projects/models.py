@@ -5,7 +5,8 @@ Daniil Stenyushkin.
 Models for projects on platform.
 """
 
-from sqlalchemy.orm import Mapped
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column
 
 from server.shared.models import Entity
 
@@ -19,3 +20,4 @@ class Project(Entity):
     __tablename__ = "projects"
 
     title: Mapped[str]
+    author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
