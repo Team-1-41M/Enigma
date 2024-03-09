@@ -57,7 +57,7 @@ async def create(
         Project: created project data.
     """
 
-    return await Project.create(project, db)
+    return await Project.create(project.dict(), db)
 
 
 @router.get('/{item_id}/', response_model = ProjectDBSchema)

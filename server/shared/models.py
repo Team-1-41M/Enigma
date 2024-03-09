@@ -6,14 +6,12 @@ Contains the base SQLAlchemy classes for all models.
 """
 
 import datetime
-from typing import Optional, AsyncIterator
-from fastapi.exceptions import HTTPException
+from typing import Optional, AsyncIterator, Awaitable
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Mapped, mapped_column
 
 
@@ -44,10 +42,10 @@ class Entity(Base):
         """
         Get all objects.
         
-        :params:
-            session: db async session
+        Args:
+            session: db async session.
 
-        :return: AsyncIterator
+        Returns: AsyncIterator.
         """
 
         scalars = await session.stream_scalars(select(cls))
@@ -59,10 +57,16 @@ class Entity(Base):
             cls,
             item_id: int,
             session: AsyncSession,
-    ) -> Optional:
+    ) -> Awaitable[Optional["Entity"]]:
         """
         Get an object by id.
-        return: optional object or None
+
+        Args:
+            item_id: object id.
+            session: db async session.
+        
+        Returns: 
+            Optional[Entity]: object if found, None otherwise.
         """
 
         return await session.scalar(select(cls).where(cls.id == item_id))
@@ -70,25 +74,26 @@ class Entity(Base):
     @classmethod
     async def create(
             cls,
-            data,
+            data: dict,
             session: AsyncSession,
-    ) -> "Entity":
+    ) -> Awaitable["Entity"]:
         """
         Creates a new object.
 
-        :params:
-            data: new object data
-            session: db async session
+        Args:
+            data: new object data.
+            session: db async session.
 
-        :return: new object
+        Returns:
+            Entity: new object.
+        
+        Raises:
+            AttributeError: if some attribute does not exist in the constructed object.
         """
 
-        item = cls()
-        for attribute, value in data.dict().items():
-            if hasattr(item, attribute):
-                setattr(item, attribute, value)
-            else:
-                raise AttributeError(f"The attribute ${attribute} does not exist in the ${cls}")
+        cls._verify_attributes(**data)
+
+        item = cls(**data)
 
         session.add(item)
         await session.commit()
@@ -104,33 +109,30 @@ class Entity(Base):
         """
         Update object with new data.
 
-        :params:
-            data: new data to update the object
-            session: db async session
+        Args:
+            data: new data to update the object.
+            session: db async session.
 
-        :raises:
-            AttributeError: if the attribute to update does not exist in the source object
+        Returns: 
+            None.
 
-        :return: None
+        Raises:
+            AttributeError: if the attribute to update does not exist in the source object.
         """
 
-        for attribute, value in data.items():
-            if hasattr(self, attribute):
-                setattr(self, attribute, value)
-            else:
-                raise AttributeError("The attribute to update does not exist in the source object")
+        self._verify_attributes(**data)
 
         await session.commit()
         await session.refresh(self)
 
-    def dict(self) -> dict:
-        """
-        Model attributes excluding SQLAlchemy attributes.
+    # def dict(self) -> dict:
+    #     """
+    #     Model attributes excluding SQLAlchemy attributes.
 
-        :return: dict without SQLAlchemy attributes.
-        """
+    #     :return: dict without SQLAlchemy attributes.
+    #     """
 
-        return {k: v for (k, v) in self.__dict__.items() if '_sa_' != k[:4]}
+    #     return {k: v for (k, v) in self.__dict__.items() if '_sa_' != k[:4]}
     
     @classmethod
     async def delete(
@@ -138,7 +140,18 @@ class Entity(Base):
             item_id: int,
             db: AsyncSession,
     ):
-        """Deletes an object"""
+        """
+        Deletes an object.
+
+        Args:
+            item_id: object id.
+
+        Returns: 
+            None.
+
+        Raises:
+            RuntimeError: if the object with specified id not found.
+        """
 
         item = await cls.by_id(item_id, db)
         if item is None:
@@ -146,3 +159,22 @@ class Entity(Base):
 
         await db.delete(item)
         await db.commit()
+
+    @classmethod
+    def _verify_attributes(cls, **kwargs)  -> bool:
+        """
+        Verify if the attributes exist in the constructed object.
+
+        Args:
+            kwargs: new object data.
+
+        Returns:
+            bool: True if the attributes exist in the constructed object, False otherwise.
+
+        Raises:
+            AttributeError: if the attribute does not exist in the constructed object.
+        """
+
+        for attribute, _ in kwargs.items():
+            if not hasattr(cls, attribute):
+                raise AttributeError(f"Impossible create {cls}: non-existent attribute {attribute}.")
