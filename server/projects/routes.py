@@ -122,6 +122,7 @@ async def update(
 
     Raises:
         HTTPException: 404 if project with specified id not found.
+        HTTPException: 400 if some attribute from data doesn't exist in the updated object.
     """
 
     project = await Project.by_id(item_id, db)
@@ -131,7 +132,10 @@ async def update(
             detail=f"Project with id {item_id} doesn't exist.",
         )
 
-    await project.update(data.dict(), db)
+    try:
+        await project.update(data.dict(), db)
+    except AttributeError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     
     return project
 
