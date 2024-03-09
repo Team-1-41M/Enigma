@@ -5,7 +5,7 @@ Alexander Tyamin.
 Helper functions for working for users identification.
 """
 
-from typing import Optional
+from typing import Optional, Awaitable
 
 from starlette import status
 from fastapi import Depends, Cookie
@@ -23,7 +23,7 @@ async def verify_password(
         plain_password: str,
         hashed_password: str,
         context: CryptContext=Depends(get_crypt_context),
-) -> bool:
+) -> Awaitable[bool]:
     """
     Verify hashed password.
 
@@ -44,8 +44,19 @@ async def authenticate_user(
         password: str,
         db: AsyncSession,
         context: CryptContext=Depends(get_crypt_context),
-) -> Optional[User]:
-    """Trying to find a user with same name and password."""
+) -> Awaitable[Optional[User]]:
+    """
+    Trying to find a user with same name and password.
+
+    Args:
+        name: user name.
+        password: raw user password.
+        db: db async session.
+        context: helper with hashing algorithms.
+    
+    Returns:
+        Optional[User]: user object if found, None otherwise.
+    """
 
     user = await User.by_name(name, db)
     if user and await verify_password(password, user.password, context):
@@ -57,19 +68,20 @@ async def get_current_user(
         session: str = Cookie(None),
         db: AsyncSession = Depends(get_db),
         cache_storage=Depends(get_cache_storage),
-) -> Optional[User]:
+) -> Awaitable[Optional[User]]:
     """
     Get current user by session value.
 
-    :params:
-        session: session id from cookie
-        db: db async session
-        cache_storage: key-value storage interface
+    Args:
+        session: session id from cookie.
+        db: db async session.
+        cache_storage: key-value storage interface.
 
-    :raises:
-        HTTPException: 401 if session is not provided or expired
+    Returns: 
+        Optional[User]: user object if found, None otherwise.
 
-    :return: optional user object or none
+    Raises:
+        HTTPException: 401 if session is not provided or expired.
     """
 
     if session is None:
