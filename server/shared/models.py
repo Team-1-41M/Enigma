@@ -6,15 +6,11 @@ Contains the base SQLAlchemy classes for all models.
 """
 
 import datetime
-from typing import Optional, AsyncIterator
-from fastapi.exceptions import HTTPException
+from typing import Optional, AsyncIterator, Awaitable
 
 from sqlalchemy import func, select
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.ext.asyncio import AsyncAttrs
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.exc import NoResultFound
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.ext.asyncio import AsyncAttrs, AsyncSession
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 class Base(DeclarativeBase, AsyncAttrs):
@@ -37,17 +33,19 @@ class Entity(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     created_at: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
-    updated_at: Mapped[datetime.datetime] = mapped_column(server_default=None, onupdate=func.now(), nullable=True)
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        server_default=None, onupdate=func.now(), nullable=True
+    )
 
     @classmethod
     async def every(cls, session: AsyncSession) -> AsyncIterator:
         """
         Get all objects.
-        
-        :params:
-            session: db async session
 
-        :return: AsyncIterator
+        Args:
+            session: db async session.
+
+        Returns: AsyncIterator.
         """
 
         scalars = await session.stream_scalars(select(cls))
@@ -56,39 +54,46 @@ class Entity(Base):
 
     @classmethod
     async def by_id(
-            cls,
-            item_id: int,
-            session: AsyncSession,
-    ) -> Optional:
+        cls,
+        item_id: int,
+        session: AsyncSession,
+    ) -> Awaitable[Optional["Entity"]]:
         """
         Get an object by id.
-        return: optional object or None
+
+        Args:
+            item_id: object id.
+            session: db async session.
+
+        Returns:
+            Optional[Entity]: object if found, None otherwise.
         """
 
         return await session.scalar(select(cls).where(cls.id == item_id))
 
     @classmethod
     async def create(
-            cls,
-            data,
-            session: AsyncSession,
-    ) -> "Entity":
+        cls,
+        data: dict,
+        session: AsyncSession,
+    ) -> Awaitable["Entity"]:
         """
         Creates a new object.
 
-        :params:
-            data: new object data
-            session: db async session
+        Args:
+            data: new object data.
+            session: db async session.
 
-        :return: new object
+        Returns:
+            Entity: new object.
+
+        Raises:
+            AttributeError: if some attribute does not exist in the constructed object.
         """
 
-        item = cls()
-        for attribute, value in data.dict().items():
-            if hasattr(item, attribute):
-                setattr(item, attribute, value)
-            else:
-                raise AttributeError(f"The attribute ${attribute} does not exist in the ${cls}")
+        cls._verify_attributes(**data)
+
+        item = cls(**data)
 
         session.add(item)
         await session.commit()
@@ -97,55 +102,75 @@ class Entity(Base):
         return item
 
     async def update(
-            self,
-            data: dict,
-            session: AsyncSession,
+        self,
+        data: dict,
+        session: AsyncSession,
     ) -> None:
         """
         Update object with new data.
 
-        :params:
-            data: new data to update the object
-            session: db async session
+        Args:
+            data: new data to update the object.
+            session: db async session.
 
-        :raises:
-            AttributeError: if the attribute to update does not exist in the source object
+        Returns:
+            None.
 
-        :return: None
+        Raises:
+            AttributeError: if the attribute to update does not exist in the source object.
         """
 
+        self._verify_attributes(**data)
+
         for attribute, value in data.items():
-            if hasattr(self, attribute):
-                setattr(self, attribute, value)
-            else:
-                raise AttributeError("The attribute to update does not exist in the source object")
+            setattr(self, attribute, value)
 
         await session.commit()
         await session.refresh(self)
 
-    def dict(self) -> dict:
-        """
-        Model attributes excluding SQLAlchemy attributes.
-
-        :return: dict without SQLAlchemy attributes.
-        """
-
-        return {k: v for (k, v) in self.__dict__.items() if '_sa_' != k[:4]}
-    
     @classmethod
     async def delete(
-                     cls,
-                     item_id: int,
-                     db: AsyncSession
+        cls,
+        item_id: int,
+        db: AsyncSession,
     ):
-        """Deletes an object"""
+        """
+        Deletes an object.
 
-        item = await cls.by_id(item_id,db)
+        Args:
+            item_id: object id.
+
+        Returns:
+            None.
+
+        Raises:
+            RuntimeError: if the object with specified id not found.
+        """
+
+        item = await cls.by_id(item_id, db)
         if item is None:
-            raise HTTPException(
-                status_code=404, 
-                detait="Item not found"
-            )
+            raise RuntimeError(f"Item with id {item_id} not found.")
 
         await db.delete(item)
         await db.commit()
+
+    @classmethod
+    def _verify_attributes(cls, **kwargs) -> bool:
+        """
+        Verify if the attributes exist in the constructed object.
+
+        Args:
+            kwargs: new object data.
+
+        Returns:
+            bool: True if the attributes exist in the constructed object, False otherwise.
+
+        Raises:
+            AttributeError: if the attribute does not exist in the constructed object.
+        """
+
+        for attribute, _ in kwargs.items():
+            if not hasattr(cls, attribute):
+                raise AttributeError(
+                    f"Impossible create {cls}: non-existent attribute {attribute}."
+                )
