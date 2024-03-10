@@ -5,17 +5,18 @@ Alexander Tyamin.
 This file contains the FastAPI application instance.
 """
 
+import os
+
 from fastapi import FastAPI, APIRouter
 from starlette.middleware.cors import CORSMiddleware
 
 from server.root.db import engine
 from server.shared.models import Base
-from server.root.settings import CONFIG
 from server.auth.routes import router as auth_router
 from server.users.routes import router as users_router
 from server.projects.routes import router as projects_router
 
-app = FastAPI(debug=CONFIG["DEBUG"])
+app = FastAPI(debug=os.getenv("DEBUG"))
 
 app.add_middleware(
     CORSMiddleware,
