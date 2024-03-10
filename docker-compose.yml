@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:latest
+    container_name: db
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=enigma
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+  client:
+    build: client/
+    container_name: client
+    ports:
+      - "3000:3000"
+    environment:
+      - API_BASE_URL=http://localhost:8000
+      - NUXT_HOST=0.0.0.0
+      - NUXT_PORT=3000
+
+  server:
+    build: server/
+    container_name: server
+    depends_on:
+      - db
+      - client
+    ports:
+      - "8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - RELOAD=False
+      - DEBUG=False
+      - DB_URL=postgresql+asyncpg://postgres:postgres@db/enigma
+    command: ["python", "run.py"]
