@@ -1,5 +1,13 @@
 stages:
+  - lint
   - test
+
+Lint:
+  stage: lint
+  image: python:3.12
+  script:
+    - pip install flake8
+    - flake8
 
 Test:
   stage: test
