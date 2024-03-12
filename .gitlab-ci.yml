@@ -1,0 +1,10 @@
+stages:
+  - test
+
+Test:
+  stage: test
+  image: python:3.12
+  script:
+    - pip install -r requirements.txt
+    - pip install pytest
+    - python3 -m pytest server/
