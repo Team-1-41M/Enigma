@@ -21,7 +21,9 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.get("/me", response_model=UserDBSchema)
-async def me(current_user: User = Depends(get_current_user)) -> Optional[User]:
+async def me(
+    current_user: User = Depends(get_current_user),
+) -> Optional[User]:
     """
     Current user data based on session value from cookie.
 
@@ -48,11 +50,13 @@ async def created_projects(
         db: db async session.
 
     Returns:
-        dict[str, Any]: dict with data as a list of projects and length of the list.
-
+        dict[str, Any]: dict with data
+        as a list of projects and length of the list.
     """
 
-    data: list[Project] = [_ async for _ in Project.by_author(current_user.id, db)]
+    data: list[Project] = [
+        _ async for _ in Project.by_author(current_user.id, db)
+    ]
     return {
         "data": data,
         "length": len(data),

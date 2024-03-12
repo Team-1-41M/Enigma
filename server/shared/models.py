@@ -32,9 +32,13 @@ class Entity(Base):
     __abstract__ = True
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    created_at: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        server_default=func.now(),
+    )
     updated_at: Mapped[datetime.datetime] = mapped_column(
-        server_default=None, onupdate=func.now(), nullable=True
+        server_default=None,
+        onupdate=func.now(),
+        nullable=True,
     )
 
     @classmethod
@@ -88,7 +92,8 @@ class Entity(Base):
             Entity: new object.
 
         Raises:
-            AttributeError: if some attribute does not exist in the constructed object.
+            AttributeError: if some attribute
+            does not exist in the constructed object.
         """
 
         cls._verify_attributes(**data)
@@ -117,7 +122,8 @@ class Entity(Base):
             None.
 
         Raises:
-            AttributeError: if the attribute to update does not exist in the source object.
+            AttributeError: if the attribute to update
+            does not exist in the source object.
         """
 
         self._verify_attributes(**data)
@@ -163,14 +169,17 @@ class Entity(Base):
             kwargs: new object data.
 
         Returns:
-            bool: True if the attributes exist in the constructed object, False otherwise.
+            bool: True if the attributes
+            exist in the constructed object, False otherwise.
 
         Raises:
-            AttributeError: if the attribute does not exist in the constructed object.
+            AttributeError: if the attribute
+            does not exist in the constructed object.
         """
 
         for attribute, _ in kwargs.items():
             if not hasattr(cls, attribute):
                 raise AttributeError(
-                    f"Impossible create {cls}: non-existent attribute {attribute}."
+                    f"Impossible create {cls}: \
+                    non-existent attribute {attribute}."
                 )
