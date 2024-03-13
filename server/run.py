@@ -12,6 +12,9 @@ import sys
 from pathlib import Path
 
 import uvicorn
+from dotenv import load_dotenv
+
+load_dotenv()
 
 if __name__ == "__main__":
     sys.path.append(str(Path(__file__).resolve().parent.parent))
