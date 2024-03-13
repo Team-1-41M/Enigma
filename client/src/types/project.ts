@@ -1,5 +1,9 @@
 export type Project = {
     id: number,
-    title: string
+    title: string,
+    created_at: Date,
+    updated_at: Date,
+    author_id: number,
+    content: string
 }
-//TODO: даты прописать и сортировку по ним при фетче в сторе
+//TODO: сортировку по датам при фетче в сторе

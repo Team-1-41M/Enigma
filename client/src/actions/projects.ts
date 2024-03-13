@@ -3,8 +3,15 @@ import type { Project } from "~/types/project";
 export const getProjectsAsync = async () => {
     const { $api } = useNuxtApp();
 
-    const response = await $api.get('/api/v1/projects');
+    const response = await $api.get('/api/v1/users/me/projects');
     return (response.data as any).data as Project[];
+}
+
+export const getProjectByIdAsync = async (projectId: string) => {
+    const { $api } = useNuxtApp();
+
+    const response = await $api.get(`/api/v1/projects/${projectId}`);
+    return (response.data as any).data as Project;
 }
 
 export const createProjectAsync = async (title: string) : Promise<Project> => { 
