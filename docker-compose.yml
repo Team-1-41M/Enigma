@@ -28,11 +28,11 @@ services:
       - database
       - client
     ports:
-      - "8000:8000"
+      - ${PORT}:${PORT}
     environment:
       - HOST=0.0.0.0
-      - PORT=8000
-      - RELOAD=False
-      - DEBUG=False
-      - DB_URL=postgresql+asyncpg://postgres:postgres@db/enigma
+      - PORT=${PORT}
+      - RELOAD=${RELOAD}
+      - DEBUG=${DEBUG}
+      - DB_URL=postgresql+asyncpg://postgres:postgres@database:5432/enigma
     command: ["python", "run.py"]
