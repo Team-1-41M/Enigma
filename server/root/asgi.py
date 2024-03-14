@@ -22,6 +22,8 @@ debug = os.getenv("DEBUG")
 app = FastAPI(debug=debug)
 
 MEDIA_PATH = BASE_PATH / "media"
+os.makedirs(MEDIA_PATH, exist_ok=True)
+
 if debug:
     app.mount("/media", StaticFiles(directory=MEDIA_PATH), name=MEDIA_PATH)
 
