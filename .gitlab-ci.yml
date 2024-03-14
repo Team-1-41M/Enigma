@@ -28,5 +28,6 @@ Build:
     - cp $ENV_FILE .env
   script:
     - docker-compose build
+    - docker tag $CI_REGISTRY/$CI_REGISTRY_USER/enigma-server:latest $CI_REGISTRY/$CI_REGISTRY_USER/enigma-server:latest
     - docker push $CI_REGISTRY/$CI_REGISTRY_USER/enigma-server:latest
     - docker push $CI_REGISTRY/$CI_REGISTRY_USER/enigma-client:latest
