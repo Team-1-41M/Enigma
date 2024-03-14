@@ -27,4 +27,5 @@ Build:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - cp $ENV_FILE .env
   script:
-    - docker compose build
+    - docker-compose build --pull
+    - docker-compose push
