@@ -15,9 +15,9 @@ const props = defineProps<Props>()
 <style scoped>
 li {
   color: var(--text);
-  border-bottom: 1px solid #DEDBDB;
-  width: 90%;
-  padding: 5%;
+  border-bottom: 1px solid #DEDBDB55;
+  width: 80%;
+  padding: 5% 10%;
   margin: 0;
   font-family: Inter;
   font-size: 15px;

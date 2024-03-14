@@ -10,10 +10,10 @@ import datetime
 from typing import Optional
 
 from starlette import status
-from fastapi import APIRouter, Depends, Cookie
 from passlib.context import CryptContext
 from starlette.responses import JSONResponse
 from starlette.exceptions import HTTPException
+from fastapi import APIRouter, Depends, Cookie
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from server.root.db import get_db
@@ -22,114 +22,129 @@ from server.root.settings import SESSION_TTL
 from server.root.crypt import get_crypt_context
 from server.root.cache import get_cache_storage
 from server.root.auth import authenticate_user, get_current_user
-from server.auth.schemas import UserSignUpSchema, UserSignInSchema, UserDBSchema
+from server.auth.schemas import UserSignUpSchema, UserSignInSchema
 
-router = APIRouter(prefix='/auth')
+router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-@router.post('/sign-up', status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/sign-up", status_code=status.HTTP_204_NO_CONTENT)
 async def sign_up(
-        data: UserSignUpSchema,
-        db: AsyncSession = Depends(get_db),
-        context: CryptContext = Depends(get_crypt_context),
+    data: UserSignUpSchema,
+    db: AsyncSession = Depends(get_db),
+    context: CryptContext = Depends(get_crypt_context),
 ) -> None:
     """
     User account creation.
 
-    :params:
-        data: user data as UserSignUpSchema
-        db: db async session
-        context: helper with hashing algorithms
+    Args:
+        data: user data as UserSignUpSchema.
+        db: db async session.
+        context: helper with hashing algorithms.
 
-    :raises:
-        HTTPException: 409 conflict if user with the same name or email already exists
+    Returns:
+        None.
 
-    :return: created user
+    Raises:
+        HTTPException: 409 conflict if user with the same name or email already exists.
     """
 
-    same_name_user = await User.by_name(data.name, db)
+    same_name_user: Optional[User] = await User.by_name(data.name, db)
     if same_name_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="User with the same name already exists"
+            detail="User with the same name already exists.",
         )
 
-    same_email_user = await User.by_email(data.email, db)
+    same_email_user: Optional[User] = await User.by_email(data.email, db)
     if same_email_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="User with the same email address already exists"
+            detail="User with the same email address already exists.",
         )
 
-    user = User(
-        name=data.name,
-        email=data.email,
-        password=context.hash(data.password),
-        is_active=True,
+    await User.create(
+        UserSignUpSchema(
+            name=data.name,
+            email=data.email,
+            is_active=True,
+            password=context.hash(data.password),
+        ).dict(),
+        db,
     )
-    await User.create(user, db)
 
 
-@router.post('/sign-in')
+@router.post("/sign-in")
 async def sign_in(
-        data: UserSignInSchema,
-        db: AsyncSession = Depends(get_db),
-        cache_storage=Depends(get_cache_storage),
+    data: UserSignInSchema,
+    db: AsyncSession = Depends(get_db),
+    cache_storage=Depends(get_cache_storage),
+    context: CryptContext = Depends(get_crypt_context),
 ) -> JSONResponse:
-    """User authentication into the system with setting the session value."""
+    """
+    User authentication into the system with setting the session value.
 
-    user: Optional[User] = await authenticate_user(data.name, data.password, db)
+    Args:
+        data: user data as UserSignInSchema.
+        db: db async session.
+        cache_storage: key-value storage interface.
+
+    Returns:
+        JSONResponse: message about successful login.
+
+    Raises:
+        HTTPException: 401 if user name or password is incorrect.
+    """
+
+    user: Optional[User] = await authenticate_user(
+        data.name, data.password, db, context
+    )
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect name or password"
+            detail="Incorrect name or password.",
         )
+
+    try:
+        await user.update({"login_at": datetime.datetime.utcnow()}, db)
+    except AttributeError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
     session_id = str(uuid.uuid4())
     await cache_storage.set(session_id, user.id)
-
     await cache_storage.expire(session_id, SESSION_TTL)
 
-    response = JSONResponse({"detail": "Logged in successfully"})
+    response = JSONResponse({"detail": "Logged in successfully."})
     response.set_cookie("session", session_id, max_age=SESSION_TTL)
-
-    updated_login_time = {
-        "login_at": datetime.datetime.now(datetime.UTC),
-    }
-    await user.update(updated_login_time, db)
 
     return response
 
 
-@router.post('/sign-out')
+@router.post("/sign-out")
 async def sign_out(
-        session: str = Cookie(),
-        cache_storage=Depends(get_cache_storage),
+    _: User = Depends(get_current_user),
+    session: Optional[str] = Cookie(None),
+    cache_storage=Depends(get_cache_storage),
 ) -> JSONResponse:
     """
     Deletes a user session.
 
-    raises: HTTPException if session not found in cookie
+    Args:
+        _: current user object, not used, just need session check.
+        session: session uuid from cookie.
+        cache_storage: key-value storage interface.
 
-    return: JSONResponse with message that session was successfully removed
+    Returns:
+        JSONResponse: with message that session was successfully removed.
+
+    Raises:
+        HTTPException: 401 if session is not provided or expired.
     """
 
-    if await cache_storage.get(session):
-        await cache_storage.delete(session)
+    # No need to check if session is not None here,
+    # it's already checked in get_current_user
+    await cache_storage.delete(session)
 
-        response = JSONResponse({"detail": f"Session {session} was removed"})
-        response.delete_cookie('session')
+    response = JSONResponse({"detail": f"Session {session} was removed."})
+    response.delete_cookie("session")
 
-        return response
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Session {session} not found"
-        )
-
-
-@router.get('/me', response_model=UserDBSchema)
-async def me(current_user: User = Depends(get_current_user)) -> Optional[User]:
-    """Current user data based on session value from cookie."""
-
-    return current_user
+    return response

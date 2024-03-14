@@ -7,7 +7,7 @@ const store = useProjectContextMenuStore();
 const emit = defineEmits<{
   'delete': [ project: Project ],
   'create': [ project: Project ],
-  'edit': [ project: Project ],
+  'rename': [ project: Project ],
 }>();
 
 const topValue = computed(() => {
@@ -19,12 +19,12 @@ const leftValue = computed(() => {
 })
 
 const handleDeletion = () => {
-  emit('delete', store.project!); //TODO: Модалка с подтверждением наверное 
+  emit('delete', store.project!);
   store.closeMenu();
 }
 
-const handleEdit = () => {
-  emit('edit', store.project!); //TODO: Точно модалка
+const handleRename = () => {
+  emit('rename', store.project!);
   store.closeMenu();
 }
 </script>
@@ -38,7 +38,7 @@ const handleEdit = () => {
           :close-handler="store.closeMenu">
           <ContextMenuOption
             :text="'Переименовать'"
-            @click="handleEdit"
+            @click="handleRename"
             ></ContextMenuOption>
           <ContextMenuOption
             :text="'Удалить'"

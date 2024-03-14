@@ -1,6 +1,8 @@
 <script setup lang="ts">
 defineProps<{
-    type: 'text' | 'password';
+    name: string;
+    type: 'text' | 'password' | 'email';
+    autocomplete?: 'new-password';
 }>();
 </script>
 
@@ -9,7 +11,7 @@ defineProps<{
         <span>
             <slot />
         </span>
-        <input type="type" />
+        <input :name="name" :type="type" :autocomplete="autocomplete" />
     </div>
 </template>
 

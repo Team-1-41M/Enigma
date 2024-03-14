@@ -1,61 +1,191 @@
+"""
+28.02.2024
+Daniil Stenyushkin.
+Alexander Tyamin.
+
+Routes for projects management.
+"""
+
+from typing import Awaitable
+
 from starlette import status
-from fastapi import APIRouter, Depends
 from starlette.exceptions import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, WebSocket
 
 from server.root.db import get_db
+from server.auth.models import User
 from server.projects.models import Project
-from server.projects.schemas import ProjectCreate, ProjectUpdate, ProjectDB
+from server.root.auth import get_current_user
+from server.projects.schemas import (
+    ProjectDBSchema,
+    ProjectCreateSchema,
+    ProjectUpdateSchema,
+)
 
-router = APIRouter(prefix='/projects')
-
-
-@router.get('/')
-async def items(db: AsyncSession = Depends(get_db)) -> dict:
-    return {
-        "data": [_.dict() async for _ in Project.every(db)]
-    }
+router = APIRouter(prefix="/projects", tags=["Projects"])
 
 
-@router.post('/', response_model = ProjectDB)
-async def create_project(
-        project: ProjectCreate,
-        db: AsyncSession = Depends(get_db)):
-    return await Project.create(project,db)
+@router.post("", response_model=ProjectDBSchema, status_code=status.HTTP_201_CREATED)
+async def create(
+    data: ProjectCreateSchema,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Awaitable[Project]:
+    """
+    Create new project.
+
+    Args:
+        project: project data as ProjectCreateSchema.
+        db: db async session.
+
+    Returns:
+        Project: created project data.
+
+    Raises:
+        HTTPException: 400 if some attribute from data doesn't exist in the constructed object.
+    """
+
+    data = data.dict()
+    data["author_id"] = current_user.id
+    data["content"] = '{"elements": []}'
+
+    try:
+        project = await Project.create(data, db)
+    except AttributeError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+    return project
 
 
-@router.get('/{item_id}/')
-async def item(
-        item_id: int,
-        db: AsyncSession=Depends(get_db)
-):
-    return await Project.by_id(item_id, db)
+@router.get("/{item_id}", response_model=ProjectDBSchema)
+async def item(item_id: int, db: AsyncSession = Depends(get_db)) -> Awaitable[Project]:
+    """
+    Get project by id.
 
+    Args:
+        item_id: project id as integer.
+        db: db async session.
 
-@router.put('/{item_id}/')
-async def update(
-        item_id: int,
-        data: ProjectUpdate,
-        db: AsyncSession=Depends(get_db)
-):
+    Returns:
+        Project: project data.
+
+    Raises:
+        HTTPException: 404 if project with specified id not found.
+    """
+
     project = await Project.by_id(item_id, db)
     if project is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"ERROR: can't find a project with id {item_id}"
+            detail=f"Project with id {item_id} doesn't exist.",
         )
 
-    await project.update(data.dict(), db)
     return project
 
-@router.delete('/{item_id}/')
-async def delete_project(
-        item_id: int, 
-        db: AsyncSession = Depends(get_db)
-):
+
+@router.put("/{item_id}", response_model=ProjectDBSchema)
+async def update(
+    item_id: int, data: ProjectUpdateSchema, db: AsyncSession = Depends(get_db)
+) -> Awaitable[Project]:
+    """
+    Update project.
+
+    Args:
+        item_id: project id as integer.
+        data: project data as ProjectUpdateSchema.
+        db: db async session.
+
+    Returns:
+        Project: updated project data.
+
+    Raises:
+        HTTPException: 404 if project with specified id not found.
+        HTTPException: 400 if some attribute from data doesn't exist in the updated object.
+    """
+
+    project = await Project.by_id(item_id, db)
+    if project is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Project with id {item_id} doesn't exist.",
+        )
+
     try:
-       await Project.delete(item_id, db)
-    except HTTPException as e:
-       raise e
-    
-    return {'detail': 'Project deleted'}
+        await project.update(data.dict(), db)
+    except AttributeError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+    return project
+
+
+@router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete(
+    item_id: int,
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    """
+    Delete project.
+
+    Args:
+        item_id: project id as integer.
+        db: db async session.
+
+    Raises:
+        HTTPException: 404 if project with specified id not found.
+
+    Returns:
+        None
+
+    """
+
+    try:
+        await Project.delete(item_id, db)
+    except RuntimeError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+# TODO: Where to put it?
+clients = set()
+
+
+@router.websocket("/{item_id}/content")
+async def process(
+    item_id: int,
+    socket: WebSocket,
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    """
+    Collects project content changes from the client
+    and notifies other clients about this.
+
+    Args:
+        socket: client socket.
+
+    Returns:
+        None.
+    """
+
+    project = await Project.by_id(item_id, db)
+    if project is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Project with id {item_id} doesn't exist.",
+        )
+
+    await socket.accept()
+    clients.add(socket)
+
+    await socket.send_text(project.content)
+
+    while True:
+        content = await socket.receive_text()
+
+        try:
+            await project.update({"content": content}, db)
+        except AttributeError as e:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+        for client in clients:
+            if client != socket:
+                await client.send_text(content)

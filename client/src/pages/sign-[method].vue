@@ -21,7 +21,7 @@ function tabSelect(variant: string) {
 function successfulSignIn() {
     // TODO toast
     console.log("signed in successfully")
-    router.push({ path: '/' })
+    router.push({ path: '/projects' })
 }
 
 function successfulSignUp() {
@@ -44,16 +44,16 @@ function successfulSignUp() {
             </h1>
             <template v-if="variant == 'in'">
                 <Form :submit="signIn" :success="successfulSignIn">
-                    <Input type='text'>Логин или Email</Input>
-                    <Input type='password'>Пароль</Input>
+                    <Input name="name" type='text'>Логин или Email</Input>
+                    <Input name="password" type='password'>Пароль</Input>
                     <template #submitText>ОК</template>
                 </Form>
             </template>
             <template v-if="variant == 'up'">
                 <Form :submit="signUp" :success="successfulSignUp">
-                    <Input type='text'>Логин или Email</Input>
-                    <Input type='password'>Пароль</Input>
-                    <Input type='password'>Повторите пароль</Input>
+                    <Input name="name" type='text'>Логин</Input>
+                    <Input name="email" type='email'>Email</Input>
+                    <Input name="password" type='password' autocomplete="new-password">Пароль</Input>
                     <template #submitText>ОК</template>
                 </Form>
             </template>

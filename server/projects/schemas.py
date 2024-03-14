@@ -1,19 +1,42 @@
+"""
+28.02.2024
+Daniil Stenyushkin.
+
+API schemas for projects.
+"""
+
 from pydantic import BaseModel
 
 from server.shared.schemas import EntityDBSchema
 
 
-class ProjectBase(BaseModel):
+class ProjectBaseSchema(BaseModel):
+    """Minimal information about the project."""
+
     title: str
 
-      
-class ProjectCreate(ProjectBase):
+
+class ProjectCreateSchema(ProjectBaseSchema):
+    """Information that the user must provide to create a project."""
+
     pass
 
 
-class ProjectUpdate(ProjectBase):
+class ProjectUpdateSchema(ProjectBaseSchema):
+    """Information that the user must provide to update a project."""
+
     pass
 
 
-class ProjectDB(EntityDBSchema, ProjectCreate):
-    pass
+class ProjectDBSchema(EntityDBSchema, ProjectCreateSchema):
+    """Project data in the database."""
+
+    author_id: int
+    content: str
+
+
+class ProjectItemsSchema(BaseModel):
+    """Details of requested projects with some additional information."""
+
+    length: int
+    data: list[ProjectDBSchema]

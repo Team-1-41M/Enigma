@@ -1,15 +1,21 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
 
+const projectStore = useProjectStore();
+
+const emit = defineEmits<{
+    'create': [],
+}>();
+
 const handleClick = () => {
-    //TODO: Создание проекта, переход к нему через navigateTo
+    emit('create');
 }
 
 </script>
 
 <template>
     <div class="project-add-button-wrapper"
-    @click="handleClick">
+        @click="handleClick">
         <Icon 
             class="alert-icon"
             icon="majesticons:file-plus">

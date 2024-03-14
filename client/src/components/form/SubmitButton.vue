@@ -19,5 +19,6 @@ button {
     background-color: var(--auth-primary);
     border-radius: 50px;
     height: 50px;
+    cursor: pointer;
 }
 </style>
