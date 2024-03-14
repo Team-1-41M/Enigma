@@ -21,8 +21,6 @@ Test:
 Build:
   stage: build
   image: docker:latest
-  only:
-    - master
   services:
     - docker:dind
   before_script:
