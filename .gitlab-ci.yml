@@ -27,5 +27,7 @@ Build:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - cp $ENV_FILE .env
   script:
-    - docker-compose build
+    - docker-compose up -d enigma
+    - docker commit $(docker-compose ps -q enigma) enigma
+    - docker-compose rm -f enigma
     - docker push $CI_REGISTRY_IMAGE
