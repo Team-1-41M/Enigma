@@ -8,4 +8,7 @@ WORKDIR /usr/src/enigma/server/
 
 COPY . .
 
+EXPOSE 8000
+
 RUN python3 -m pip install --upgrade pip && pip install --no-cache-dir -r ./requirements.txt
+ENTRYPOINT ["python3", "run.py"]
