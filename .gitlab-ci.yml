@@ -25,10 +25,13 @@ Build:
     - docker:dind
   before_script:
     - docker login $CI_REGISTRY -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD
+    
     - cp $ENV_FILE .env
   script:
     - docker-compose build
+
     - docker tag enigma-server:latest $CI_REGISTRY/$CI_REGISTRY_USER/enigma-server:latest
     - docker tag enigma-client:latest $CI_REGISTRY/$CI_REGISTRY_USER/enigma-client:latest
-    - docker push $CI_REGISTRY/$CI_REGISTRY_USER/enigma-server:latest $CI_REGISTRY
-    - docker push $CI_REGISTRY/$CI_REGISTRY_USER/enigma-client:latest $CI_REGISTRY
+
+    - docker push $CI_REGISTRY/$CI_REGISTRY_USER/enigma-server:latest
+    - docker push $CI_REGISTRY/$CI_REGISTRY_USER/enigma-client:latest
