@@ -24,6 +24,8 @@ services:
   server:
     build: server/
     container_name: server
+    volumes:
+      - ./media:/media
     depends_on:
       - database
       - client
