@@ -9,6 +9,7 @@ import os
 
 from fastapi import FastAPI, APIRouter
 from starlette.middleware.cors import CORSMiddleware
+from starlette.staticfiles import StaticFiles
 
 from server.root.db import engine
 from server.shared.models import Base
@@ -16,7 +17,17 @@ from server.auth.routes import router as auth_router
 from server.users.routes import router as users_router
 from server.projects.routes import router as projects_router
 
-app = FastAPI(debug=os.getenv("DEBUG"))
+import os
+from pathlib import Path
+
+BASE_PATH = Path(__file__).resolve().parent.parent.parent
+MEDIA_PATH = BASE_PATH / 'media'
+
+debug = os.getenv("DEBUG")
+app = FastAPI(debug=debug)
+
+if debug:
+    app.mount("/media", StaticFiles(directory=MEDIA_PATH), name=MEDIA_PATH)
 
 app.add_middleware(
     CORSMiddleware,
@@ -36,7 +47,6 @@ api_v1_router.include_router(users_router)
 api_v1_router.include_router(projects_router)
 
 app.include_router(api_v1_router)
-
 
 @app.on_event("startup")
 async def startup_event() -> None:
