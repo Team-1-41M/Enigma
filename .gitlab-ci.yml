@@ -29,6 +29,5 @@ Build:
   script:
     - docker-compose build
     - docker image ls
-    - docker tag $CI_REGISTRY/$CI_REGISTRY_USER/enigma-server:latest $CI_REGISTRY/$CI_REGISTRY_USER/enigma-server:latest
     - docker push $CI_REGISTRY/$CI_REGISTRY_USER/enigma-server:latest
     - docker push $CI_REGISTRY/$CI_REGISTRY_USER/enigma-client:latest
