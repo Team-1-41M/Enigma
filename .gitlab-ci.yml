@@ -28,3 +28,5 @@ Build:
     - cp $ENV_FILE .env
   script:
     - docker-compose build
+    - docker push $CI_REGISTRY/$CI_REGISTRY_USER/enigma-server:latest
+    - docker push $CI_REGISTRY/$CI_REGISTRY_USER/enigma-client:latest
