@@ -1,6 +1,7 @@
 stages:
   - lint
   - test
+  - build
 
 Lint:
   stage: lint
@@ -16,3 +17,13 @@ Test:
     - pip install -r server/requirements.txt
     - pip install pytest
     - python3 -m pytest server/
+
+Build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  only:
+    - master  
