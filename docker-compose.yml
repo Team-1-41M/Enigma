@@ -37,4 +37,3 @@ services:
       - RELOAD=${RELOAD}
       - DEBUG=${DEBUG}
       - DB_URL=${DB_URL}
-    command: ["python", "run.py"]
