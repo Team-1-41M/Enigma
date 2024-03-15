@@ -36,5 +36,5 @@ services:
       - PORT=${PORT}
       - RELOAD=${RELOAD}
       - DEBUG=${DEBUG}
-      - DB_URL=postgresql+asyncpg://postgres:postgres@database:5432/enigma
+      - DB_URL=${DB_URL}
     command: ["python", "run.py"]
