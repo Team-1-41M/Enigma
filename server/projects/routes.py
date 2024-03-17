@@ -46,9 +46,9 @@ async def create(
         HTTPException: 400 if some attribute from data doesn't exist in the constructed object.
     """
 
-    data = data.dict()
+    data = data.model_dump()
     data["author_id"] = current_user.id
-    data["content"] = '{"elements": []}'
+    data["content"] = '[]'
 
     try:
         project = await Project.create(data, db)
@@ -112,7 +112,7 @@ async def update(
         )
 
     try:
-        await project.update(data.dict(), db)
+        await project.update(data.model_dump(), db)
     except AttributeError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
