@@ -117,7 +117,6 @@ async def sign_in(
     response.set_cookie(
         "session", 
         session_id, 
-        secure=True,
         httponly=True,
         max_age=SESSION_TTL,
     )
