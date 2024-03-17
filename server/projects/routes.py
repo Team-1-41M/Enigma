@@ -112,7 +112,7 @@ async def update(
         )
 
     try:
-        await project.update(data.dict(), db)
+        await project.update(data.model_dump(), db)
     except AttributeError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
