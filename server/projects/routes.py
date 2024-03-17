@@ -48,7 +48,7 @@ async def create(
 
     data = data.model_dump()
     data["author_id"] = current_user.id
-    data["content"] = '{"elements": []}'
+    data["content"] = '[]'
 
     try:
         project = await Project.create(data, db)
