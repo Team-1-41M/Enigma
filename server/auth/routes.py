@@ -114,7 +114,12 @@ async def sign_in(
     await cache_storage.expire(session_id, SESSION_TTL)
 
     response = JSONResponse({"detail": "Logged in successfully."})
-    response.set_cookie("session", session_id, max_age=SESSION_TTL)
+    response.set_cookie(
+        "session", 
+        session_id, 
+        httponly=True,
+        max_age=SESSION_TTL,
+    )
 
     return response
 
