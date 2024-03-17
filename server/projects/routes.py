@@ -46,7 +46,7 @@ async def create(
         HTTPException: 400 if some attribute from data doesn't exist in the constructed object.
     """
 
-    data = data.dict()
+    data = data.model_dump()
     data["author_id"] = current_user.id
     data["content"] = '{"elements": []}'
 
