@@ -5,6 +5,7 @@ Alexander Tyamin.
 Tests for auth module.
 """
 
+from starlette import status
 from fastapi.testclient import TestClient
 
 from server.root.asgi import app
@@ -12,7 +13,7 @@ from server.root.asgi import app
 client = TestClient(app)
 
 
-def test_normal_sign_in():
+def test_sign_in_normal():
     response = client.post(
         "api/v1/auth/sign-in",
         json={
@@ -21,7 +22,7 @@ def test_normal_sign_in():
         },
     )
 
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
     assert response.cookies["session"]
 
 
@@ -34,7 +35,7 @@ def test_sign_in_wrong_name():
         },
     )
 
-    assert response.status_code == 401
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 def test_sign_in_wrong_password():
@@ -46,4 +47,17 @@ def test_sign_in_wrong_password():
         },
     )
 
-    assert response.status_code == 401
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_sign_up_same_name():
+    response = client.post(
+        "api/v1/auth/sign-up",
+        json={
+            "name": "test",
+            "email": "a@a.ru",
+            "password": "Master#chew123_$",
+        },
+    )
+
+    assert response.status_code == status.HTTP_409_CONFLICT
