@@ -23,3 +23,15 @@ def test_normal_sign_in():
 
     assert response.status_code == 200
     assert response.cookies["session"]
+
+
+def test_sign_in_wrong_name():
+    response = client.post(
+        "api/v1/auth/sign-in",
+        json={
+            "name": "notexist",
+            "password": "Master#chew123_$",
+        },
+    )
+
+    assert response.status_code == 401
