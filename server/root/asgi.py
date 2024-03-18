@@ -22,7 +22,15 @@ from pathlib import Path
 BASE_PATH = Path(__file__).resolve().parent.parent.parent
 MEDIA_PATH = BASE_PATH / "media"
 
-app = FastAPI(debug=CONFIG["DEBUG"])
+
+async def lifespan() -> None:
+    """Creating models at application startup."""
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+
+app = FastAPI(debug=CONFIG["DEBUG"], lifespan=lifespan)
 
 if CONFIG["DEBUG"]:
     app.mount("/media", StaticFiles(directory=MEDIA_PATH), name=MEDIA_PATH)
@@ -45,11 +53,3 @@ api_v1_router.include_router(users_router)
 api_v1_router.include_router(projects_router)
 
 app.include_router(api_v1_router)
-
-
-@app.on_event("startup")
-async def startup_event() -> None:
-    """Creating models at application startup."""
-
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)

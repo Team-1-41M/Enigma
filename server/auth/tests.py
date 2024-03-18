@@ -11,6 +11,7 @@ from server.root.asgi import app
 
 client = TestClient(app)
 
+
 def test_normal_sign_in():
     response = client.post(
         "api/v1/auth/sign-in",
