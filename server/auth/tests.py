@@ -13,7 +13,17 @@ from server.root.asgi import app
 client = TestClient(app)
 
 
-def test_sign_in_normal():
+def test_sign_in_normal() -> None:
+    """
+    Test normal sign in process with correct credentials.
+
+    Args:
+        None.
+
+    Returns:
+        None.
+    """
+
     response = client.post(
         "api/v1/auth/sign-in",
         json={
@@ -26,7 +36,17 @@ def test_sign_in_normal():
     assert response.cookies["session"]
 
 
-def test_sign_in_wrong_name():
+def test_sign_in_wrong_name() -> None:
+    """
+    Test sign in process with wrong user name.
+
+    Args:
+        None.
+
+    Returns:
+        None.
+    """
+
     response = client.post(
         "api/v1/auth/sign-in",
         json={
@@ -38,7 +58,17 @@ def test_sign_in_wrong_name():
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_sign_in_wrong_password():
+def test_sign_in_wrong_password() -> None:
+    """
+    Test sign in process with wrong user password.
+
+    Args:
+        None.
+
+    Returns:
+        None.
+    """
+
     response = client.post(
         "api/v1/auth/sign-in",
         json={
@@ -50,7 +80,17 @@ def test_sign_in_wrong_password():
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_sign_up_same_name():
+def test_sign_up_same_name() -> None:
+    """
+    Test attempt to register a user with the name of an already registered user.
+
+    Args:
+        None.
+
+    Returns:
+        None.
+    """
+
     response = client.post(
         "api/v1/auth/sign-up",
         json={
@@ -63,7 +103,17 @@ def test_sign_up_same_name():
     assert response.status_code == status.HTTP_409_CONFLICT
 
 
-def test_sign_up_same_email():
+def test_sign_up_same_email() -> None:
+    """
+    Test attempt to register a user with the email of an already registered user.
+
+    Args:
+        None.
+
+    Returns:
+        None.
+    """
+
     response = client.post(
         "api/v1/auth/sign-up",
         json={
