@@ -11,17 +11,13 @@ from server.root.asgi import app
 
 client = TestClient(app)
 
-
-def test_normal_sign_up():
+def test_normal_sign_in():
     response = client.post(
-        "/v1/auth/sign-up",
+        "api/v1/auth/sign-in",
         json={
             "name": "test",
-            "email": "test@example.com",
             "password": "Master#chew123_$",
         },
     )
-
-    client.delete("/v1/users")
 
     assert response.status_code == 200
