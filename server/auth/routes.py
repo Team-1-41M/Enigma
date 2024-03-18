@@ -68,7 +68,7 @@ async def sign_up(
             email=data.email,
             is_active=True,
             password=context.hash(data.password),
-        ).dict(),
+        ).model_dump(),
         db,
     )
 
