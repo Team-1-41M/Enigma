@@ -61,3 +61,16 @@ def test_sign_up_same_name():
     )
 
     assert response.status_code == status.HTTP_409_CONFLICT
+
+
+def test_sign_up_same_email():
+    response = client.post(
+        "api/v1/auth/sign-up",
+        json={
+            "name": "test1",
+            "email": "test@example.com",
+            "password": "Master#chew123_$",
+        },
+    )
+
+    assert response.status_code == status.HTTP_409_CONFLICT
