@@ -35,3 +35,15 @@ def test_sign_in_wrong_name():
     )
 
     assert response.status_code == 401
+
+
+def test_sign_in_wrong_password():
+    response = client.post(
+        "api/v1/auth/sign-in",
+        json={
+            "name": "test",
+            "password": "wrongpassword",
+        },
+    )
+
+    assert response.status_code == 401
