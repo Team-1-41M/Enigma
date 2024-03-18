@@ -115,8 +115,8 @@ async def sign_in(
 
     response = JSONResponse({"detail": "Logged in successfully."})
     response.set_cookie(
-        "session", 
-        session_id, 
+        "session",
+        session_id,
         httponly=True,
         max_age=SESSION_TTL,
     )

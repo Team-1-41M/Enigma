@@ -48,7 +48,7 @@ async def create(
 
     data = data.model_dump()
     data["author_id"] = current_user.id
-    data["content"] = '[]'
+    data["content"] = "[]"
 
     try:
         project = await Project.create(data, db)
@@ -136,7 +136,6 @@ async def delete(
 
     Returns:
         None
-
     """
 
     try:
