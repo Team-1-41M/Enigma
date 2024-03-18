@@ -22,3 +22,4 @@ def test_normal_sign_in():
     )
 
     assert response.status_code == 200
+    assert response.cookies["session"]

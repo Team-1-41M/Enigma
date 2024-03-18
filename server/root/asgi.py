@@ -16,7 +16,6 @@ from server.auth.routes import router as auth_router
 from server.users.routes import router as users_router
 from server.projects.routes import router as projects_router
 
-import os
 from pathlib import Path
 
 BASE_PATH = Path(__file__).resolve().parent.parent.parent
