@@ -10,7 +10,7 @@ const props = defineProps<Props>();
 const contextMenuStore = useProjectContextMenuStore();
 
 const handleProjectClick = () => {
-  //TODO: NavigateTo по айдишнику
+  navigateTo(`project/${props.project.id}`)
 }
 
 const handleRightClick = (event: MouseEvent) => {
@@ -27,7 +27,9 @@ const handleRightClick = (event: MouseEvent) => {
       <div class="cover-image"></div>
       <label class="project-name"> {{ project.title }} </label>
       <label class="project-last-updated">Изменено 0 д. назад</label>
-      <!--NOTE: Что-нибудь такое для обложек 
+      <!--
+        TODO:Считать время для строчки сверху (сейчас мне лень)
+        NOTE: Что-нибудь такое для обложек
         <img class="cover-image" 
         :src="`${config.public.baseUrl}/uploads/images/`" /> 
         -->
