@@ -16,11 +16,10 @@ from server.auth.routes import router as auth_router
 from server.users.routes import router as users_router
 from server.projects.routes import router as projects_router
 
-import os
 from pathlib import Path
 
 BASE_PATH = Path(__file__).resolve().parent.parent.parent
-MEDIA_PATH = BASE_PATH / 'media'
+MEDIA_PATH = BASE_PATH / "media"
 
 app = FastAPI(debug=CONFIG["DEBUG"])
 
@@ -45,6 +44,7 @@ api_v1_router.include_router(users_router)
 api_v1_router.include_router(projects_router)
 
 app.include_router(api_v1_router)
+
 
 @app.on_event("startup")
 async def startup_event() -> None:
