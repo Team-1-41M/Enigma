@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Project } from '~/types/project';
 
-const socketStore = useProjectWebSocketStore();
+const socketStore = useCurrentProjectStore();
   
 </script>
 
