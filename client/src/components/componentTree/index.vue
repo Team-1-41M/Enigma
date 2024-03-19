@@ -7,7 +7,7 @@ const socketStore = useProjectWebSocketStore();
 
 <template>
     <div class="components-tree-wrapper">
-        <p>Tree</p>
+        <p>{{socketStore.elements}}</p>
     </div>
 </template>
 

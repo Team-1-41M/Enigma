@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import EditHeader from '~/components/EditHeader.vue';
 import { useProjectWebSocketStore } from '~/stores/projectWebSocket';
 
 const route = useRoute();
@@ -12,7 +13,7 @@ socketStore.loadProject(projectId);
 
 <template>
     <div class="project-page-wrapper">
-        <Header
+        <EditHeader
             class="header"/>
         <ComponentTree/>
         <EditWidget/>
@@ -23,13 +24,12 @@ socketStore.loadProject(projectId);
 <style scoped>
 .project-page-wrapper {
     height: 100%;
-  display: grid; 
-  grid-template-columns: 0.3fr 1fr 0.3fr; 
-  grid-template-rows: 0.06fr 0.94fr; 
-  gap: 0px 0px; 
-  grid-template-areas: 
-    "header header header"
-    ". . ."; 
+    display: grid; 
+    grid-template-columns: 0.3fr 1fr 0.3fr; 
+    grid-template-rows: 0.06fr 0.94fr; 
+    grid-template-areas: 
+        "header header header"
+        ". . ."; 
 }
 .header { 
     grid-area: header; 
