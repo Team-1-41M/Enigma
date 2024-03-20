@@ -23,7 +23,7 @@ else:
     PASSWORD = os.getenv("DB_PASSWORD")
     HOST = os.getenv("DB_HOST")
     PORT = os.getenv("DB_PORT")
-    
+
     DB_URL = f"{ENGINE}://{USER}:{PASSWORD}@{HOST}:{PORT}/{NAME}"
 
 engine: AsyncEngine = create_async_engine(DB_URL)

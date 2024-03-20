@@ -26,7 +26,7 @@ class User(Entity):
     is_active: Mapped[bool] = mapped_column(default=True)
     login_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True),
-        server_default=None, 
+        server_default=None,
         nullable=True,
     )
 

@@ -56,7 +56,7 @@ async def created_projects(
         as a list of projects and length of the list.
     """
 
-    data: list[Project] = [_ async for _ in Project.by_author(current_user.id, db)]
+    data = [_ async for _ in Project.by_author(current_user.id, db)]
     return {
         "data": data,
         "length": len(data),
