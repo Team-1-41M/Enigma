@@ -14,7 +14,7 @@ jobs:
           pip install flake8
           flake8
 
-  testing:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
