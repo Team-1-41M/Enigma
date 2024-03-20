@@ -35,6 +35,8 @@ services:
       - client
     ports:
       - ${SERVER_PORT}:${SERVER_PORT}
+    env_file:
+      - envs/docker/.server
     environment:
       - HOST=${SERVER_HOST}
       - PORT=${SERVER_PORT}
