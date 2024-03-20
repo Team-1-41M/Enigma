@@ -1,12 +1,9 @@
 import axios, { type AxiosInstance } from "axios";
 
-export default defineNuxtPlugin((nuxtApp) => {
-	
-	const config = useRuntimeConfig();
-	
+export default defineNuxtPlugin(() => {
 	let api: AxiosInstance = axios.create({
 		withCredentials: true,
-		baseURL: config.public.baseUrl
+		baseURL: `/api`
 	});
 
 	return {
