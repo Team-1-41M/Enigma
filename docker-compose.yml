@@ -6,6 +6,8 @@ services:
     container_name: database
     volumes:
       - ./data:/var/lib/postgresql/data
+    env_file:
+      - envs/docker/.db
     environment:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USER}
