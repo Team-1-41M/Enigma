@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     from root.settings import ENVS_PATH
 
-    load_dotenv(ENVS_PATH / '.debug')
+    load_dotenv(ENVS_PATH / ".debug")
 
     if os.getenv("DEBUG") == "True":
         ENV_PATH = "local"
@@ -29,8 +29,8 @@ if __name__ == "__main__":
 
     RUNNING_ENV_PATH = ENVS_PATH / ENV_PATH
 
-    load_dotenv(RUNNING_ENV_PATH / '.db')
-    load_dotenv(RUNNING_ENV_PATH / '.server')
+    load_dotenv(RUNNING_ENV_PATH / ".db")
+    load_dotenv(RUNNING_ENV_PATH / ".server")
 
     uvicorn.run(
         "root.asgi:app",

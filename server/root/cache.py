@@ -101,7 +101,6 @@ class DictCacheStorage(CacheStorage):
         pass
 
 
-
 class RedisCacheStorage(CacheStorage):
     # TODO: how to close connection like self.storage.aclose()?
 
