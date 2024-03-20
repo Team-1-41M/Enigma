@@ -27,7 +27,11 @@ from server.projects.schemas import (
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
 
-@router.post("", response_model=ProjectDBSchema, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=ProjectDBSchema,
+    status_code=status.HTTP_201_CREATED,
+)
 async def create(
     data: ProjectCreateSchema,
     db: AsyncSession = Depends(get_db),
@@ -44,7 +48,8 @@ async def create(
         Project: created project data.
 
     Raises:
-        HTTPException: 400 if some attribute from data doesn't exist in the constructed object.
+        HTTPException: 400 if some attribute from data
+        doesn't exist in the constructed object.
     """
 
     data = data.model_dump()
@@ -54,13 +59,19 @@ async def create(
     try:
         project = await Project.create(data, db)
     except AttributeError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            detail=str(e),
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
 
     return project
 
 
 @router.get("/{item_id}", response_model=ProjectDBSchema)
-async def item(item_id: int, db: AsyncSession = Depends(get_db)) -> Awaitable[Project]:
+async def item(
+    item_id: int,
+    db: AsyncSession = Depends(get_db),
+) -> Awaitable[Project]:
     """
     Get project by id.
 
@@ -87,7 +98,9 @@ async def item(item_id: int, db: AsyncSession = Depends(get_db)) -> Awaitable[Pr
 
 @router.put("/{item_id}", response_model=ProjectDBSchema)
 async def update(
-    item_id: int, data: ProjectUpdateSchema, db: AsyncSession = Depends(get_db)
+    item_id: int,
+    data: ProjectUpdateSchema,
+    db: AsyncSession = Depends(get_db),
 ) -> Awaitable[Project]:
     """
     Update project.
@@ -102,7 +115,9 @@ async def update(
 
     Raises:
         HTTPException: 404 if project with specified id not found.
-        HTTPException: 400 if some attribute from data doesn't exist in the updated object.
+
+        HTTPException: 400 if some attribute from data
+        doesn't exist in the updated object.
     """
 
     project = await Project.by_id(item_id, db)
@@ -115,7 +130,10 @@ async def update(
     try:
         await project.update(data.model_dump(), db)
     except AttributeError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            detail=str(e),
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
 
     return project
 
@@ -142,7 +160,10 @@ async def delete(
     try:
         await Project.delete(item_id, db)
     except RuntimeError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(
+            detail=str(e),
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
 
 
 # TODO: Where to put it?
@@ -226,5 +247,8 @@ async def process(
                 await client.send_text(message)
 
         except AttributeError as e:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+            raise HTTPException(
+                detail=str(e),
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
 

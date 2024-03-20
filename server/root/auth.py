@@ -85,7 +85,8 @@ async def get_current_user(
 
     if session is None:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Session ID not provided"
+            detail="Session ID not provided",
+            status_code=status.HTTP_401_UNAUTHORIZED,
         )
 
     user_id = await cache_storage.get(session)

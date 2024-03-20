@@ -34,3 +34,17 @@ python server/run.py
 ```
 After that you can visit 127.0.0.1:8000/docs 
 in your browser to get the API specification.
+
+## Testing
+### Server
+Testing was done using pytest, however, it is not included in the requirements.
+
+Install it in your activated venv:
+```
+pip install pytest
+```
+
+Launch:
+```
+python -m pytest server/
+```

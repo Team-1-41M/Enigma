@@ -3,7 +3,7 @@ import { Icon } from '@iconify/vue';
 import type { Project } from '~/types/project';
 import { EditMode } from '~/types/editMode';
 
-const store = useProjectWebSocketStore();
+const store = useCurrentProjectStore();
 </script>
 
 <template>
@@ -21,18 +21,18 @@ const store = useProjectWebSocketStore();
             @click="store.currentMode = EditMode.Move"/>
         <Icon 
             icon="radix-icons:frame"
-            :class="{'selected': store.currentMode === EditMode.Frame}"
-            @click="store.currentMode = EditMode.Frame"/>
+            :class="{'selected': store.currentMode === EditMode.Block}"
+            @click="store.currentMode = EditMode.Block"/>
         <!--NOTE: Нужно будет выпадающий селект ебануть (кастомный на дивах, встроенному хуй стили в лучшем браузере на земле хром пропишешь спасибо гугл)-->
-        <Icon icon="ic:outline-square"
+        <!-- <Icon icon="ic:outline-square"
             :class="{'selected': store.currentMode === EditMode.Square}"
-            @click="store.currentMode = EditMode.Square"/>
+            @click="store.currentMode = EditMode.Square"/> -->
         <Icon icon="fluent:text-t-16-filled" 
             :class="{'selected': store.currentMode === EditMode.Text}"
             @click="store.currentMode = EditMode.Text"/>
         <Icon icon="la:hand-paper-solid"
-            :class="{'selected': store.currentMode === EditMode.Hand}"
-            @click="store.currentMode = EditMode.Hand"/>
+            :class="{'selected': store.currentMode === EditMode.Camera}"
+            @click="store.currentMode = EditMode.Camera"/>
     </div>
     <h2>
         Project name
