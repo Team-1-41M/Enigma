@@ -13,6 +13,5 @@ Test:
   stage: test
   image: python:3.12
   script:
-    - pip install -r server/requirements.txt
     - pip install pytest
     - python3 -m pytest server/
