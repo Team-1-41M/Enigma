@@ -18,6 +18,8 @@ services:
     container_name: client
     ports:
       - ${CLIENT_PORT}:${CLIENT_PORT}
+    env_file:
+      - envs/docker/.client
     environment:
       - API_BASE_URL=http://${SERVER_HOST}:${SERVER_PORT}
       - NUXT_HOST=${CLIENT_HOST}
