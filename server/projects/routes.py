@@ -5,6 +5,7 @@ Alexander Tyamin.
 
 Routes for projects management.
 """
+
 import json
 
 from typing import Awaitable
@@ -202,31 +203,32 @@ async def process(
     content_list = json.loads(project.content)
 
     while True:
-        # Получи сообщение от клиента
         message = await socket.receive_text()
 
         try:
-            # Разбейте сообщение на команду и данные
             command, data = message.split(" ", 1)
 
             element_data = json.loads(data)
 
             if command == "create":
-                # Создание - надо добавить внуть контента проект новый элемент с id в виде uuid,
-                # который придет от клиента. Его надо будет проверить на конфликт с уже существующими.
-                if any(element["id"] == element_data["id"] for element in content_list):
-                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Element with this id already exists.")
+                id = element_data["id"]
+                if any(e["id"] == id for e in content_list):
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Element with this id already exists.",
+                    )
                 content_list.append(element_data)
 
             elif command == "update":
-                # Обновление - надо найти элемент с таким же id и обновить его содержимое.
-                # Проверить, а есть ли такой элемент вообще.
                 for i, element in enumerate(content_list):
                     if element["id"] == element_data["id"]:
                         content_list[i] = element_data
                         break
                 else:
-                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Element with this id not found.")
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Element with this id not found.",
+                    )
 
             elif command == "delete":
                 for i, element in enumerate(content_list):
@@ -234,21 +236,23 @@ async def process(
                         del content_list[i]
                         break
                 else:
-                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Element with this id not found.")
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Element with this id not found.",
+                    )
 
             else:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid command.")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid command.",
+                )
 
             await project.update({"content": json.dumps(content_list)}, db)
 
-
-            # Рассылать надо всем, даже тому, кто это отправил, чтобы было понятно, справился ли с командой сервер
             for client in clients:
                 await client.send_text(message)
-
         except AttributeError as e:
             raise HTTPException(
                 detail=str(e),
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
-
