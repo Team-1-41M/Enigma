@@ -27,6 +27,7 @@ Build:
     - docker login $CI_REGISTRY -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD
 
     - mkdir -p envs/docker/
+    - cp $DEBUG_ENV_FILE /envs/.debug
     - cp $DB_ENV_FILE envs/docker/.db
     - cp $REDIS_ENV_FILE envs/docker/.redis
     - cp $SERVER_ENV_FILE envs/docker/.server
