@@ -10,7 +10,6 @@ import os
 from fastapi import FastAPI, APIRouter
 from starlette.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
-from starlette.staticfiles import StaticFiles
 
 from server.root.db import engine
 from server.shared.models import Base
@@ -46,6 +45,7 @@ api_v1_router.include_router(users_router)
 api_v1_router.include_router(projects_router)
 
 app.include_router(api_v1_router)
+
 
 @app.on_event("startup")
 async def startup_event() -> None:
