@@ -128,8 +128,10 @@ class RedisCacheStorage(CacheStorage):
     async def expire(self, key: Hashable, ttl: int) -> None:
         await self.storage.expire(key, ttl)
 
-
-storage = DictCacheStorage() if os.getenv("DEBUG") == "True" else RedisCacheStorage()
+if os.getenv("DEBUG") == "True":
+    storage = DictCacheStorage()
+else:
+    storage = RedisCacheStorage()
 
 
 async def get_cache_storage() -> CacheStorage:
