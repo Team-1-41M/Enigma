@@ -211,7 +211,8 @@ async def process(
             element_data = json.loads(data)
 
             if command == "create":
-                if any(element["id"] == element_data["id"] for element in content_list):
+                id = element_data["id"]
+                if any(e["id"] == id for e in content_list):
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
                         detail="Element with this id already exists.",
@@ -242,7 +243,8 @@ async def process(
 
             else:
                 raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid command."
+                    status_code=status.HTTP_400_BAD_REQUEST, 
+                    detail="Invalid command.",
                 )
 
             await project.update({"content": json.dumps(content_list)}, db)
