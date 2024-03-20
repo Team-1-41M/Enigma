@@ -8,6 +8,9 @@ WORKDIR /usr/src/enigma/server/
 
 COPY . .
 
-RUN python3 -m pip install --upgrade pip && pip install --no-cache-dir -r ./requirements.txt
+RUN \
+    python3 -m pip install --upgrade pip \
+    && pip install --no-cache-dir -r ./requirements/base.txt \
+    && pip install --no-cache-dir -r ./requirements/docker.txt
 
-CMD ["python", "run.py"]
+ENTRYPOINT [ "python", "run.py" ]
