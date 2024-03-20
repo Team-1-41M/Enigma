@@ -222,7 +222,8 @@ async def process(
             elif command == "update":
                 for i, element in enumerate(content_list):
                     if element["id"] == element_data["id"]:
-                        content_list[i] = element_data
+                        for key, value in element_data.items():
+                            content_list[i][key] = value
                         break
                 else:
                     raise HTTPException(
