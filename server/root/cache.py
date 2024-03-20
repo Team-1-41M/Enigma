@@ -5,8 +5,12 @@ Alexander Tyamin.
 Storage for processing cache, user sessions, and any key-value data.
 """
 
+import os
 from typing import Hashable, Any
 from abc import ABC, abstractmethod
+
+if not os.getenv("DEBUG"):
+    from redis.asyncio import Redis
 
 
 class CacheStorage(ABC):
@@ -97,7 +101,36 @@ class DictCacheStorage(CacheStorage):
         pass
 
 
-storage = DictCacheStorage()
+
+class RedisCacheStorage(CacheStorage):
+    # TODO: how to close connection like self.storage.aclose()?
+
+    """
+    Provides a key-value storage
+    based on Redis.
+    """
+
+    def __init__(self) -> None:
+        """Initializes a new instance of the RedisCacheStorage class."""
+
+        super().__init__()
+
+        self.storage = Redis()
+
+    async def get(self, key: Hashable) -> Any:
+        return await self.storage.get(key)
+
+    async def set(self, key: Hashable, value: Any) -> None:
+        await self.storage.set(key, value)
+
+    async def delete(self, key: Hashable) -> None:
+        await self.storage.delete(key)
+
+    async def expire(self, key: Hashable, ttl: int) -> None:
+        await self.storage.expire(key, ttl)
+
+
+storage = DictCacheStorage() if os.getenv("DEBUG") == "True" else RedisCacheStorage()
 
 
 async def get_cache_storage() -> CacheStorage:
