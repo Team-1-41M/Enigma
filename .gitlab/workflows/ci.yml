@@ -38,7 +38,7 @@ Build:
       --env-file envs/docker/.db \
       --env-file envs/docker/.client \
       --env-file envs/docker/.server \
-      build --no-cache
+      run --build --rm
     
     - docker tag enigma-server:latest $CI_REGISTRY/$CI_REGISTRY_USER/enigma/server:latest
     - docker tag enigma-client:latest $CI_REGISTRY/$CI_REGISTRY_USER/enigma/client:latest
