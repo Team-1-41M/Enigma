@@ -4,10 +4,12 @@
 
 <template>
     <header>
-        <img src="~/assets/icons/logo.svg" />
+        <img src="~/assets/icons/logo.svg" 
+            @click="navigateTo('/projects')"/>
         <h1>Enigma</h1>
         <div class="spacer" />
-        <UserDisplay />
+        <UserDisplay 
+            @click="navigateTo('/sign-in')"/>
     </header>
 </template>
 

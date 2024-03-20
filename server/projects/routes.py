@@ -51,9 +51,9 @@ async def create(
         doesn't exist in the constructed object.
     """
 
-    data = data.dict()
+    data = data.model_dump()
     data["author_id"] = current_user.id
-    data["content"] = '{"elements": []}'
+    data["content"] = "[]"
 
     try:
         project = await Project.create(data, db)
@@ -127,7 +127,7 @@ async def update(
         )
 
     try:
-        await project.update(data.dict(), db)
+        await project.update(data.model_dump(), db)
     except AttributeError as e:
         raise HTTPException(
             detail=str(e),
@@ -154,7 +154,6 @@ async def delete(
 
     Returns:
         None
-
     """
 
     try:

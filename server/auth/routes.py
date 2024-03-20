@@ -69,7 +69,7 @@ async def sign_up(
             email=data.email,
             is_active=True,
             password=context.hash(data.password),
-        ).dict(),
+        ).model_dump(),
         db,
     )
 
@@ -106,7 +106,7 @@ async def sign_in(
         )
 
     try:
-        await user.update({"login_at": datetime.datetime.utcnow()}, db)
+        await user.update({"login_at": datetime.datetime.now(datetime.UTC)}, db)
     except AttributeError as e:
         raise HTTPException(
             detail=str(e),
@@ -118,7 +118,12 @@ async def sign_in(
     await cache_storage.expire(session_id, SESSION_TTL)
 
     response = JSONResponse({"detail": "Logged in successfully."})
-    response.set_cookie("session", session_id, max_age=SESSION_TTL)
+    response.set_cookie(
+        "session",
+        session_id,
+        httponly=True,
+        max_age=SESSION_TTL,
+    )
 
     return response
 

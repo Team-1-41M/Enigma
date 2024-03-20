@@ -7,7 +7,9 @@ Routes for users management.
 
 from typing import Optional, Awaitable, Any
 
+from starlette import status
 from fastapi import APIRouter, Depends
+from starlette.exceptions import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from server.root.db import get_db
@@ -61,3 +63,28 @@ async def created_projects(
         "data": data,
         "length": len(data),
     }
+
+
+@router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete(
+    item_id: int,
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    """
+    Delete user.
+
+    Args:
+        item_id: user id as integer.
+        db: db async session.
+
+    Raises:
+        HTTPException: 404 if user with specified id not found.
+
+    Returns:
+        None
+    """
+
+    try:
+        await Project.delete(item_id, db)
+    except RuntimeError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
