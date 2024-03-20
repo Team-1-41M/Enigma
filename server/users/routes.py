@@ -87,4 +87,7 @@ async def delete(
     try:
         await Project.delete(item_id, db)
     except RuntimeError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(
+            detail=str(e),
+            status_code=status.HTTP_404_NOT_FOUND, 
+        )

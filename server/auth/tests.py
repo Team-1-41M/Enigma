@@ -82,7 +82,8 @@ def test_sign_in_wrong_password() -> None:
 
 def test_sign_up_same_name() -> None:
     """
-    Test attempt to register a user with the name of an already registered user.
+    Test attempt to register a user with 
+    the name of an already registered user.
 
     Args:
         None.
@@ -105,7 +106,8 @@ def test_sign_up_same_name() -> None:
 
 def test_sign_up_same_email() -> None:
     """
-    Test attempt to register a user with the email of an already registered user.
+    Test attempt to register a user with 
+    the email of an already registered user.
 
     Args:
         None.
