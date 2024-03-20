@@ -37,7 +37,7 @@ Build:
 Deploy:
   only:
     - master
-  stage: build
+  stage: deploy
   image: docker:latest
   services:
     - docker:dind
