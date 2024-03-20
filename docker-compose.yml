@@ -6,8 +6,6 @@ services:
     container_name: database
     volumes:
       - ./data:/var/lib/postgresql/data
-    env_file:
-      - envs/docker/.db
     environment:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USER}
@@ -22,8 +20,6 @@ services:
     container_name: client
     ports:
       - ${CLIENT_PORT}:${CLIENT_PORT}
-    env_file:
-      - envs/docker/.client
     environment:
       - API_BASE_URL=http://${SERVER_HOST}:${SERVER_PORT}
       - NUXT_HOST=${CLIENT_HOST}
@@ -36,14 +32,18 @@ services:
       - ./media:/media
     depends_on:
       - database
+      - cache
       - client
     ports:
       - ${SERVER_PORT}:${SERVER_PORT}
-    env_file:
-      - envs/docker/.server
     environment:
-      - HOST=${SERVER_HOST}
-      - PORT=${SERVER_PORT}
-      - RELOAD=${SERVER_RELOAD}
-      - DEBUG=${SERVER_DEBUG}
-      - DB_URL=${DB_ENGINE}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+      - SERVER_HOST=${SERVER_HOST}
+      - SERVER_PORT=${SERVER_PORT}
+      - SERVER_RELOAD=${SERVER_RELOAD}
+      - DEBUG=${DEBUG}
+      - DB_ENGINE=${DB_ENGINE}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
