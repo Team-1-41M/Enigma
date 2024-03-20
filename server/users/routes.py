@@ -56,9 +56,7 @@ async def created_projects(
         as a list of projects and length of the list.
     """
 
-    data: list[Project] = [
-        _ async for _ in Project.by_author(current_user.id, db)
-    ]
+    data: list[Project] = [_ async for _ in Project.by_author(current_user.id, db)]
     return {
         "data": data,
         "length": len(data),
@@ -89,5 +87,5 @@ async def delete(
     except RuntimeError as e:
         raise HTTPException(
             detail=str(e),
-            status_code=status.HTTP_404_NOT_FOUND, 
+            status_code=status.HTTP_404_NOT_FOUND,
         )

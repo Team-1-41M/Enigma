@@ -6,12 +6,13 @@ Lint:
   stage: lint
   image: python:3.12
   script:
-    - pip install flake8
+    - pip install -r server/requirements/test.txt
     - flake8
 
 Test:
   stage: test
   image: python:3.12
   script:
-    - pip install pytest
+    - pip install -r server/requirements/base.txt
+    - pip install -r server/requirements/test.txt
     - python3 -m pytest server/

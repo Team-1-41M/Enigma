@@ -107,9 +107,7 @@ async def sign_in(
 
     try:
         await user.update(
-            {
-                "login_at": datetime.datetime.now(datetime.UTC)
-            }, 
+            {"login_at": datetime.datetime.now(datetime.UTC)},
             db,
         )
     except AttributeError as e:
