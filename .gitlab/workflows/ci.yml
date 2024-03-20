@@ -20,8 +20,6 @@ Test:
     - python3 -m pytest server/
 
 Build:
-  only:
-    - master
   stage: build
   image: docker:latest
   services:
