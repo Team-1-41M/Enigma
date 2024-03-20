@@ -1,6 +1,7 @@
 stages:
   - lint
   - test
+  - build
 
 Lint:
   stage: lint
@@ -16,3 +17,25 @@ Test:
     - pip install -r server/requirements/base.txt
     - pip install -r server/requirements/test.txt
     - python3 -m pytest server/
+
+Build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login $CI_REGISTRY -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD
+
+    - mkdir -p envs/docker/
+    - cp $DB_ENV_FILE envs/docker/.db
+    - cp $REDIS_ENV_FILE envs/docker/.redis
+    - cp $SERVER_ENV_FILE envs/docker/.server
+    - cp $CLIENT_ENV_FILE envs/docker/.client
+  script:
+    - docker-compose build
+    
+    - docker tag enigma-server:latest $CI_REGISTRY/$CI_REGISTRY_USER/enigma/server:latest
+    - docker tag enigma-client:latest $CI_REGISTRY/$CI_REGISTRY_USER/enigma/client:latest
+
+    - docker push $CI_REGISTRY/$CI_REGISTRY_USER/enigma/server:latest
+    - docker push $CI_REGISTRY/$CI_REGISTRY_USER/enigma/client:latest
