@@ -2,15 +2,12 @@
 23.02.2024
 Alexander Tyamin.
 
-Constants for the project: prefixes, urls, etc.
+Constants for the project, shared for different apps.
 """
 
 from pathlib import Path
 
-from dotenv import dotenv_values
-
 BASE_PATH = Path(__file__).resolve().parent.parent.parent
-
-CONFIG = dotenv_values(BASE_PATH / ".env")
+ENVS_PATH = BASE_PATH / "envs"
 
 SESSION_TTL = 3 * 24 * 60 * 60

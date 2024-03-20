@@ -5,6 +5,8 @@ Alexander Tyamin.
 Connecting to a database and providing a DB instance.
 """
 
+import os
+
 from sqlalchemy.ext.asyncio import (
     create_async_engine,
     async_sessionmaker,
@@ -12,9 +14,19 @@ from sqlalchemy.ext.asyncio import (
     AsyncEngine,
 )
 
-from server.root.settings import CONFIG
+if os.getenv("DEBUG") == "True":
+    DB_URL = f"{os.getenv("DB_ENGINE")}:///{os.getenv('DB_NAME')}"
+else:
+    ENGINE = os.getenv("DB_ENGINE")
+    NAME = os.getenv("DB_NAME")
+    USER = os.getenv("DB_USER")
+    PASSWORD = os.getenv("DB_PASSWORD")
+    HOST = os.getenv("DB_HOST")
+    PORT = os.getenv("DB_PORT")
 
-engine: AsyncEngine = create_async_engine(CONFIG["DB_URL"])
+    DB_URL = f"{ENGINE}://{USER}:{PASSWORD}@{HOST}:{PORT}/{NAME}"
+
+engine: AsyncEngine = create_async_engine(DB_URL)
 
 
 async def get_db() -> AsyncSession:

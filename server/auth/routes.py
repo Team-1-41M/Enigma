@@ -45,7 +45,8 @@ async def sign_up(
         None.
 
     Raises:
-        HTTPException: 409 conflict if user with the same name or email already exists.
+        HTTPException: 409 conflict
+        if user with the same name or email already exists.
     """
 
     same_name_user: Optional[User] = await User.by_name(data.name, db)
@@ -105,9 +106,15 @@ async def sign_in(
         )
 
     try:
-        await user.update({"login_at": datetime.datetime.now(datetime.UTC)}, db)
+        await user.update(
+            {"login_at": datetime.datetime.now(datetime.UTC)},
+            db,
+        )
     except AttributeError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            detail=str(e),
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
 
     session_id = str(uuid.uuid4())
     await cache_storage.set(session_id, user.id)
