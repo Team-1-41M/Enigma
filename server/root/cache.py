@@ -9,7 +9,7 @@ import os
 from typing import Hashable, Any
 from abc import ABC, abstractmethod
 
-if not os.getenv("DEBUG"):
+if os.getenv("DEBUG") == "False":
     from redis.asyncio import Redis
 
 
@@ -114,7 +114,11 @@ class RedisCacheStorage(CacheStorage):
 
         super().__init__()
 
-        self.storage = Redis()
+        self.storage = Redis(
+            host=os.getenv("REDIS_HOST"),
+            port=int(os.getenv("REDIS_PORT")),
+            db=int(os.getenv("REDIS_DB")),
+        )
 
     async def get(self, key: Hashable) -> Any:
         return await self.storage.get(key)
