@@ -4,6 +4,9 @@ __pycache__
 
 *.sqlite3
 
+media
+data
+
 # Nuxt dev/build outputs
 .output
 .data

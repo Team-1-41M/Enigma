@@ -7,6 +7,10 @@ export const signUp = async (data: { name: string, password: string, email: stri
 export const signIn = async (data: { name: string, password: string }): Promise<void> => { // TODO proper error type
     const { $api } = useNuxtApp();
 
+    const response = $api.post('/api/v1/auth/sign-in', data);
+
+    console.log(response)
+
     return (await $api.post('/api/v1/auth/sign-in', data)).data;
 }
 

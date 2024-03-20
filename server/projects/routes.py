@@ -5,6 +5,7 @@ Alexander Tyamin.
 
 Routes for projects management.
 """
+import json
 
 from typing import Awaitable
 
@@ -46,9 +47,9 @@ async def create(
         HTTPException: 400 if some attribute from data doesn't exist in the constructed object.
     """
 
-    data = data.dict()
+    data = data.model_dump()
     data["author_id"] = current_user.id
-    data["content"] = '{"elements": []}'
+    data["content"] = "[]"
 
     try:
         project = await Project.create(data, db)
@@ -112,7 +113,7 @@ async def update(
         )
 
     try:
-        await project.update(data.dict(), db)
+        await project.update(data.model_dump(), db)
     except AttributeError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
@@ -136,7 +137,6 @@ async def delete(
 
     Returns:
         None
-
     """
 
     try:
@@ -178,14 +178,53 @@ async def process(
 
     await socket.send_text(project.content)
 
+    content_list = json.loads(project.content)
+
     while True:
-        content = await socket.receive_text()
+        # Получи сообщение от клиента
+        message = await socket.receive_text()
 
         try:
-            await project.update({"content": content}, db)
+            # Разбейте сообщение на команду и данные
+            command, data = message.split(" ", 1)
+
+            element_data = json.loads(data)
+
+            if command == "create":
+                # Создание - надо добавить внуть контента проект новый элемент с id в виде uuid,
+                # который придет от клиента. Его надо будет проверить на конфликт с уже существующими.
+                if any(element["id"] == element_data["id"] for element in content_list):
+                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Element with this id already exists.")
+                content_list.append(element_data)
+
+            elif command == "update":
+                # Обновление - надо найти элемент с таким же id и обновить его содержимое.
+                # Проверить, а есть ли такой элемент вообще.
+                for i, element in enumerate(content_list):
+                    if element["id"] == element_data["id"]:
+                        content_list[i] = element_data
+                        break
+                else:
+                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Element with this id not found.")
+
+            elif command == "delete":
+                for i, element in enumerate(content_list):
+                    if element["id"] == element_data["id"]:
+                        del content_list[i]
+                        break
+                else:
+                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Element with this id not found.")
+
+            else:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid command.")
+
+            await project.update({"content": json.dumps(content_list)}, db)
+
+
+            # Рассылать надо всем, даже тому, кто это отправил, чтобы было понятно, справился ли с командой сервер
+            for client in clients:
+                await client.send_text(message)
+
         except AttributeError as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
-        for client in clients:
-            if client != socket:
-                await client.send_text(content)

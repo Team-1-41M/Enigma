@@ -16,17 +16,15 @@ from server.auth.routes import router as auth_router
 from server.users.routes import router as users_router
 from server.projects.routes import router as projects_router
 
-import os
 from pathlib import Path
 
-BASE_PATH = Path(__file__).resolve().parent.parent
-MEDIA_PREFIX = "/media"
-MEDIA_PATH = BASE_PATH / 'media'
+BASE_PATH = Path(__file__).resolve().parent.parent.parent
+MEDIA_PATH = BASE_PATH / "media"
 
 app = FastAPI(debug=CONFIG["DEBUG"])
 
 if CONFIG["DEBUG"]:
-    app.mount(MEDIA_PREFIX, StaticFiles(directory=MEDIA_PATH), name=MEDIA_PATH)
+    app.mount("/media", StaticFiles(directory=MEDIA_PATH), name=MEDIA_PATH)
 
 app.add_middleware(
     CORSMiddleware,
