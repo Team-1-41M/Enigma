@@ -17,12 +17,14 @@ from sqlalchemy.ext.asyncio import (
 if os.getenv("DEBUG") == "True":
     DB_URL = f"{os.getenv("DB_ENGINE")}:///{os.getenv('DB_NAME')}"
 else:
-    DB_URL = f"\
-        {os.getenv("DB_ENGINE")}://\
-        {os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@\
-        {os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/\
-        {os.getenv('DB_NAME')}\
-    "
+    ENGINE = os.getenv("DB_ENGINE")
+    NAME = os.getenv("DB_NAME")
+    USER = os.getenv("DB_USER")
+    PASSWORD = os.getenv("DB_PASSWORD")
+    HOST = os.getenv("DB_HOST")
+    PORT = os.getenv("DB_PORT")
+    
+    DB_URL = f"{ENGINE}://{USER}:{PASSWORD}@{HOST}:{PORT}/{NAME}"
 
 engine: AsyncEngine = create_async_engine(DB_URL)
 
