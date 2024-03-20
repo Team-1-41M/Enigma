@@ -22,5 +22,6 @@ jobs:
         with:
           python-version: '3.12'
       - run: |
+          pip install -r server/requirements/base.txt
           pip install pytest
           python3 -m pytest server/
