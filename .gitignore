@@ -5,6 +5,9 @@ __pycache__
 
 *.sqlite3
 
+envs/docker
+envs/.debug
+
 media
 data
 
