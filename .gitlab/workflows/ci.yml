@@ -33,12 +33,7 @@ Build:
     - cp $SERVER_ENV_FILE envs/docker/.server
     - cp $CLIENT_ENV_FILE envs/docker/.client
   script:
-    - docker compose \
-      --env-file envs/.debug \
-      --env-file envs/docker/.db \
-      --env-file envs/docker/.client \
-      --env-file envs/docker/.server \
-      run --build --rm
+    - docker-compose --env-file envs/.debug --env-file envs/docker/.db --env-file envs/docker/.client --env-file envs/docker/.server build --no-cache
     
     - docker tag enigma-server:latest $CI_REGISTRY/$CI_REGISTRY_USER/enigma/server:latest
     - docker tag enigma-client:latest $CI_REGISTRY/$CI_REGISTRY_USER/enigma/client:latest
