@@ -379,13 +379,10 @@ const Actions = {
         }
 
         moveElements: {
-            const found = mouseOverElement(
-                mousePos,
-                store.selectedElements.length === 0 ? undefined : store.selectedElements
-            );
+            const found = mouseOverElement(mousePos);
             if (found === undefined) break moveElements;
 
-            if (store.selectedElements.length === 0)
+            if (!store.selectedElements.find(e => e.id === found.id))
                 store.selectedElements = [found];
 
             return {

@@ -1,7 +1,10 @@
-const API_DOMAIN = process.env.API_BASE_URL
-    ?.replace(/^(http:\/\/)/, "")
-    ?.replace(/^(https:\/\/)/, "")
+const API_BASE_URL = process.env.API_BASE_URL
     ?.replace(/\/*$/, "");
+const SECURE = process.env.API_BASE_URL
+    ?.startsWith("https://");
+const API_DOMAIN = API_BASE_URL
+    ?.replace(/^(http:\/\/)/, "")
+    ?.replace(/^(https:\/\/)/, "");
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -19,12 +22,12 @@ export default defineNuxtConfig({
         },
         proxies: {
             '/api': {
-                target: `http://${API_DOMAIN}/api/v1`,
-                rewrite: (path) => path.replace(/^\/api/, ''),
+                target: `${SECURE ? "https://" : "http://"}${API_DOMAIN}/api/v1`,
+                rewrite: path => path.replace(/^\/api/, ''),
             },
             '/ws': {
-                target: `ws://${API_DOMAIN}/api/v1`,
-                rewrite: (path) => path.replace(/^\/ws/, ''),
+                target: `${SECURE ? "wss://" : "ws://"}${API_DOMAIN}/api/v1`,
+                rewrite: path => path.replace(/^\/ws/, ''),
                 ws: true,
             },
         },
