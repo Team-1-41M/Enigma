@@ -125,6 +125,7 @@ async def sign_in(
         "session",
         session_id,
         httponly=True,
+        samesite="none",
         max_age=SESSION_TTL,
     )
 
