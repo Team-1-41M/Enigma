@@ -13,6 +13,8 @@ const route = useRoute();
 const variant = computed(() => route.params.method as 'in' | 'up');
 const variantIndex = computed(() => ['in', 'up'].indexOf(variant.value));
 
+const notificationStore = useNotificationsStore();
+
 const router = useRouter();
 function tabSelect(variant: string) {
     router.push({ path: '/sign-' + variant })
@@ -29,6 +31,26 @@ function successfulSignUp() {
     console.log("signed up successfully")
     router.push({ path: '/sign-in' })
 }
+
+function handleSubmitError(error: any) {
+    //TODO: Маппер из error.data.detail в читаемые ошибки
+    let errorMessage;
+    console.log(error)
+    switch (error.response.status) {
+        case 422: {
+            errorMessage = 'Некорректно заполнены данные';
+            break;
+        }
+        case 401: {
+            errorMessage = 'Неправильно введены логин и/или пароль'
+            break;
+        }
+        default: {
+            errorMessage = 'Произошла неизвестная ошибка'
+        }
+    }
+    notificationStore.addNotification(errorMessage, 'error')
+}
 </script>
 
 <template>
@@ -43,14 +65,14 @@ function successfulSignUp() {
                 <span class="title">Enigma</span>
             </h1>
             <template v-if="variant == 'in'">
-                <Form :submit="signIn" :success="successfulSignIn">
+                <Form :submit="signIn" :success="successfulSignIn" :parse-error="handleSubmitError">
                     <Input name="name" type='text'>Логин или Email</Input>
                     <Input name="password" type='password'>Пароль</Input>
                     <template #submitText>ОК</template>
                 </Form>
             </template>
             <template v-if="variant == 'up'">
-                <Form :submit="signUp" :success="successfulSignUp">
+                <Form :submit="signUp" :success="successfulSignUp" :parse-error="handleSubmitError">
                     <Input name="name" type='text'>Логин</Input>
                     <Input name="email" type='email'>Email</Input>
                     <Input name="password" type='password' autocomplete="new-password">Пароль</Input>
@@ -59,6 +81,7 @@ function successfulSignUp() {
             </template>
         </div>
     </div>
+    <Notifications/>
 </template>
 
 <style scoped>

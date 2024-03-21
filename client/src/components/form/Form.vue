@@ -6,10 +6,10 @@ const props = withDefaults(
     defineProps<{
         submit: (data: I) => Promise<S>;
         success: (result: S) => void;
-        parseError?: (error: E) => string;
+        parseError?: (error: E) => string | void;
     }>(),
     {
-        parseError: (_: E) => "Произошла ошибка",
+        parseError: (_: any) => handleError(_),
     },
 );
 
@@ -20,12 +20,8 @@ const slots = defineSlots<{
 
 const formElement = ref<HTMLFormElement | null>(null);
 
-const currentError = ref<string | null>(null);
-
 async function submitFunction(e: Event) {
     e.preventDefault();
-
-    currentError.value = null;
 
     const form = formElement.value;
     if (form == null) return;
@@ -38,13 +34,19 @@ async function submitFunction(e: Event) {
     props
         .submit(i as I)
         .then(s => props.success(s))
-        .catch(e => currentError.value = props.parseError(e as E));
+        .catch(e => props.parseError(e as E));
+}
+</script>
+
+<script lang="ts">
+const handleError = (_: any): void => {
+    const notificationStore = useNotificationsStore();
+    notificationStore.addNotification("Произошла неизвестная ошибка", 'error');
 }
 </script>
 
 <template>
     <form ref="formElement" @submit="submitFunction">
-        <span v-if="currentError != null">{{ currentError }}</span>
         <slot />
         <SubmitButton>
             <slot name="submitText">Отправить</slot>
