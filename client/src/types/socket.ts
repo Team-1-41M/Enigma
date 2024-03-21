@@ -1,9 +1,9 @@
 import type { ElementID, ElementType } from "./elements";
 
 export const SocketCommand = {
-    Create: 'Create',
-    Delete: 'Delete',
-    Update: 'Update',
+    Create: 'create',
+    Delete: 'delete',
+    Update: 'update',
 } as const;
 export type SocketCommand = typeof SocketCommand[keyof typeof SocketCommand];
 
