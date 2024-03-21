@@ -5,6 +5,7 @@ Alexander Tyamin.
 Routes for user authentication.
 """
 
+import os
 import uuid
 import datetime
 from typing import Optional
@@ -125,8 +126,9 @@ async def sign_in(
         "session",
         session_id,
         httponly=True,
-        samesite="none",
         max_age=SESSION_TTL,
+        secure=os.getenv("DEBUG") != "True",
+        samesite="Lax" if os.getenv("DEBUG") == "True" else "none",
     )
 
     return response
