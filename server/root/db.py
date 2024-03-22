@@ -17,7 +17,7 @@ PORT = os.getenv("DB_PORT")
 AUTH: str = f"{USER}:{PASSWORD}" if USER and PASSWORD else ""
 LOCATION: str = f"{HOST}:{PORT}" if HOST and PORT else ""
 CREDENTIALS: str = f"{AUTH}@{LOCATION}" if AUTH and LOCATION else ""
-    
+
 DB_URL = f"{ENGINE}://{CREDENTIALS}/{NAME}"
 
 engine: AsyncEngine = create_async_engine(DB_URL)
