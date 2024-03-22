@@ -109,16 +109,12 @@ class RedisCacheStorage(CacheStorage):
     based on Redis.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, host: str, port: int, db: int) -> None:
         """Initializes a new instance of the RedisCacheStorage class."""
 
         super().__init__()
 
-        self.storage = Redis(
-            host=os.getenv("REDIS_HOST"),
-            port=int(os.getenv("REDIS_PORT")),
-            db=int(os.getenv("REDIS_DB")),
-        )
+        self.storage = Redis(host, port, db)
 
     async def get(self, key: Hashable) -> Any:
         return await self.storage.get(key)
@@ -137,7 +133,11 @@ match os.getenv("CACHE_TYPE"):
     case "dict":
         storage = DictCacheStorage()
     case "redis":
-        storage = RedisCacheStorage()
+        storage = RedisCacheStorage(
+            os.getenv("CACHE_HOST"),
+            int(os.getenv("CACHE_PORT")),
+            int(os.getenv("CACHE_DB")),
+        )
     case _:
         storage = DictCacheStorage()
 
