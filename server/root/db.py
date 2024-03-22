@@ -6,6 +6,7 @@ Connecting to a database and providing a DB instance.
 """
 
 import os
+from typing import Optional
 
 from sqlalchemy.ext.asyncio import (
     create_async_engine,
@@ -14,17 +15,18 @@ from sqlalchemy.ext.asyncio import (
     AsyncEngine,
 )
 
-if os.getenv("DEBUG") == "True":
-    DB_URL = f"{os.getenv("DB_ENGINE")}:///{os.getenv('DB_NAME')}"
-else:
-    ENGINE = os.getenv("DB_ENGINE")
-    NAME = os.getenv("DB_NAME")
-    USER = os.getenv("DB_USER")
-    PASSWORD = os.getenv("DB_PASSWORD")
-    HOST = os.getenv("DB_HOST")
-    PORT = os.getenv("DB_PORT")
+ENGINE = os.getenv("DB_ENGINE")
+NAME = os.getenv("DB_NAME")
+USER = os.getenv("DB_USER")
+PASSWORD = os.getenv("DB_PASSWORD")
+HOST = os.getenv("DB_HOST")
+PORT = os.getenv("DB_PORT")
 
-    DB_URL = f"{ENGINE}://{USER}:{PASSWORD}@{HOST}:{PORT}/{NAME}"
+AUTH: Optional[str] = f"{USER}:{PASSWORD}" if USER and PASSWORD else None
+LOCATION: Optional[str] = f"{HOST}:{PORT}" if HOST and PORT else None
+CREDENTIALS: Optional[str] = f"{AUTH}@{LOCATION}" if AUTH and LOCATION else None
+    
+DB_URL = f"{ENGINE}://{CREDENTIALS}/{NAME}"
 
 engine: AsyncEngine = create_async_engine(DB_URL)
 
