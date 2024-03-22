@@ -113,12 +113,13 @@ async def sign_in(
     await cache_storage.set(session_id, user.id)
 
     response = JSONResponse({"detail": "Logged in successfully."})
+    HTTPS = bool(os.getenv("HTTPS") or False)
     response.set_cookie(
         "session",
         session_id,
         httponly=True,
-        secure=os.getenv("DEBUG") != "True",
-        samesite="Lax" if os.getenv("DEBUG") == "True" else "none",
+        secure=HTTPS,
+        samesite="none" if HTTPS else "lax",
     )
 
     return response
