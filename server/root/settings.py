@@ -5,6 +5,4 @@ Alexander Tyamin.
 Constants for the project, shared for different apps.
 """
 
-from pathlib import Path
-
 SESSION_TTL = 3 * 24 * 60 * 60
