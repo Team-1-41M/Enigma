@@ -1,10 +1,3 @@
-"""
-23.02.2024
-Alexander Tyamin.
-
-Storage for processing cache, user sessions, and any key-value data.
-"""
-
 import os
 from typing import Hashable, Any
 from abc import ABC, abstractmethod

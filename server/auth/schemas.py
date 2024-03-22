@@ -1,10 +1,3 @@
-"""
-23.02.2024
-Alexander Tyamin.
-
-API schemas for working with user accounts, including registration and login.
-"""
-
 import re
 import datetime
 from typing import Optional

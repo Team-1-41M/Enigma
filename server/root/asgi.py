@@ -1,10 +1,3 @@
-"""
-20.02.2024
-Alexander Tyamin.
-
-This file contains the FastAPI application instance.
-"""
-
 import os
 from pathlib import Path
 

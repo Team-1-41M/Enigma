@@ -1,10 +1,3 @@
-"""
-07.03.2024
-Alexander Tyamin.
-
-Routes for users management.
-"""
-
 from typing import Optional, Awaitable, Any
 
 from starlette import status

@@ -1,10 +1,3 @@
-"""
-23.02.2024
-Alexander Tyamin.
-
-Connecting to a database and providing a DB instance.
-"""
-
 import os
 
 from sqlalchemy.ext.asyncio import (

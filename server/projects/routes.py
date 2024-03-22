@@ -1,11 +1,3 @@
-"""
-28.02.2024
-Daniil Stenyushkin.
-Alexander Tyamin.
-
-Routes for projects management.
-"""
-
 import json
 
 from typing import Awaitable

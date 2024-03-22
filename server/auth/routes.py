@@ -1,10 +1,3 @@
-"""
-23.02.2024
-Alexander Tyamin.
-
-Routes for user authentication.
-"""
-
 import os
 import uuid
 import datetime

@@ -1,10 +1,3 @@
-"""
-23.02.2024
-Alexander Tyamin.
-
-Models for user authentication.
-"""
-
 import datetime
 from typing import Optional, Awaitable
 

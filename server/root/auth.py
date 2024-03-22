@@ -1,10 +1,3 @@
-"""
-23.02.2024
-Alexander Tyamin.
-
-Helper functions for working for users identification.
-"""
-
 from typing import Optional, Awaitable
 
 from starlette import status
