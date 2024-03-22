@@ -19,7 +19,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from server.root.db import get_db
 from server.auth.models import User
-from server.root.settings import SESSION_TTL
 from server.root.crypt import get_crypt_context
 from server.root.cache import get_cache_storage
 from server.root.auth import authenticate_user, get_current_user
@@ -119,14 +118,12 @@ async def sign_in(
 
     session_id = str(uuid.uuid4())
     await cache_storage.set(session_id, user.id)
-    await cache_storage.expire(session_id, SESSION_TTL)
 
     response = JSONResponse({"detail": "Logged in successfully."})
     response.set_cookie(
         "session",
         session_id,
         httponly=True,
-        max_age=SESSION_TTL,
         secure=os.getenv("DEBUG") != "True",
         samesite="Lax" if os.getenv("DEBUG") == "True" else "none",
     )

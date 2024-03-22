@@ -59,21 +59,6 @@ class CacheStorage(ABC):
 
         pass
 
-    @abstractmethod
-    async def expire(self, key: Hashable, ttl: int) -> None:
-        """
-        Allows to set the lifetime of the key.
-
-        Args:
-            key: key as a hashable object.
-            ttl: time to live in seconds.
-
-        Returns:
-            None.
-        """
-
-        pass
-
 
 class DictCacheStorage(CacheStorage):
     """
@@ -96,9 +81,6 @@ class DictCacheStorage(CacheStorage):
 
     async def delete(self, key: Hashable) -> None:
         self.storage.pop(key, None)
-
-    async def expire(self, key: Hashable, ttl: int) -> None:
-        pass
 
 
 class RedisCacheStorage(CacheStorage):
@@ -124,9 +106,6 @@ class RedisCacheStorage(CacheStorage):
 
     async def delete(self, key: Hashable) -> None:
         await self.storage.delete(key)
-
-    async def expire(self, key: Hashable, ttl: int) -> None:
-        await self.storage.expire(key, ttl)
 
 
 match os.getenv("CACHE_TYPE"):
