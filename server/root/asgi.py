@@ -7,8 +7,7 @@ from starlette.staticfiles import StaticFiles
 
 from server.auth.routes import router as auth_router
 from server.projects.routes import router as projects_router
-from server.root.crypt import get_crypt_context
-from server.root.db import engine, get_db, init_db
+from server.root.db import engine, init_db
 from server.shared.models import Base
 from server.users.routes import router as users_router
 

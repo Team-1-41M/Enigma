@@ -25,7 +25,11 @@ CREDENTIALS: str = f"{AUTH}@{LOCATION}" if AUTH and LOCATION else ""
 DB_URL = f"{ENGINE}://{CREDENTIALS}/{NAME}"
 
 engine: AsyncEngine = create_async_engine(DB_URL)
-session_maker = async_sessionmaker(bind=engine, expire_on_commit=False, autoflush=False)
+session_maker = async_sessionmaker(
+    bind=engine, 
+    expire_on_commit=False, 
+    autoflush=False,
+)
 
 
 async def get_db() -> AsyncSession:
@@ -53,7 +57,9 @@ async def init_db() -> None:
                 UserSignUpSchema(
                     name=os.getenv("SUPERUSER_NAME"),
                     email=os.getenv("SUPERUSER_EMAIL"),
-                    password=crypt_context.hash(os.getenv("SUPERUSER_PASSWORD")),
+                    password=crypt_context.hash(
+                        os.getenv("SUPERUSER_PASSWORD")
+                    ),
                 ).model_dump(),
                 session,
             )
