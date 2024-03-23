@@ -1,6 +1,6 @@
 import os
-from typing import Hashable, Any
 from abc import ABC, abstractmethod
+from typing import Any, Hashable
 
 if os.getenv("DEBUG") == "False":
     from redis.asyncio import Redis

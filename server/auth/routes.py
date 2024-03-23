@@ -1,21 +1,21 @@
+import datetime
 import os
 import uuid
-import datetime
 from typing import Optional
 
-from starlette import status
+from fastapi import APIRouter, Cookie, Depends
 from passlib.context import CryptContext
-from starlette.responses import JSONResponse
-from starlette.exceptions import HTTPException
-from fastapi import APIRouter, Depends, Cookie
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette import status
+from starlette.exceptions import HTTPException
+from starlette.responses import JSONResponse
 
-from server.root.db import get_db
 from server.auth.models import User
-from server.root.crypt import get_crypt_context
-from server.root.cache import get_cache_storage
+from server.auth.schemas import UserSignInSchema, UserSignUpSchema
 from server.root.auth import authenticate_user, get_current_user
-from server.auth.schemas import UserSignUpSchema, UserSignInSchema
+from server.root.cache import get_cache_storage
+from server.root.crypt import get_crypt_context
+from server.root.db import get_db
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -60,7 +60,6 @@ async def sign_up(
         UserSignUpSchema(
             name=data.name,
             email=data.email,
-            is_active=True,
             password=context.hash(data.password),
         ).model_dump(),
         db,

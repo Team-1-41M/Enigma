@@ -1,5 +1,5 @@
 import datetime
-from typing import Optional, AsyncIterator, Awaitable
+from typing import AsyncIterator, Awaitable, Optional
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncAttrs, AsyncSession

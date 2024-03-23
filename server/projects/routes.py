@@ -1,21 +1,20 @@
 import json
-
 from typing import Awaitable
 
+from fastapi import APIRouter, Depends, WebSocket
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from starlette.exceptions import HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import APIRouter, Depends, WebSocket
 
-from server.root.db import get_db
 from server.auth.models import User
 from server.projects.models import Project
-from server.root.auth import get_current_user
 from server.projects.schemas import (
-    ProjectDBSchema,
     ProjectCreateSchema,
+    ProjectDBSchema,
     ProjectUpdateSchema,
 )
+from server.root.auth import get_current_user
+from server.root.db import get_db
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 

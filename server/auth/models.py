@@ -1,7 +1,7 @@
 import datetime
-from typing import Optional, Awaitable
+from typing import Awaitable, Optional
 
-from sqlalchemy import select, DateTime
+from sqlalchemy import DateTime, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
