@@ -165,7 +165,7 @@ def is_default(value) -> bool:
 
     if isinstance(value, str):
         return value == ""
-    
+
     return False
 
 
