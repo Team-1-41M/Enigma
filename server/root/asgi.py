@@ -14,12 +14,12 @@ from server.users.routes import router as users_router
 debug = os.getenv("DEBUG")
 app = FastAPI(debug=debug)
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-MEDIA_DIR = BASE_DIR / "media"
-os.makedirs(MEDIA_DIR, exist_ok=True)
+BASE_PATH = Path(__file__).resolve().parent.parent.parent
+MEDIA_PATH = BASE_PATH / "media"
+os.makedirs(MEDIA_PATH, exist_ok=True)
 
 if debug:
-    app.mount("/media", StaticFiles(directory=MEDIA_DIR), name="media")
+    app.mount("/media", StaticFiles(directory=MEDIA_PATH), name=MEDIA_PATH)
 
 app.add_middleware(
     CORSMiddleware,
