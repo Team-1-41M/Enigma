@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from starlette.exceptions import HTTPException
+from starlette.websockets import WebSocketDisconnect
 
 from server.auth.models import User
 from server.projects.models import Project
@@ -14,6 +15,7 @@ from server.projects.schemas import (
     ProjectUpdateSchema,
 )
 from server.root.auth import get_current_user
+from server.root.cache import get_clients_storage
 from server.root.db import get_db
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
@@ -158,15 +160,12 @@ async def delete(
         )
 
 
-# TODO: Where to put it?
-clients = set()
-
-
 @router.websocket("/{item_id}/content")
 async def process(
     item_id: int,
     socket: WebSocket,
     db: AsyncSession = Depends(get_db),
+    clients_storage=Depends(get_clients_storage),
 ) -> None:
     """
     Collects project content changes from the client
@@ -187,8 +186,15 @@ async def process(
         )
 
     await socket.accept()
-    clients.add(socket)
 
+    clients = await clients_storage.get(project.id)
+    if clients is None:
+        clients = {socket}
+    else:
+        clients.add(socket)
+    await clients_storage.set(project.id, clients)
+
+    # TODO: make send json
     await socket.send_text(project.content)
 
     content_list = json.loads(project.content)
