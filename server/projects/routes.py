@@ -5,7 +5,6 @@ from fastapi import APIRouter, Depends, WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from starlette.exceptions import HTTPException
-from starlette.websockets import WebSocketDisconnect
 
 from server.auth.models import User
 from server.projects.models import Project
@@ -160,6 +159,26 @@ async def delete(
         )
 
 
+def is_default(value) -> bool:
+    if isinstance(value, int) or isinstance(value, float):
+        return value == 0
+
+    if isinstance(value, str):
+        return value == ""
+    
+    return False
+
+
+def remove_defaults(data: dict) -> dict:
+    undefaulted = {}
+
+    for key, value in data.items():
+        if value is not None and not is_default(value):
+            undefaulted[key] = value
+
+    return undefaulted
+
+
 @router.websocket("/{item_id}/content")
 async def process(
     item_id: int,
@@ -200,6 +219,7 @@ async def process(
     content_list = json.loads(project.content)
 
     while True:
+        # TODO: handle close
         message = await socket.receive_text()
 
         try:
@@ -221,6 +241,7 @@ async def process(
                     if element["id"] == element_data["id"]:
                         for key, value in element_data.items():
                             content_list[i][key] = value
+                        content_list[i] = remove_defaults(element_data)
                         break
                 else:
                     raise HTTPException(
