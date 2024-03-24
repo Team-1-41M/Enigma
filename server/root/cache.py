@@ -2,7 +2,7 @@ import os
 from abc import ABC, abstractmethod
 from typing import Any, Hashable
 
-if os.getenv("DEBUG") == "False":
+if os.getenv("CACHE_TYPE") == "redis":
     from redis.asyncio import Redis
 
 
@@ -89,7 +89,7 @@ class RedisCacheStorage(CacheStorage):
 
         super().__init__()
 
-        self.storage = Redis(host, port, db)
+        self.storage = Redis(host=host, port=port, db=db)
 
     async def get(self, key: Hashable) -> Any:
         return await self.storage.get(key)
@@ -112,6 +112,13 @@ match os.getenv("CACHE_TYPE"):
         )
     case _:
         storage = DictCacheStorage()
+
+
+clients = DictCacheStorage()
+
+
+async def get_clients_storage() -> CacheStorage:
+    return clients
 
 
 async def get_cache_storage() -> CacheStorage:
