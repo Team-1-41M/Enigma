@@ -37,7 +37,7 @@ jobs:
       - run: |
           touch .env
           
-          echo "DEBUG=$DEBUG" >> .env
+          echo "DEBUG=${{ vars.DEBUG }}" >> .env
 
           echo "NUXT_HOST=$NUXT_HOST" >> .env
           echo "NUXT_PORT=$NUXT_PORT" >> .env
@@ -69,6 +69,7 @@ jobs:
           echo "DB_PORT=$DB_PORT" >> .env
 
           cat .env
+          echo ${{ vars.DEBUG }}
 
           docker compose build --no-cache
 
