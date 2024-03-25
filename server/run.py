@@ -19,10 +19,15 @@ load_dotenv()
 if __name__ == "__main__":
     sys.path.append(str(Path(__file__).resolve().parent.parent))
 
+    HOST = os.getenv("SERVER_HOST")
+    PORT = int(os.getenv("SERVER_PORT"))
+    RELOAD = os.getenv("SERVER_RELOAD") == "True"
+    WORKERS_AMOUNT = 1 if RELOAD else os.cpu_count() + 1
+
     uvicorn.run(
         "root.asgi:app",
-        host=os.getenv("SERVER_HOST"),
-        port=int(os.getenv("SERVER_PORT")),
-        reload=os.getenv("SERVER_RELOAD") == "True",
-        workers=os.cpu_count() + 1 if os.getenv("SERVER_RELOAD") == "False" else 1,
+        host=HOST,
+        port=PORT,
+        reload=RELOAD,
+        workers=WORKERS_AMOUNT,
     )
