@@ -56,7 +56,7 @@ After that you can visit server_address_in_dotenv/docs in your browser to get th
 
 ### Docker Compose
 
-Configure .env.docker file in project root:
+Configure .env file in project root:
 ```
 DEBUG=True
 
@@ -90,7 +90,7 @@ DB_PORT=5432
 
 Launch:
 ```
-docker compose --env-file .env.docker up --build
+docker compose up --build
 ```
 Docker will start a whole project, you can check it at localhost:some_port (for example, 8000 for the server and 3000 for the client).
 
