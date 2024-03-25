@@ -23,5 +23,6 @@ if __name__ == "__main__":
         "root.asgi:app",
         host=os.getenv("SERVER_HOST"),
         port=int(os.getenv("SERVER_PORT")),
-        reload=bool(os.getenv("SERVER_RELOAD")),
+        reload=os.getenv("SERVER_RELOAD") == "True",
+        workers=os.cpu_count() + 1 if os.getenv("SERVER_RELOAD") == "False" else 1,
     )
