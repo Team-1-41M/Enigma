@@ -74,8 +74,8 @@ jobs:
       - run: |
           echo ${{ secrets.CR_PAT }} | docker login ${{ secrets.CI_REGISTRY }} -u ${{ secrets.CI_REGISTRY_USER }} --password-stdin
 
-          docker tag enigma-server:latest $CI_REGISTRY/$CI_REGISTRY_USER/enigma/server:latest
-          docker tag enigma-client:latest $CI_REGISTRY/$CI_REGISTRY_USER/enigma/client:latest
+          docker tag enigma-server:latest ${{ secrets.CI_REGISTRY }}/${{ secrets.CI_REGISTRY_USER }}/enigma/server:latest
+          docker tag enigma-client:latest ${{ secrets.CI_REGISTRY }}/${{ secrets.CI_REGISTRY_USER }}/enigma/client:latest
           
-          docker push $CI_REGISTRY/$CI_REGISTRY_USER/enigma/server:latest
-          docker push $CI_REGISTRY/$CI_REGISTRY_USER/enigma/client:latest
+          docker push ${{ secrets.CI_REGISTRY }}/${{ secrets.CI_REGISTRY_USER }}/enigma/server:latest
+          docker push ${{ secrets.CI_REGISTRY }}/${{ secrets.CI_REGISTRY_USER }}/enigma/client:latest
