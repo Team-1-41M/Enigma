@@ -68,6 +68,8 @@ jobs:
           echo "DB_HOST=$DB_HOST" >> .env
           echo "DB_PORT=$DB_PORT" >> .env
 
+          cat .env
+
           docker compose build --no-cache
 
   deploy:
