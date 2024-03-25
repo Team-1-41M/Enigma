@@ -1,39 +1,99 @@
 # Enigma
+
 ## Launching
-### Server
+
+### Local
+
+#### Server
 You need to install Python (used 3.12).
 
-Create virtual environment and activate it:
+In server directory, create virtual environment and activate it:
 ```
-python -m venv server/.venv
+python -m venv .venv
 
-# For Linux
-server/.venv/bin/activate
+# Linux
+source .venv/bin/activate
 
-# For Windows
-server\.venv\Scripts\activate 
-```
-
-Install requirements:
-```
-pip install -r server/requirements.txt
+# Windows
+.venv\Scripts\activate 
 ```
 
-Configure .env file in project root. For example:
+Install base (FastAPI, ORM, etc.) local (SQLite) requirements:
 ```
-HOST=127.0.0.1
-PORT=8000
+pip install -r requirements/base.txt requirements/local.txt
+```
+
+Configure .env file in project root:
+```
 DEBUG=True
-RELOAD=True
-DB_URL=sqlite+aiosqlite:///enigma.sqlite3
+
+NUXT_HOST=127.0.0.1
+NUXT_PORT=3000
+API_BASE_URL=127.0.0.1:8000
+
+SERVER_HOST=127.0.0.1
+SERVER_PORT=8000
+SERVER_RELOAD=True
+
+HTTPS=False
+CORS_ALLOWED_ORIGINS=127.0.0.1:3000
+
+SUPERUSER_NAME=root
+SUPERUSER_EMAIL=root@example.com
+SUPERUSER_PASSWORD=Master#chew123_$
+
+CACHE_TYPE=dict
+
+DB_ENGINE=sqlite+aiosqlite
+DB_NAME=enigma.sqlite3
 ```
 
 Launch:
 ```
-python server/run.py
+python run.py
 ```
-After that you can visit 127.0.0.1:8000/docs 
-in your browser to get the API specification.
+After that you can visit server_address_in_dotenv/docs in your browser to get the API specification.
+
+### Docker Compose
+
+Configure .env.docker file in project root:
+```
+DEBUG=True
+
+NUXT_HOST=0.0.0.0
+NUXT_PORT=3000
+API_BASE_URL=0.0.0.0:8000
+
+SERVER_HOST=0.0.0.0
+SERVER_PORT=8000
+SERVER_RELOAD=True
+
+HTTPS=False
+CORS_ALLOWED_ORIGINS=0.0.0.0:3000
+
+SUPERUSER_NAME=root
+SUPERUSER_EMAIL=root@example.com
+SUPERUSER_PASSWORD=Master#chew123_$
+
+CACHE_TYPE=redis
+CACHE_HOST=cache
+CACHE_PORT=6379
+CACHE_DB=0
+
+DB_ENGINE=postgresql+asyncpg
+DB_NAME=enigma
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_HOST=database
+DB_PORT=5432
+```
+
+Launch:
+```
+docker compose --env-file .env.docker up --build
+```
+Docker will start a whole project, you can check it at localhost:some_port (for example, 8000 for the server and 3000 for the client).
+
 
 ## Testing
 ### Server
