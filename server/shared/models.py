@@ -1,12 +1,5 @@
-"""
-23.02.2024
-Alexander Tyamin.
-
-Contains the base SQLAlchemy classes for all models.
-"""
-
 import datetime
-from typing import Optional, AsyncIterator, Awaitable
+from typing import AsyncIterator, Awaitable, Optional
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncAttrs, AsyncSession

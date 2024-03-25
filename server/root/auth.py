@@ -1,21 +1,14 @@
-"""
-23.02.2024
-Alexander Tyamin.
+from typing import Awaitable, Optional
 
-Helper functions for working for users identification.
-"""
-
-from typing import Optional, Awaitable
-
-from starlette import status
-from fastapi import Depends, Cookie
+from fastapi import Cookie, Depends
 from passlib.context import CryptContext
-from starlette.exceptions import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette import status
+from starlette.exceptions import HTTPException
 
-from server.root.db import get_db
 from server.auth.models import User
 from server.root.cache import get_cache_storage
+from server.root.db import get_db
 
 
 async def verify_password(

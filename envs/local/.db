@@ -1,2 +1,0 @@
-DB_ENGINE=sqlite+aiosqlite
-DB_NAME=enigma.sqlite3

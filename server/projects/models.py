@@ -1,10 +1,3 @@
-"""
-28.02.2024
-Daniil Stenyushkin.
-
-Models for projects on platform.
-"""
-
 from typing import AsyncIterator
 
 from sqlalchemy import ForeignKey, select

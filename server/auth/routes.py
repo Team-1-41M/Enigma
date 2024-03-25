@@ -1,29 +1,21 @@
-"""
-23.02.2024
-Alexander Tyamin.
-
-Routes for user authentication.
-"""
-
+import datetime
 import os
 import uuid
-import datetime
 from typing import Optional
 
-from starlette import status
+from fastapi import APIRouter, Cookie, Depends
 from passlib.context import CryptContext
-from starlette.responses import JSONResponse
-from starlette.exceptions import HTTPException
-from fastapi import APIRouter, Depends, Cookie
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette import status
+from starlette.exceptions import HTTPException
+from starlette.responses import JSONResponse
 
-from server.root.db import get_db
 from server.auth.models import User
-from server.root.settings import SESSION_TTL
-from server.root.crypt import get_crypt_context
-from server.root.cache import get_cache_storage
+from server.auth.schemas import UserSignInSchema, UserSignUpSchema
 from server.root.auth import authenticate_user, get_current_user
-from server.auth.schemas import UserSignUpSchema, UserSignInSchema
+from server.root.cache import get_cache_storage
+from server.root.crypt import get_crypt_context
+from server.root.db import get_db
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -68,7 +60,6 @@ async def sign_up(
         UserSignUpSchema(
             name=data.name,
             email=data.email,
-            is_active=True,
             password=context.hash(data.password),
         ).model_dump(),
         db,
@@ -119,16 +110,15 @@ async def sign_in(
 
     session_id = str(uuid.uuid4())
     await cache_storage.set(session_id, user.id)
-    await cache_storage.expire(session_id, SESSION_TTL)
 
     response = JSONResponse({"detail": "Logged in successfully."})
+    HTTPS = bool(os.getenv("HTTPS") or False)
     response.set_cookie(
         "session",
         session_id,
         httponly=True,
-        max_age=SESSION_TTL,
-        secure=os.getenv("DEBUG") != "True",
-        samesite="Lax" if os.getenv("DEBUG") == "True" else "none",
+        secure=HTTPS,
+        samesite="none" if HTTPS else "lax",
     )
 
     return response
