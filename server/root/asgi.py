@@ -11,7 +11,7 @@ from server.root.db import engine, init_db
 from server.shared.models import Base
 from server.users.routes import router as users_router
 
-debug = os.getenv("DEBUG")
+debug = os.getenv("DEBUG") == "True"
 app = FastAPI(debug=debug)
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
