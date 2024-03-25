@@ -94,17 +94,18 @@ docker compose --env-file .env.docker up --build
 ```
 Docker will start a whole project, you can check it at localhost:some_port (for example, 8000 for the server and 3000 for the client).
 
-
 ## Testing
-### Server
-Testing was done using pytest, however, it is not included in the requirements.
 
-Install it in your activated venv:
+### Server
+
+Testing was done using pytest.
+
+Install it (and some instruments for linting and formatting) in your activated venv:
 ```
-pip install pytest
+pip install -r requirements/test.txt
 ```
 
 Launch:
 ```
-python -m pytest server/
+pytest
 ```
