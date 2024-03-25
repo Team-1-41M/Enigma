@@ -25,3 +25,10 @@ jobs:
           pip install -r server/requirements/base.txt
           pip install -r server/requirements/test.txt
           python3 -m pytest server/
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          docker compose build --no-cache
