@@ -160,6 +160,16 @@ async def delete(
 
 
 def is_default(value) -> bool:
+    """
+    Checks if value is default.
+
+    Args:
+        value: value to check.
+
+    Returns:
+        bool: True if value is default, False otherwise.
+    """
+
     if isinstance(value, int) or isinstance(value, float):
         return value == 0
 
@@ -170,6 +180,16 @@ def is_default(value) -> bool:
 
 
 def remove_defaults(data: dict) -> dict:
+    """
+    Removes default values from data.
+
+    Args:
+        data: data to remove default values from.
+    
+    Returns:
+        dict: data without default values.
+    """
+
     undefaulted = {}
 
     for key, value in data.items():
