@@ -9,18 +9,16 @@ You need to install Python (used 3.12).
 
 In server directory, create virtual environment and activate it:
 ```
-python -m venv .venv
+$ python -m venv .venv
 
-# Linux
-source .venv/bin/activate
+$ source .venv/bin/activate # Linux
 
-# Windows
-.venv\Scripts\activate 
+$ .venv\Scripts\activate # Windows
 ```
 
 Install base (FastAPI, ORM, etc.) and local (SQLite) requirements:
 ```
-pip install -r requirements/base.txt requirements/local.txt
+$ pip install -r requirements/base.txt -r requirements/local.txt
 ```
 
 Configure .env file in project root:
@@ -50,7 +48,7 @@ DB_NAME=enigma.sqlite3
 
 Launch:
 ```
-python run.py
+$ python run.py
 ```
 After that you can visit server_address_in_dotenv/docs in your browser to get the API specification.
 
@@ -90,7 +88,7 @@ DB_PORT=5432
 
 Launch:
 ```
-docker compose up --build
+$ docker compose up --build
 ```
 Docker will start a whole project, you can check it at localhost:some_port (for example, 8000 for the server and 3000 for the client).
 
@@ -102,10 +100,10 @@ Testing was done using pytest.
 
 Install it (and some instruments for linting and formatting) in your activated venv:
 ```
-pip install -r requirements/test.txt
+$ pip install -r requirements/test.txt
 ```
 
 Launch:
 ```
-pytest
+$ pytest
 ```
