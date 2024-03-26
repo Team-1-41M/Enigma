@@ -185,7 +185,7 @@ def remove_defaults(data: dict) -> dict:
 
     Args:
         data: data to remove default values from.
-    
+
     Returns:
         dict: data without default values.
     """
