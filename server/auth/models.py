@@ -1,11 +1,10 @@
 import datetime
 from typing import Awaitable, Optional
 
+from server.shared.models import Entity
 from sqlalchemy import DateTime, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
-
-from server.shared.models import Entity
 
 
 class User(Entity):

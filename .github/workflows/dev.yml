@@ -1,4 +1,4 @@
-name: Run lint and tests
+name: Run linting tool and tests
 
 on: [push, pull_request]
 
@@ -15,7 +15,7 @@ jobs:
           pip install -r server/requirements/test.txt
       - name: Run linting tool
         run: |
-          flake8
+          ruff check ./server
 
   test:
     runs-on: ubuntu-latest
@@ -30,4 +30,4 @@ jobs:
           pip install -r server/requirements/test.txt
       - name: Run tests
         run: |
-          python3 -m pytest server/
+          pytest ./server

@@ -1,15 +1,14 @@
 import os
 
+from server.auth.models import User
+from server.auth.schemas import UserSignUpSchema
+from server.root.crypt import crypt_context
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
-
-from server.auth.models import User
-from server.auth.schemas import UserSignUpSchema
-from server.root.crypt import crypt_context
 
 ENGINE = os.getenv("DB_ENGINE")
 NAME = os.getenv("DB_NAME")

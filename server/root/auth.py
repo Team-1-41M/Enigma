@@ -2,13 +2,12 @@ from typing import Awaitable, Optional
 
 from fastapi import Cookie, Depends
 from passlib.context import CryptContext
-from sqlalchemy.ext.asyncio import AsyncSession
-from starlette import status
-from starlette.exceptions import HTTPException
-
 from server.auth.models import User
 from server.root.cache import get_cache_storage
 from server.root.db import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from starlette import status
+from starlette.exceptions import HTTPException
 
 
 async def verify_password(
