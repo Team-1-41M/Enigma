@@ -5,17 +5,16 @@ from typing import Optional
 
 from fastapi import APIRouter, Cookie, Depends
 from passlib.context import CryptContext
-from sqlalchemy.ext.asyncio import AsyncSession
-from starlette import status
-from starlette.exceptions import HTTPException
-from starlette.responses import JSONResponse
-
 from server.auth.models import User
 from server.auth.schemas import UserSignInSchema, UserSignUpSchema
 from server.root.auth import authenticate_user, get_current_user
 from server.root.cache import get_cache_storage
 from server.root.crypt import get_crypt_context
 from server.root.db import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from starlette import status
+from starlette.exceptions import HTTPException
+from starlette.responses import JSONResponse
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 

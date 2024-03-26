@@ -1,16 +1,15 @@
 from typing import Any, Awaitable, Optional
 
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from starlette import status
-from starlette.exceptions import HTTPException
-
 from server.auth.models import User
 from server.auth.schemas import UserDBSchema
 from server.projects.models import Project
 from server.projects.schemas import ProjectItemsSchema
 from server.root.auth import get_current_user
 from server.root.db import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from starlette import status
+from starlette.exceptions import HTTPException
 
 router = APIRouter(prefix="/users", tags=["Users"])
 

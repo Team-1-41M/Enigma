@@ -1,10 +1,9 @@
 from typing import AsyncIterator
 
+from server.shared.models import Entity
 from sqlalchemy import ForeignKey, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
-
-from server.shared.models import Entity
 
 
 class Project(Entity):
