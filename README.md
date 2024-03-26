@@ -18,7 +18,7 @@ source .venv/bin/activate
 .venv\Scripts\activate 
 ```
 
-Install base (FastAPI, ORM, etc.) local (SQLite) requirements:
+Install base (FastAPI, ORM, etc.) and local (SQLite) requirements:
 ```
 pip install -r requirements/base.txt requirements/local.txt
 ```

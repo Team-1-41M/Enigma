@@ -1,0 +1,33 @@
+name: Run lint and test on Enigma
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test dependencies
+        run: |
+          pip install -r server/requirements/test.txt
+      - name: Run linting tool
+        run: |
+          flake8
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install base and test dependencies
+        run: |
+          pip install -r server/requirements/base.txt
+          pip install -r server/requirements/test.txt
+      - name: Run tests
+        run: |
+          python3 -m pytest server/
