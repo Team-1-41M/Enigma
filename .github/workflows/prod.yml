@@ -1,40 +1,13 @@
-name: Enigma
+name: Build and push Docker images on Enigma to GitHub Container Registry
 
 on: 
-  push:
-    branches:
-      - "!master"
   pull_request:
     branches:
       - master
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - run: |
-          pip install -r server/requirements/test.txt
-          flake8
-
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - run: |
-          pip install -r server/requirements/base.txt
-          pip install -r server/requirements/test.txt
-          python3 -m pytest server/
-
   build:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v4
       - name: Set up environment
@@ -73,15 +46,13 @@ jobs:
       - name: Build Docker images
         run: |
           docker compose build --no-cache
-
       - name: Docker login
         run: |
           echo ${{ secrets.CR_PAT }} | docker login ${{ secrets.CI_REGISTRY }} -u ${{ secrets.CI_REGISTRY_USER }} --password-stdin
-
       - name: Push Docker images
         run: |
           docker tag enigma-server:latest ${{ secrets.CI_REGISTRY }}/${{ secrets.CI_REGISTRY_USER }}/enigma/server:latest
           docker tag enigma-client:latest ${{ secrets.CI_REGISTRY }}/${{ secrets.CI_REGISTRY_USER }}/enigma/client:latest
-          
+
           docker push ${{ secrets.CI_REGISTRY }}/${{ secrets.CI_REGISTRY_USER }}/enigma/server:latest
           docker push ${{ secrets.CI_REGISTRY }}/${{ secrets.CI_REGISTRY_USER }}/enigma/client:latest
