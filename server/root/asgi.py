@@ -20,14 +20,6 @@ os.makedirs(MEDIA_DIR, exist_ok=True)
 if debug:
     app.mount("/media", StaticFiles(directory=MEDIA_DIR), name="media")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=os.getenv("CORS_ALLOWED_ORIGINS").split(","),
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 api_v1_router = APIRouter(prefix="/api/v1", tags=["API v1"])
 
 api_v1_router.include_router(auth_router)
