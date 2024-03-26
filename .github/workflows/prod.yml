@@ -1,9 +1,12 @@
-name: Build and push Docker images on Enigma to GitHub Container Registry
+name: Build and push Docker images to GitHub Container Registry
 
-on: 
+on:
+  push:
+    branches:
+    - master
   pull_request:
     branches:
-      - master
+    - master
 
 jobs:
   build:
