@@ -260,7 +260,7 @@ async def process(
                     if element["id"] == element_data["id"]:
                         for key, value in element_data.items():
                             content_list[i][key] = value
-                        content_list[i] = remove_defaults(element_data)
+                        content_list[i] = remove_defaults(content_list[i])
                         break
                 else:
                     raise HTTPException(
