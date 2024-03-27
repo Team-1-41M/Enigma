@@ -55,4 +55,4 @@ def test_build_db_url_no_credentials_and_location():
     assert build_url({
         "engine": "engine",
         "name": "name",
-    }) == "engine://name"
+    }) == "engine:///name"
