@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import type { Project } from '~/types/project';
-
 const socketStore = useCurrentProjectStore();
-  
 </script>
 
 <template>
     <div class="attribute-wrapper">
-        <p>Attr</p>
+        <AttributesEditBlock
+            v-if="socketStore.selectedElements.length === 1 && 
+                  socketStore.selectedElements.at(0)!.type === 'block'"/>
+        <AttributesEditText
+            v-if="socketStore.selectedElements.length === 1 && 
+                  socketStore.selectedElements.at(0)!.type === 'text'"/>
     </div>
     
 </template>
