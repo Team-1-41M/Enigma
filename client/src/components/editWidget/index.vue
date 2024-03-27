@@ -597,5 +597,7 @@ function wheel(event: WheelEvent) {
 
 <template>
     <!-- FIXME these events should be on window (otherwise causes bugs when dragging elements or camera outside window, releasing mouse, and moving back in) -->
-    <canvas ref="canvas" @mousedown="mouseDown" @mousemove="mouseMove" @mouseup="mouseUp" @wheel="wheel" />
+    <div style="height: 99%">
+        <canvas ref="canvas" @mousedown="mouseDown" @mousemove="mouseMove" @mouseup="mouseUp" @wheel="wheel" />
+    </div>
 </template>
