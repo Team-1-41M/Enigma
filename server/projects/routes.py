@@ -290,6 +290,21 @@ async def process(
                         )
                 elif command == "delete":
                     content_list = delete_element(content_list, element_data["id"])
+                elif command == "put":
+                    foundIndex = next((i for i, e in enumerate(content_list) if e["id"] == element_data["id"]), None)
+                    if foundIndex is None:
+                        continue
+                    found = content_list[foundIndex]
+                    temp = content_list[:foundIndex] + content_list[foundIndex + 1:]
+
+                    newIndex = 0
+                    if "after" in element_data:
+                        whomIndex = next((i for i, e in enumerate(temp) if e["id"] == element_data["after"]), None)
+                        if whomIndex is None:
+                            continue
+                        newIndex = whomIndex + 1
+
+                    content_list = temp[:newIndex] + [found] + temp[newIndex:]
                 else:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
