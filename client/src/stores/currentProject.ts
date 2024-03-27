@@ -19,6 +19,15 @@ const timeout = (ms: number) => {
     return new Promise(resolve => setTimeout(resolve, ms));
 };
 
+const shallowEqual = (object1: { [key: string]: any }, object2: { [key: string]: any }) => {
+    const keys1 = Object.keys(object1);
+    const keys2 = Object.keys(object2);
+    if (keys1.length !== keys2.length) return false;
+    for (const key of keys1)
+        if (object1[key] !== object2[key]) return false;
+    return true;
+}
+
 type WebSocketExtended = WebSocket & { sendBuffered: (updateMessage: UpdateSocketMessage) => void };
 
 export const useCurrentProjectStore = defineStore('currentProject', () => {
@@ -43,17 +52,21 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
             `/ws/projects/${projectID}/content`
         ) as WebSocketExtended;
 
-        let updatesBuffer: UpdateSocketMessage[] = [];
+        const updatesBuffer: UpdateSocketMessage[] = [];
+        const syncBuffer: { [key: string]: any }[] = [];
 
         const interval = setInterval(
             () => {
                 if (newSocket.readyState === WebSocket.OPEN) {
-                    for (let message of updatesBuffer) {
+                    for (const message of updatesBuffer) {
                         const command = message.command;
                         delete (message as any).command;
+                        // first of all, save my ram,
+                        // second of all, that's too much latency (100ms * 100 = 10 seconds)
+                        if (syncBuffer.length < 100) syncBuffer.push(message);
                         newSocket.send(`${command} ${JSON.stringify(message)}`);
                     }
-                    updatesBuffer = [];
+                    updatesBuffer.length = 0;
                 }
             },
             100,
@@ -61,7 +74,7 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
 
         newSocket.sendBuffered = (updateMessage: UpdateSocketMessage) => {
             let foundAny = false;
-            for (let message of updatesBuffer)
+            for (const message of updatesBuffer)
                 if (message.id === updateMessage.id) {
                     for (const [key, value] of Object.entries(updateMessage))
                         message[key] = value;
@@ -153,9 +166,25 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
                     updateItem(el);
                     break;
                 case SocketCommand.Update:
+                    if (syncBuffer.length > 0)
+                        if (shallowEqual(syncBuffer[0], data)) {
+                            // matching buffer,
+                            // remove first element from the buffer and do not do any local changes
+                            syncBuffer.shift();
+                            return;
+                        } else if (syncBuffer[0].id === id && Object.keys(syncBuffer[0]).some(key => key in data))
+                            // not matching buffer,
+                            // someone else changed what's buffered or the changes order is different,
+                            // drop buffer and accept changes
+                            syncBuffer.length = 0;
+
                     el = findElement(id);
                     if (el === undefined) return;
                     updateItem(el);
+
+                    el = selectedElements.value.find(e => e.id === id);
+                    updateItem(el as any);
+
                     break;
                 case SocketCommand.Delete:
                     elements.value = elements.value.filter(e => e.id !== id);
@@ -194,7 +223,7 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
      * @param message Message to send.
      */
     async function sendSocketMessage(message: AnySocketMessage) {
-        let connected = await socket.value;
+        const connected = await socket.value;
         if (message.command === SocketCommand.Update) {
             connected.sendBuffered(message);
             return;
@@ -283,7 +312,7 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
     };
 
     async function removeElement(id: ElementID) {
-        let pre = elements.value;
+        const pre = elements.value;
         elements.value = elements.value.filter(e => e.id !== id);
         if (pre.length === elements.value.length) return;
 
@@ -299,7 +328,7 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
         el: E,
         ...changedAttribute: (keyof E)[]
     ) => {
-        let changes = Object.fromEntries(changedAttribute.map(a => [a, el[a]]));
+        const changes = Object.fromEntries(changedAttribute.map(a => [a, el[a]]));
         elements.value = elements.value.map(e => e.id === el.id ? { ...e, ...changes } : e);
 
         await sendSocketMessage({
