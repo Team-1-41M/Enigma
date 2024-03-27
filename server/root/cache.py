@@ -1,12 +1,9 @@
-"""
-23.02.2024
-Alexander Tyamin.
-
-Storage for processing cache, user sessions, and any key-value data.
-"""
-
-from typing import Hashable, Any
+import os
 from abc import ABC, abstractmethod
+from typing import Any, Hashable
+
+if os.getenv("CACHE_TYPE") == "redis":
+    from redis.asyncio import Redis
 
 
 class CacheStorage(ABC):
@@ -55,21 +52,6 @@ class CacheStorage(ABC):
 
         pass
 
-    @abstractmethod
-    async def expire(self, key: Hashable, ttl: int) -> None:
-        """
-        Allows to set the lifetime of the key.
-
-        Args:
-            key: key as a hashable object.
-            ttl: time to live in seconds.
-
-        Returns:
-            None.
-        """
-
-        pass
-
 
 class DictCacheStorage(CacheStorage):
     """
@@ -93,11 +75,50 @@ class DictCacheStorage(CacheStorage):
     async def delete(self, key: Hashable) -> None:
         self.storage.pop(key, None)
 
-    async def expire(self, key: Hashable, ttl: int) -> None:
-        pass
+
+class RedisCacheStorage(CacheStorage):
+    # TODO: how to close connection like self.storage.aclose()?
+
+    """
+    Provides a key-value storage
+    based on Redis.
+    """
+
+    def __init__(self, host: str, port: int, db: int) -> None:
+        """Initializes a new instance of the RedisCacheStorage class."""
+
+        super().__init__()
+
+        self.storage = Redis(host=host, port=port, db=db)
+
+    async def get(self, key: Hashable) -> Any:
+        return await self.storage.get(key)
+
+    async def set(self, key: Hashable, value: Any) -> None:
+        await self.storage.set(key, value)
+
+    async def delete(self, key: Hashable) -> None:
+        await self.storage.delete(key)
 
 
-storage = DictCacheStorage()
+match os.getenv("CACHE_TYPE"):
+    case "dict":
+        storage = DictCacheStorage()
+    case "redis":
+        storage = RedisCacheStorage(
+            os.getenv("CACHE_HOST"),
+            int(os.getenv("CACHE_PORT")),
+            int(os.getenv("CACHE_DB")),
+        )
+    case _:
+        storage = DictCacheStorage()
+
+
+clients = DictCacheStorage()
+
+
+async def get_clients_storage() -> CacheStorage:
+    return clients
 
 
 async def get_cache_storage() -> CacheStorage:

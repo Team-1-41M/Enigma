@@ -1,21 +1,13 @@
-"""
-23.02.2024
-Alexander Tyamin.
+from typing import Awaitable, Optional
 
-Helper functions for working for users identification.
-"""
-
-from typing import Optional, Awaitable
-
-from starlette import status
-from fastapi import Depends, Cookie
+from fastapi import Cookie, Depends
 from passlib.context import CryptContext
-from starlette.exceptions import HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from server.root.db import get_db
 from server.auth.models import User
 from server.root.cache import get_cache_storage
+from server.root.db import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from starlette import status
+from starlette.exceptions import HTTPException
 
 
 async def verify_password(
@@ -85,7 +77,8 @@ async def get_current_user(
 
     if session is None:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Session ID not provided"
+            detail="Session ID not provided",
+            status_code=status.HTTP_401_UNAUTHORIZED,
         )
 
     user_id = await cache_storage.get(session)

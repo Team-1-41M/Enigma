@@ -1,29 +1,23 @@
-"""
-07.03.2024
-Alexander Tyamin.
+from typing import Any, Awaitable, Optional
 
-Routes for users management.
-"""
-
-from typing import Optional, Awaitable, Any
-
-from starlette import status
 from fastapi import APIRouter, Depends
-from starlette.exceptions import HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from server.root.db import get_db
 from server.auth.models import User
-from server.projects.models import Project
 from server.auth.schemas import UserDBSchema
-from server.root.auth import get_current_user
+from server.projects.models import Project
 from server.projects.schemas import ProjectItemsSchema
+from server.root.auth import get_current_user
+from server.root.db import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from starlette import status
+from starlette.exceptions import HTTPException
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.get("/me", response_model=UserDBSchema)
-async def me(current_user: User = Depends(get_current_user)) -> Optional[User]:
+async def me(
+    current_user: User = Depends(get_current_user),
+) -> Optional[User]:
     """
     Current user data based on session value from cookie.
 
@@ -50,11 +44,11 @@ async def created_projects(
         db: db async session.
 
     Returns:
-        dict[str, Any]: dict with data as a list of projects and length of the list.
-
+        dict[str, Any]: dict with data
+        as a list of projects and length of the list.
     """
 
-    data: list[Project] = [_ async for _ in Project.by_author(current_user.id, db)]
+    data = [_ async for _ in Project.by_author(current_user.id, db)]
     return {
         "data": data,
         "length": len(data),
@@ -83,4 +77,7 @@ async def delete(
     try:
         await Project.delete(item_id, db)
     except RuntimeError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(
+            detail=str(e),
+            status_code=status.HTTP_404_NOT_FOUND,
+        )

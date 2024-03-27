@@ -1,28 +1,20 @@
-"""
-23.02.2024
-Alexander Tyamin.
-
-Routes for user authentication.
-"""
-
-import uuid
 import datetime
+import os
+import uuid
 from typing import Optional
 
-from starlette import status
+from fastapi import APIRouter, Cookie, Depends
 from passlib.context import CryptContext
-from starlette.responses import JSONResponse
-from starlette.exceptions import HTTPException
-from fastapi import APIRouter, Depends, Cookie
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from server.root.db import get_db
 from server.auth.models import User
-from server.root.settings import SESSION_TTL
-from server.root.crypt import get_crypt_context
-from server.root.cache import get_cache_storage
+from server.auth.schemas import UserSignInSchema, UserSignUpSchema
 from server.root.auth import authenticate_user, get_current_user
-from server.auth.schemas import UserSignUpSchema, UserSignInSchema
+from server.root.cache import get_cache_storage
+from server.root.crypt import get_crypt_context
+from server.root.db import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from starlette import status
+from starlette.exceptions import HTTPException
+from starlette.responses import JSONResponse
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -45,7 +37,8 @@ async def sign_up(
         None.
 
     Raises:
-        HTTPException: 409 conflict if user with the same name or email already exists.
+        HTTPException: 409 conflict
+        if user with the same name or email already exists.
     """
 
     same_name_user: Optional[User] = await User.by_name(data.name, db)
@@ -66,7 +59,6 @@ async def sign_up(
         UserSignUpSchema(
             name=data.name,
             email=data.email,
-            is_active=True,
             password=context.hash(data.password),
         ).model_dump(),
         db,
@@ -105,20 +97,27 @@ async def sign_in(
         )
 
     try:
-        await user.update({"login_at": datetime.datetime.now(datetime.UTC)}, db)
+        await user.update(
+            {"login_at": datetime.datetime.now(datetime.UTC)},
+            db,
+        )
     except AttributeError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            detail=str(e),
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
 
     session_id = str(uuid.uuid4())
     await cache_storage.set(session_id, user.id)
-    await cache_storage.expire(session_id, SESSION_TTL)
 
     response = JSONResponse({"detail": "Logged in successfully."})
+    HTTPS = bool(os.getenv("HTTPS") or False)
     response.set_cookie(
         "session",
         session_id,
         httponly=True,
-        max_age=SESSION_TTL,
+        secure=HTTPS,
+        samesite="none" if HTTPS else "lax",
     )
 
     return response

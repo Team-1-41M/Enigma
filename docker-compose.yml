@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  database:
+    image: postgres:latest
+    container_name: database
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+
+  cache:
+    image: redis
+    container_name: cache
+
+  client:
+    build: client/
+    container_name: client
+    ports:
+      - ${NUXT_PORT}:${NUXT_PORT}
+    environment:
+      - API_BASE_URL=${API_BASE_URL}
+      - NUXT_HOST=${NUXT_HOST}
+      - NUXT_PORT=${NUXT_PORT}
+
+  server:
+    build: server/
+    container_name: server
+    volumes:
+      - ./media:/media
+    depends_on:
+      - database
+      - cache
+      - client
+    ports:
+      - ${SERVER_PORT}:${SERVER_PORT}
+    environment:
+      - DEBUG=${DEBUG}
+      - SERVER_HOST=${SERVER_HOST}
+      - SERVER_PORT=${SERVER_PORT}
+      - SERVER_RELOAD=${SERVER_RELOAD}
+      - HTTPS=${HTTPS}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+      - SUPERUSER_NAME=${SUPERUSER_NAME}
+      - SUPERUSER_EMAIL=${SUPERUSER_EMAIL}
+      - SUPERUSER_PASSWORD=${SUPERUSER_PASSWORD}
+      - DB_ENGINE=${DB_ENGINE}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - CACHE_TYPE=${CACHE_TYPE}
+      - CACHE_HOST=${CACHE_HOST}
+      - CACHE_PORT=${CACHE_PORT}
+      - CACHE_DB=${CACHE_DB}

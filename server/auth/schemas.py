@@ -1,16 +1,8 @@
-"""
-23.02.2024
-Alexander Tyamin.
-
-API schemas for working with user accounts, including registration and login.
-"""
-
-import re
 import datetime
+import re
 from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
-
 from server.shared.schemas import EntityDBSchema
 
 
@@ -18,7 +10,9 @@ class UserSignInSchema(BaseModel):
     """
     Data for user authentication.
 
-    Name must be between 3 and 32 characters long and contain only letters (a-zA-Z), numbers and underscores.
+    Name must be between 3 and 32 characters
+    long and contain only letters (a-zA-Z), numbers and underscores.
+
     Password must meet the following requirements:
         contain at least one capital letter (A-Z),
         contain at least one lowercase letter (a-z),
@@ -48,7 +42,13 @@ class UserSignInSchema(BaseModel):
         """
 
         pattern: re.Pattern[str] = re.compile(
-            r"^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{12,64}$"
+            "^\
+                (?=.*?[A-Z])\
+                (?=.*?[a-z])\
+                (?=.*?[0-9])\
+                (?=.*?[#?!@$%^&*-])\
+                .{12,64}\
+            $"
         )
         if not pattern.match(password):
             raise ValueError("Invalid password")

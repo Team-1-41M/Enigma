@@ -1,18 +1,10 @@
-"""
-23.02.2024
-Alexander Tyamin.
-
-Models for user authentication.
-"""
-
 import datetime
-from typing import Optional, Awaitable
-
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Mapped, mapped_column
+from typing import Awaitable, Optional
 
 from server.shared.models import Entity
+from sqlalchemy import DateTime, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Mapped, mapped_column
 
 
 class User(Entity):
@@ -25,7 +17,9 @@ class User(Entity):
     password: Mapped[str]
     is_active: Mapped[bool] = mapped_column(default=True)
     login_at: Mapped[datetime.datetime] = mapped_column(
-        server_default=None, nullable=True
+        DateTime(timezone=True),
+        server_default=None,
+        nullable=True,
     )
 
     @staticmethod

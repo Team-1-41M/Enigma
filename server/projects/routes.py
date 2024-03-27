@@ -1,33 +1,29 @@
-"""
-28.02.2024
-Daniil Stenyushkin.
-Alexander Tyamin.
-
-Routes for projects management.
-"""
 import json
-
 from typing import Awaitable
 
-from starlette import status
-from starlette.exceptions import HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Depends, WebSocket
-
-from server.root.db import get_db
 from server.auth.models import User
 from server.projects.models import Project
-from server.root.auth import get_current_user
 from server.projects.schemas import (
-    ProjectDBSchema,
     ProjectCreateSchema,
+    ProjectDBSchema,
     ProjectUpdateSchema,
 )
+from server.root.auth import get_current_user
+from server.root.cache import get_clients_storage
+from server.root.db import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from starlette import status
+from starlette.exceptions import HTTPException
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
 
-@router.post("", response_model=ProjectDBSchema, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=ProjectDBSchema,
+    status_code=status.HTTP_201_CREATED,
+)
 async def create(
     data: ProjectCreateSchema,
     db: AsyncSession = Depends(get_db),
@@ -44,7 +40,8 @@ async def create(
         Project: created project data.
 
     Raises:
-        HTTPException: 400 if some attribute from data doesn't exist in the constructed object.
+        HTTPException: 400 if some attribute from data
+        doesn't exist in the constructed object.
     """
 
     data = data.model_dump()
@@ -54,13 +51,19 @@ async def create(
     try:
         project = await Project.create(data, db)
     except AttributeError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            detail=str(e),
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
 
     return project
 
 
 @router.get("/{item_id}", response_model=ProjectDBSchema)
-async def item(item_id: int, db: AsyncSession = Depends(get_db)) -> Awaitable[Project]:
+async def item(
+    item_id: int,
+    db: AsyncSession = Depends(get_db),
+) -> Awaitable[Project]:
     """
     Get project by id.
 
@@ -87,7 +90,9 @@ async def item(item_id: int, db: AsyncSession = Depends(get_db)) -> Awaitable[Pr
 
 @router.put("/{item_id}", response_model=ProjectDBSchema)
 async def update(
-    item_id: int, data: ProjectUpdateSchema, db: AsyncSession = Depends(get_db)
+    item_id: int,
+    data: ProjectUpdateSchema,
+    db: AsyncSession = Depends(get_db),
 ) -> Awaitable[Project]:
     """
     Update project.
@@ -102,7 +107,9 @@ async def update(
 
     Raises:
         HTTPException: 404 if project with specified id not found.
-        HTTPException: 400 if some attribute from data doesn't exist in the updated object.
+
+        HTTPException: 400 if some attribute from data
+        doesn't exist in the updated object.
     """
 
     project = await Project.by_id(item_id, db)
@@ -115,7 +122,10 @@ async def update(
     try:
         await project.update(data.model_dump(), db)
     except AttributeError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            detail=str(e),
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
 
     return project
 
@@ -142,11 +152,50 @@ async def delete(
     try:
         await Project.delete(item_id, db)
     except RuntimeError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(
+            detail=str(e),
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
 
 
-# TODO: Where to put it?
-clients = set()
+def is_default(value) -> bool:
+    """
+    Checks if value is default.
+
+    Args:
+        value: value to check.
+
+    Returns:
+        bool: True if value is default, False otherwise.
+    """
+
+    if isinstance(value, int) or isinstance(value, float):
+        return value == 0
+
+    if isinstance(value, str):
+        return value == ""
+
+    return False
+
+
+def remove_defaults(data: dict) -> dict:
+    """
+    Removes default values from data.
+
+    Args:
+        data: data to remove default values from.
+
+    Returns:
+        dict: data without default values.
+    """
+
+    undefaulted = {}
+
+    for key, value in data.items():
+        if value is not None and not is_default(value):
+            undefaulted[key] = value
+
+    return undefaulted
 
 
 @router.websocket("/{item_id}/content")
@@ -154,6 +203,7 @@ async def process(
     item_id: int,
     socket: WebSocket,
     db: AsyncSession = Depends(get_db),
+    clients_storage=Depends(get_clients_storage),
 ) -> None:
     """
     Collects project content changes from the client
@@ -174,38 +224,49 @@ async def process(
         )
 
     await socket.accept()
-    clients.add(socket)
 
+    clients = await clients_storage.get(project.id)
+    if clients is None:
+        clients = {socket}
+    else:
+        clients.add(socket)
+    await clients_storage.set(project.id, clients)
+
+    # TODO: make send json
     await socket.send_text(project.content)
 
     content_list = json.loads(project.content)
 
     while True:
-        # Получи сообщение от клиента
+        # TODO: handle close
         message = await socket.receive_text()
 
         try:
-            # Разбейте сообщение на команду и данные
             command, data = message.split(" ", 1)
 
             element_data = json.loads(data)
 
             if command == "create":
-                # Создание - надо добавить внуть контента проект новый элемент с id в виде uuid,
-                # который придет от клиента. Его надо будет проверить на конфликт с уже существующими.
-                if any(element["id"] == element_data["id"] for element in content_list):
-                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Element with this id already exists.")
+                id = element_data["id"]
+                if any(e["id"] == id for e in content_list):
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Element with this id already exists.",
+                    )
                 content_list.append(element_data)
 
             elif command == "update":
-                # Обновление - надо найти элемент с таким же id и обновить его содержимое.
-                # Проверить, а есть ли такой элемент вообще.
                 for i, element in enumerate(content_list):
                     if element["id"] == element_data["id"]:
-                        content_list[i] = element_data
+                        for key, value in element_data.items():
+                            content_list[i][key] = value
+                        content_list[i] = remove_defaults(content_list[i])
                         break
                 else:
-                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Element with this id not found.")
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Element with this id not found.",
+                    )
 
             elif command == "delete":
                 for i, element in enumerate(content_list):
@@ -213,18 +274,23 @@ async def process(
                         del content_list[i]
                         break
                 else:
-                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Element with this id not found.")
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Element with this id not found.",
+                    )
 
             else:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid command.")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid command.",
+                )
 
             await project.update({"content": json.dumps(content_list)}, db)
 
-
-            # Рассылать надо всем, даже тому, кто это отправил, чтобы было понятно, справился ли с командой сервер
             for client in clients:
                 await client.send_text(message)
-
         except AttributeError as e:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-
+            raise HTTPException(
+                detail=str(e),
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
