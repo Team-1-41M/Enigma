@@ -3,6 +3,7 @@ import os
 from server.auth.models import User
 from server.auth.schemas import UserSignUpSchema
 from server.root.crypt import crypt_context
+from server.shared.models import Base
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -33,7 +34,7 @@ def build_url(data: dict) -> str:
     location: str = f"{host}:{port}" if host is not None and port is not None else host if host is not None else None
     credentials: str = f"{auth}@{location}" if auth is not None and location is not None else location if location is not None else None
 
-    return f"{engine}://{credentials}/{name}" if credentials is not None else f"{engine}://{name}"
+    return f"{engine}://{credentials}/{name}" if credentials is not None else f"{engine}:///{name}"
 
 
 DB_URL = build_url(
@@ -65,8 +66,10 @@ def create_session_maker() -> async_sessionmaker:
         async_sessionmaker: session maker
     """
 
+    engine = create_engine()
+
     return async_sessionmaker(
-        bind=create_engine(),
+        bind=engine,
         expire_on_commit=False,
         autoflush=False,
     )
@@ -80,7 +83,9 @@ async def get_db() -> AsyncSession:
         AsyncSession: database session
     """
 
-    async with create_session_maker() as session:
+    session_maker = create_session_maker()
+
+    async with session_maker() as session:
         try:
             yield session
         finally:
@@ -88,7 +93,14 @@ async def get_db() -> AsyncSession:
 
 
 async def init_db() -> None:
-    async with create_session_maker() as session:
+    engine = create_engine()
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    session_maker = create_session_maker()
+
+    async with session_maker() as session:
         try:
             if await User.by_email(os.getenv("SUPERUSER_EMAIL"), session):
                 return
