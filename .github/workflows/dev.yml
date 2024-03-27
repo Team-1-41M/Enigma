@@ -30,4 +30,4 @@ jobs:
           pip install -r server/requirements/test.txt
       - name: Run tests
         run: |
-          pytest ./server
+          python -m pytest ./server
