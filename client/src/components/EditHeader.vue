@@ -4,6 +4,13 @@ import type { Project } from '~/types/project';
 import { EditMode } from '~/types/editMode';
 
 const store = useCurrentProjectStore();
+const route = useRoute();
+
+const projectID = route.params.id as any;
+const projectsStore = useProjectStore();
+
+await projectsStore.fetchProjects();
+const projectTitle = ref<string>(projectsStore.projectList.find(e => e.id == projectID)!.title)
 </script>
 
 <template>
@@ -35,7 +42,7 @@ const store = useCurrentProjectStore();
             @click="store.currentMode = EditMode.Camera"/>
     </div>
     <h2>
-        Project name
+        {{ projectTitle }}
     </h2>
     <div class="user-display-container">
         <!-- <UserDisplay class="user-display"

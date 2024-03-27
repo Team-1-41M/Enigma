@@ -815,7 +815,9 @@ function wheel(event: WheelEvent) {
     <div>
         <textarea ref="textEditor" :value="currentlyEditingText?.content" @input="updateText" @blur="finishTextEdit"
             @keydown.esc="finishTextEdit" style="display: none" />
-        <canvas ref="canvas" @mousedown="mouseDown" @dblclick="doubleClick" @wheel="wheel" />
+        <div style="height: 99%">
+            <canvas ref="canvas" @mousedown="mouseDown" @dblclick="doubleClick" @wheel="wheel" />
+        </div>
     </div>
 </template>
 

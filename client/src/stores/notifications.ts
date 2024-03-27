@@ -16,7 +16,6 @@ export const useNotificationsStore = defineStore('notifications', () => {
    * @param notificationType 'error' - red one, bad. 'success' - green one, good.
    */
   const addNotification = (notificationText: string, notificationType: 'error' | 'success', notificationDuration=5) => {
-    console.log(notificationText)
     notifications.value.push({
       id: Math.random().toString(16),
       text: notificationText,
