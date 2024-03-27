@@ -1,23 +1,15 @@
-"""
-07.03.2024
-Alexander Tyamin.
+from typing import Any, Awaitable, Optional
 
-Routes for users management.
-"""
-
-from typing import Optional, Awaitable, Any
-
-from starlette import status
 from fastapi import APIRouter, Depends
-from starlette.exceptions import HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from server.root.db import get_db
 from server.auth.models import User
-from server.projects.models import Project
 from server.auth.schemas import UserDBSchema
-from server.root.auth import get_current_user
+from server.projects.models import Project
 from server.projects.schemas import ProjectItemsSchema
+from server.root.auth import get_current_user
+from server.root.db import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from starlette import status
+from starlette.exceptions import HTTPException
 
 router = APIRouter(prefix="/users", tags=["Users"])
 

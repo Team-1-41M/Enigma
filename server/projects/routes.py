@@ -1,31 +1,36 @@
-"""
-28.02.2024
-Daniil Stenyushkin.
-Alexander Tyamin.
-
-Routes for projects management.
-"""
 import json
-
 from typing import Awaitable
 
-from starlette import status
-from starlette.exceptions import HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Depends, WebSocket
-
-from server.root.db import get_db
 from server.auth.models import User
 from server.projects.models import Project
-from server.root.auth import get_current_user
 from server.projects.schemas import (
-    ProjectDBSchema,
     ProjectCreateSchema,
+    ProjectDBSchema,
     ProjectUpdateSchema,
 )
+from server.root.auth import get_current_user
+from server.root.cache import get_clients_storage
+from server.root.db import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from starlette import status
+from starlette.exceptions import HTTPException
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
+def delete_element(elements, id_to_delete):
+    def find_descendants(element_id):
+        return [element["id"] for element in elements if element.get("parent") == element_id]
+
+    def delete_recursive(element_id):
+        descendants = find_descendants(element_id)
+        for descendant in descendants:
+            delete_recursive(descendant)
+        nonlocal elements
+        elements = [element for element in elements if element["id"] != element_id]
+
+    delete_recursive(id_to_delete)
+    return elements
 
 @router.post(
     "",
@@ -166,8 +171,44 @@ async def delete(
         )
 
 
-# TODO: Where to put it?
-clients = set()
+def is_default(value) -> bool:
+    """
+    Checks if value is default.
+
+    Args:
+        value: value to check.
+
+    Returns:
+        bool: True if value is default, False otherwise.
+    """
+
+    if isinstance(value, int) or isinstance(value, float):
+        return value == 0
+
+    if isinstance(value, str):
+        return value == ""
+
+    return False
+
+
+def remove_defaults(data: dict) -> dict:
+    """
+    Removes default values from data.
+
+    Args:
+        data: data to remove default values from.
+
+    Returns:
+        dict: data without default values.
+    """
+
+    undefaulted = {}
+
+    for key, value in data.items():
+        if value is not None and not is_default(value):
+            undefaulted[key] = value
+
+    return undefaulted
 
 
 @router.websocket("/{item_id}/content")
@@ -175,6 +216,7 @@ async def process(
     item_id: int,
     socket: WebSocket,
     db: AsyncSession = Depends(get_db),
+    clients_storage=Depends(get_clients_storage),
 ) -> None:
     """
     Collects project content changes from the client
@@ -195,60 +237,68 @@ async def process(
         )
 
     await socket.accept()
-    clients.add(socket)
 
+    clients = await clients_storage.get(project.id)
+    if clients is None:
+        clients = {socket}
+    else:
+        clients.add(socket)
+    await clients_storage.set(project.id, clients)
+
+    # TODO: make send json
     await socket.send_text(project.content)
 
     content_list = json.loads(project.content)
 
     while True:
-        # Получи сообщение от клиента
+        # TODO: handle close
         message = await socket.receive_text()
 
         try:
-            # Разбейте сообщение на команду и данные
             command, data = message.split(" ", 1)
 
             element_data = json.loads(data)
 
             if command == "create":
-                # Создание - надо добавить внуть контента проект новый элемент с id в виде uuid,
-                # который придет от клиента. Его надо будет проверить на конфликт с уже существующими.
-                if any(element["id"] == element_data["id"] for element in content_list):
-                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Element with this id already exists.")
+                id = element_data["id"]
+                if any(e["id"] == id for e in content_list):
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Element with this id already exists.",
+                    )
                 content_list.append(element_data)
 
             elif command == "update":
-                # Обновление - надо найти элемент с таким же id и обновить его содержимое.
-                # Проверить, а есть ли такой элемент вообще.
                 for i, element in enumerate(content_list):
                     if element["id"] == element_data["id"]:
-                        content_list[i] = element_data
+                        for key, value in element_data.items():
+                            content_list[i][key] = value
+                        content_list[i] = remove_defaults(content_list[i])
                         break
                 else:
-                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Element with this id not found.")
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Element with this id not found.",
+                    )
 
             elif command == "delete":
-                for i, element in enumerate(content_list):
-                    if element["id"] == element_data["id"]:
-                        del content_list[i]
-                        break
-                else:
-                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Element with this id not found.")
-
+                content_list = delete_element(content_list, element_data["id"])
+                await project.update({"content": json.dumps(content_list)}, db)
+                for client in clients:
+                    await client.send_text(message)
             else:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid command.")
+                raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid command.",
+            )
 
             await project.update({"content": json.dumps(content_list)}, db)
 
-
-            # Рассылать надо всем, даже тому, кто это отправил, чтобы было понятно, справился ли с командой сервер
-            for client in clients:
-                await client.send_text(message)
-
+            if command != "delete":
+                for client in clients:
+                    await client.send_text(message)
         except AttributeError as e:
             raise HTTPException(
                 detail=str(e),
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
-

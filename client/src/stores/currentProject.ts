@@ -19,17 +19,19 @@ const timeout = (ms: number) => {
     return new Promise(resolve => setTimeout(resolve, ms));
 };
 
+type WebSocketExtended = WebSocket & { sendBuffered: (updateMessage: UpdateSocketMessage) => void };
+
 export const useCurrentProjectStore = defineStore('currentProject', () => {
     const projectID = ref<ProjectID | null>(null);
     const elements = ref<AnyElement[]>([]);
-    const selectedElements = ref<ElementID[]>([]);
+    const selectedElements = ref<AnyElement[]>([]);
     const currentMode = ref<EditMode>(EditMode.Move);
 
     //
     // Sockets
     //
 
-    const { done: initialDone, promise: socketPromise } = referencePromise<WebSocket>();
+    const { done: initialDone, promise: socketPromise } = referencePromise<WebSocketExtended>();
     const socketDone = ref(initialDone);
     const socket = ref(socketPromise);
 
@@ -39,7 +41,35 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
             `${(window.location.protocol === "https:") ? "wss://" : "ws://"}` +
             `${window.location.host}` +
             `/ws/projects/${projectID}/content`
+        ) as WebSocketExtended;
+
+        let updatesBuffer: UpdateSocketMessage[] = [];
+
+        const interval = setInterval(
+            () => {
+                if (newSocket.readyState === WebSocket.OPEN) {
+                    for (let message of updatesBuffer) {
+                        const command = message.command;
+                        delete (message as any).command;
+                        newSocket.send(`${command} ${JSON.stringify(message)}`);
+                    }
+                    updatesBuffer = [];
+                }
+            },
+            100,
         );
+
+        newSocket.sendBuffered = (updateMessage: UpdateSocketMessage) => {
+            let foundAny = false;
+            for (let message of updatesBuffer)
+                if (message.id === updateMessage.id) {
+                    for (const [key, value] of Object.entries(updateMessage))
+                        message[key] = value;
+                    foundAny = true;
+                    break;
+                }
+            if (!foundAny) updatesBuffer.push(updateMessage);
+        };
 
         newSocket.onopen = async () => {
             const currentSocket = await Promise.race([
@@ -64,6 +94,32 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
             if (currentSocket !== newSocket) return;
 
             const message = event.data as string;
+
+            // first connect message
+            if (message.startsWith('[')) {
+                elements.value = [];
+                for (const el of JSON.parse(message)) {
+                    let element = {} as { [key: string]: any };
+
+                    switch (el.type) {
+                        case ElementType.Block:
+                            element = createBlockElement(el.id, el.name);
+                            break;
+                        case ElementType.Text:
+                            element = createTextElement(el.id, el.name);
+                            break;
+                    }
+
+                    for (const [key, value] of Object.entries(el)) {
+                        // FIXME i smell security problems here
+                        element[key] = value;
+                    }
+
+                    elements.value.push(element as any);
+                }
+                return;
+            }
+
             const commandPos = message.indexOf('{');
 
             const command = message.slice(0, commandPos).trim();
@@ -83,6 +139,7 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
             let el = undefined;
             switch (command) {
                 case SocketCommand.Create:
+                    if (elements.value.find(e => e.id === id)) return;
                     switch (data.type) {
                         case ElementType.Block:
                             el = createBlockElement(id, data.name);
@@ -107,6 +164,8 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
         };
 
         newSocket.onclose = async event => {
+            clearInterval(interval);
+
             if (event.wasClean && event.code === 1000) return;
 
             await timeout(1000);
@@ -118,7 +177,7 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
 
             if (currentSocket !== newSocket) return;
 
-            const { done, promise } = referencePromise<WebSocket>();
+            const { done, promise } = referencePromise<WebSocketExtended>();
             socketDone.value = done;
             socket.value = promise;
 
@@ -134,10 +193,15 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
      * @param message Message to send.
      */
     async function sendSocketMessage(message: AnySocketMessage) {
+        let connected = await socket.value;
+        if (message.command === SocketCommand.Update) {
+            connected.sendBuffered(message);
+            return;
+        }
+
         const command = message.command;
         delete (message as any).command;
-        let connected = await socket.value;
-        // TODO when working: connected.send(`${command} ${JSON.stringify(message)}`);
+        connected.send(`${command} ${JSON.stringify(message)}`);
     };
 
     watch(projectID, async projectID => {
@@ -149,7 +213,7 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
         if (currentSocket !== null) {
             currentSocket.close();
 
-            const { done, promise } = referencePromise<WebSocket>();
+            const { done, promise } = referencePromise<WebSocketExtended>();
             socketDone.value = done;
             socket.value = promise;
         }
@@ -174,11 +238,12 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
         `${type === ElementType.Block ? 'Блок' : 'Текст'} ` + // TODO i18n?
         `${elements.value.filter(e => e.type === type).length + 1}`;
 
-    const findElement = <E extends BaseElement>(id: ElementID, type?: E['type']): E =>
+    const findElement = <E extends BaseElement>(id: ElementID, type?: E['type']): E | undefined =>
         elements.value.find(e => e.id === id && (type === undefined || e.type === type)) as E;
 
     async function addBlock(edit?: (el: BlockElement) => void): Promise<BlockElement> {
         const el = createBlockElement(generateElementID(), generateName(ElementType.Block));
+        const def = { ...el } as BlockElement;
         if (edit !== undefined) edit(el);
         elements.value.push(el);
 
@@ -188,6 +253,15 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
             type: ElementType.Block,
             name: el.name,
         } as CreateSocketMessage);
+
+        if (edit !== undefined) {
+            await updateElement(
+                el,
+                ...([...Object.keys(def), ...Object.keys(el)] as (keyof BlockElement)[])
+                    .filter((value, index, array) => array.indexOf(value) === index)
+                    .filter(key => el[key] !== def[key])
+            );
+        }
 
         return el;
     };
@@ -283,6 +357,7 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
         elements,
         selectedElements,
         currentMode,
+        findElement,
         addBlock,
         addText,
         removeElement,
