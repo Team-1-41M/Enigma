@@ -29,11 +29,11 @@ def build_url(data: dict) -> str:
     host = data.get("host")
     port = data.get("port")
 
-    AUTH: str = f"{user}:{password}" if user and password else user if user else ""
-    LOCATION: str = f"{host}:{port}" if host and port else host if host else ""
-    CREDENTIALS: str = f"{AUTH}@{LOCATION}" if AUTH and LOCATION else LOCATION if LOCATION else ""
+    auth: str = f"{user}:{password}" if user is not None and password is not None else user if user is not None else None
+    location: str = f"{host}:{port}" if host is not None and port is not None else host if host is not None else None
+    credentials: str = f"{auth}@{location}" if auth is not None and location is not None else location if location is not None else None
 
-    return f"{engine}://{CREDENTIALS}/{name}"
+    return f"{engine}://{credentials}/{name}" if credentials is not None else f"{engine}://{name}"
 
 
 DB_URL = build_url(
@@ -47,12 +47,29 @@ DB_URL = build_url(
     }
 )
 
-engine: AsyncEngine = create_async_engine(DB_URL)
-session_maker = async_sessionmaker(
-    bind=engine,
-    expire_on_commit=False,
-    autoflush=False,
-)
+
+def create_engine() -> AsyncEngine:
+    """Creates a new database engine.
+
+    Returns:
+        AsyncEngine: database engine
+    """
+
+    return create_async_engine(DB_URL)
+
+
+def create_session_maker() -> async_sessionmaker:
+    """Creates a new session maker.
+
+    Returns:
+        async_sessionmaker: session maker
+    """
+
+    return async_sessionmaker(
+        bind=create_engine(),
+        expire_on_commit=False,
+        autoflush=False,
+    )
 
 
 async def get_db() -> AsyncSession:
@@ -63,7 +80,7 @@ async def get_db() -> AsyncSession:
         AsyncSession: database session
     """
 
-    async with session_maker() as session:
+    async with create_session_maker() as session:
         try:
             yield session
         finally:
@@ -71,7 +88,7 @@ async def get_db() -> AsyncSession:
 
 
 async def init_db() -> None:
-    async with session_maker() as session:
+    async with create_session_maker() as session:
         try:
             if await User.by_email(os.getenv("SUPERUSER_EMAIL"), session):
                 return
