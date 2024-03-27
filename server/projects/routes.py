@@ -18,6 +18,7 @@ from starlette.exceptions import HTTPException
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
+
 @router.post(
     "",
     response_model=ProjectDBSchema,
@@ -128,9 +129,12 @@ async def update(
 
     return project
 
+
 def delete_element(elements, id_to_delete):
     def find_descendants(element_id):
-        return [element["id"] for element in elements if element.get("parent") == element_id]
+        return [
+            element["id"] for element in elements if element.get("parent") == element_id
+        ]
 
     def delete_recursive(element_id):
         descendants = find_descendants(element_id)
@@ -285,9 +289,9 @@ async def process(
                 content_list = delete_element(content_list, element_data["id"])
             else:
                 raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid command.",
-            )
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid command.",
+                )
 
             await project.update({"content": json.dumps(content_list)}, db)
 

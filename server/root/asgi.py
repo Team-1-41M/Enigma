@@ -7,7 +7,6 @@ from server.projects.routes import router as projects_router
 from server.root.db import engine, init_db
 from server.shared.models import Base
 from server.users.routes import router as users_router
-from starlette.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
 
 debug = os.getenv("DEBUG") == "True"
@@ -27,6 +26,7 @@ api_v1_router.include_router(users_router)
 api_v1_router.include_router(projects_router)
 
 app.include_router(api_v1_router)
+
 
 @app.on_event("startup")
 async def startup_event() -> None:
