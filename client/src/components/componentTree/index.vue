@@ -1,15 +1,7 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
 import { ElementType,type BlockElement, type TextElement, type AnyElement } from '~/types/elements';
-import { Icon } from '@iconify/vue';
-import { ElementType,type BlockElement, type TextElement, type AnyElement } from '~/types/elements';
 import type { Project } from '~/types/project';
-import { useTreeStore } from './treeStore';
-
-const props = defineProps<{
-    tree: AnyElement[],
-    parentId?: string
-}>();
 import { useTreeStore } from './treeStore';
 
 const props = defineProps<{
@@ -82,7 +74,6 @@ const handleReorder = (newParentId: string | undefined, newIndex: number) => {
 .components-tree-wrapper {
     height: 100%;
     background-color: var(--primary);
-    color: var(--text)
     color: var(--text)
 }
 </style>
