@@ -10,18 +10,42 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-ENGINE = os.getenv("DB_ENGINE")
-NAME = os.getenv("DB_NAME")
-USER = os.getenv("DB_USER")
-PASSWORD = os.getenv("DB_PASSWORD")
-HOST = os.getenv("DB_HOST")
-PORT = os.getenv("DB_PORT")
 
-AUTH: str = f"{USER}:{PASSWORD}" if USER and PASSWORD else USER if USER else ""
-LOCATION: str = f"{HOST}:{PORT}" if HOST and PORT else HOST if HOST else ""
-CREDENTIALS: str = f"{AUTH}@{LOCATION}" if AUTH and LOCATION else LOCATION if LOCATION else ""
+def build_url(data: dict) -> str:
+    """
+    Builds url for database connection.
 
-DB_URL = f"{ENGINE}://{CREDENTIALS}/{NAME}"
+    Args:
+        data: database connection data.
+
+    Returns:
+        str: url for database connection.
+    """
+
+    engine = data.get("engine")
+    name = data.get("name")
+    user = data.get("user")
+    password = data.get("password")
+    host = data.get("host")
+    port = data.get("port")
+
+    AUTH: str = f"{user}:{password}" if user and password else user if user else ""
+    LOCATION: str = f"{host}:{port}" if host and port else host if host else ""
+    CREDENTIALS: str = f"{AUTH}@{LOCATION}" if AUTH and LOCATION else LOCATION if LOCATION else ""
+
+    return f"{engine}://{CREDENTIALS}/{name}"
+
+
+DB_URL = build_url(
+    {
+        "engine": os.getenv("DB_ENGINE"),
+        "name": os.getenv("DB_NAME"),
+        "user": os.getenv("DB_USER"),
+        "password": os.getenv("DB_PASSWORD"),
+        "host": os.getenv("DB_HOST"),
+        "port": os.getenv("DB_PORT"),
+    }
+)
 
 engine: AsyncEngine = create_async_engine(DB_URL)
 session_maker = async_sessionmaker(
