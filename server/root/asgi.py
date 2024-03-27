@@ -4,10 +4,8 @@ from pathlib import Path
 from fastapi import APIRouter, FastAPI
 from server.auth.routes import router as auth_router
 from server.projects.routes import router as projects_router
-from server.root.db import engine, init_db
-from server.shared.models import Base
+from server.root.db import init_db
 from server.users.routes import router as users_router
-from starlette.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
 
 debug = os.getenv("DEBUG") == "True"
@@ -31,8 +29,6 @@ app.include_router(api_v1_router)
 
 @app.on_event("startup")
 async def startup_event() -> None:
-    """Creating models at application startup."""
-
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    """Run db initialization."""
+    
     await init_db()
