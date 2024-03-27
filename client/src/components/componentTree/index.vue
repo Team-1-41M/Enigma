@@ -23,6 +23,7 @@ const handleSelect = (element: AnyElement) => {
 }
 
 const handleReorder = (newParentId: string | undefined, newIndex: number) => {
+    console.log(newIndex)
     treeStore.handleDrop(newParentId, newIndex);
 }
 </script>
@@ -30,9 +31,22 @@ const handleReorder = (newParentId: string | undefined, newIndex: number) => {
 <template>
     <div class="components-tree-wrapper">
         <div v-for="(element, index) in tree" style="width: 100%">
-            <!-- <ComponentTreeTextItem
-                v-if="element.parent === undefined || element.type == ElementType.Text"
-                :element="element"/> -->
+            <ComponentTreeItem
+                v-if="element.parent === props.parentId && element.type == ElementType.Text"
+                :tree-item="element"
+                :dragged-item-id="treeStore.draggedElement ?? ''"
+                :index="index"
+                :parentId="element.parent"
+                :children-count="0"
+                :selected="socketStore.selectedElements.some(e => element.id === e.id)"
+                @dragged="handleDragStart"
+                @select="handleSelect"
+                @reorder="handleReorder"
+                @drop="null">
+                    <template #title>
+                        <ComponentTreeTextItem :element="element"></ComponentTreeTextItem>
+                    </template>
+            </ComponentTreeItem>
             <ComponentTreeItem
                 v-if="element.parent === props.parentId && element.type == ElementType.Block"
                 :tree-item="element"
@@ -58,7 +72,6 @@ const handleReorder = (newParentId: string | undefined, newIndex: number) => {
 
 <style scoped>
 .components-tree-wrapper {
-    width: 100%;
     height: 100%;
     background-color: var(--primary);
     color: var(--text)
