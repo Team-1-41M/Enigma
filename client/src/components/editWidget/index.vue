@@ -91,8 +91,10 @@ function mouseOverElement(
     elements?: AnyElement[],
 ): AnyElement | undefined {
     const point = mouseToWorld(mousePos);
-    return (elements ?? store.elements)
-        .toReversed() // FIXME find foremost
+    return store.traversedTree()
+        .map(e => store.findElement(e) as AnyElement)
+        .filter(e => elements === undefined || elements.includes(e))
+        .toReversed()
         .find(el => inside(point, elementBox(el)));
 }
 
@@ -106,8 +108,9 @@ function mouseOverBlockControl(
         if (el.type !== ElementType.Block) continue;
 
         for (const [ptx, pty, cx, cy] of CONTROLS) {
-            const x = el.x + ptx * el.width + cx * (cy === 0 ? 8 : 6);
-            const y = el.y + pty * el.height + cy * (cx === 0 ? 8 : 6);
+            const [elx, ely] = store.globalPosition(el);
+            const x = elx + ptx * el.width + cx * (cy === 0 ? 8 : 6);
+            const y = ely + pty * el.height + cy * (cx === 0 ? 8 : 6);
             if (Math.sqrt((x - mx) ** 2 + (y - my) ** 2) <= CONTROL_RADIUS * camera.zoom)
                 return { element: el, cx, cy };
         }
@@ -163,9 +166,10 @@ function elementBox(element: AnyElement): Box {
             break;
     };
 
+    let [x, y] = store.globalPosition(element);
+
     return {
-        x: element.x,
-        y: element.y,
+        x, y,
         w: width,
         h: height,
     };
@@ -203,7 +207,8 @@ function drawText(ctx: CanvasRenderingContext2D, element: TextElement) {
     const w = textWidth(ctx, element.content);
     const lineHeight = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
 
-    let x = element.x;
+    let [x, y] = store.globalPosition(element);
+
     switch (element.alignment) {
         case TextAlignment.Center:
             x -= w / 2;
@@ -215,18 +220,41 @@ function drawText(ctx: CanvasRenderingContext2D, element: TextElement) {
             break;
     }
     for (const [i, line] of element.content.split(/\r\n|\r|\n/g).entries())
-        ctx.fillText(line, x, element.y + lineHeight * (1 + i) - metrics.fontBoundingBoxDescent);
+        ctx.fillText(line, x, y + lineHeight * (1 + i) - metrics.fontBoundingBoxDescent);
 }
 
 function drawBlock(ctx: CanvasRenderingContext2D, element: BlockElement) {
+    const [x, y] = store.globalPosition(element);
+
     ctx.fillStyle = colorToColor(element.background);
-    ctx.fillRect(element.x, element.y, element.width, element.height);
+    ctx.fillRect(x, y, element.width, element.height);
     // TODO arcs for border-radius
     // TODO borders
 }
 
+function clipParent(ctx: CanvasRenderingContext2D, element: AnyElement) {
+    const foundParent = element.parent === undefined ? undefined : store.findElement<AnyElement>(element.parent);
+    if (foundParent !== undefined) {
+        let { x, y, w, h } = elementBox(foundParent);
+        const path = new Path2D();
+        path.moveTo(x, y);
+        path.lineTo(x + w, y);
+        path.lineTo(x + w, y + h);
+        path.lineTo(x, y + h);
+        path.closePath();
+        ctx.clip(path);
+        clipParent(ctx, foundParent);
+    }
+}
+
 function drawElements(ctx: CanvasRenderingContext2D) {
-    store.elements.forEach(element => {
+    store.traversedTree().forEach(id => {
+        const element = store.findElement(id) as AnyElement;
+
+        ctx.save();
+
+        clipParent(ctx, element);
+
         // TODO do not draw outside of camera
         // TODO use parent's position
         switch (element.type) {
@@ -237,6 +265,8 @@ function drawElements(ctx: CanvasRenderingContext2D) {
                 drawText(ctx, element);
                 break;
         }
+
+        ctx.restore();
 
         if (store.selectedElements.find(e => e.id === element.id))
             drawSelectionBox(ctx, elementBox(element));
@@ -277,8 +307,9 @@ function drawBlockControls(ctx: CanvasRenderingContext2D) {
         ctx.lineWidth = 2;
         ctx.fillStyle = isControlClicked(cx, cy) ? '#FFF' : '#D9D9D9';
         const radius = isControlClicked(cx, cy) ? 10 : 7;
-        const x = element.x + ptx * element.width + cx * (cy === 0 ? 8 : 6);
-        const y = element.y + pty * element.height + cy * (cx === 0 ? 8 : 6);
+        const [elx, ely] = store.globalPosition(element);
+        const x = elx + ptx * element.width + cx * (cy === 0 ? 8 : 6);
+        const y = ely + pty * element.height + cy * (cx === 0 ? 8 : 6);
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, 2 * Math.PI);
         ctx.fill();
@@ -521,7 +552,7 @@ const Actions = {
 
             const result: ElementsMoveClick = {
                 clickType: ClickType.ElementsMove,
-                elementsPosBeforeClick: store.selectedElements.map(({ x, y }) => [x, y]),
+                elementsPosBeforeClick: store.selectedElements.map(e => store.globalPosition(e)),
             };
             return result;
         }
@@ -592,10 +623,25 @@ const Updaters: { [C in ClickType]?: Updater<Extract<AnyClick, { clickType: C }>
             const { start, end, clicked: { elementsPosBeforeClick } } = click;
             const [sx, sy] = mouseToWorld(start);
             const [ex, ey] = mouseToWorld(end);
-            element.x = Math.round(elementsPosBeforeClick[i][0] + (ex - sx));
-            element.y = Math.round(elementsPosBeforeClick[i][1] + (ey - sy));
+            const globalPos: Point = [
+                Math.round(elementsPosBeforeClick[i][0] + (ex - sx)),
+                Math.round(elementsPosBeforeClick[i][1] + (ey - sy)),
+            ];
+            const foundParent = element.parent === undefined ? undefined : store.findElement<AnyElement>(element.parent);
+            const localPos = foundParent === undefined ? globalPos : store.localPosition(globalPos, foundParent);
+            element.x = localPos[0];
+            element.y = localPos[1];
             store.updateElement(element, 'x', 'y');
         });
+
+        const newParent = mouseOverElement(
+            click.end,
+            store.elements.filter(e => e.type === ElementType.Block && !store.selectedElements.some(s => s.id === e.id))
+        );
+
+        store.selectedElements
+            .map(e => e.id)
+            .forEach(id => store.makeChild(id, newParent === undefined ? undefined : newParent.id));
     },
 
     [ClickType.BlockControl]: click => {

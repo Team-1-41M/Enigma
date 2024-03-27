@@ -125,7 +125,7 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
 
                     for (const [key, value] of Object.entries(el)) {
                         // FIXME i smell security problems here
-                        element[key] = value;
+                        element[key] = value === null ? undefined : value;
                     }
 
                     elements.value.push(element as any);
@@ -144,7 +144,7 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
             const updateItem = (element: { [key: string]: any }) => {
                 for (const [key, value] of Object.entries(data)) {
                     // FIXME i smell security problems here
-                    element[key] = value;
+                    element[key] = value === null ? undefined : value;
                 }
             };
 
@@ -180,7 +180,7 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
 
                     el = findElement(id);
                     if (el === undefined) return;
-                    updateItem(el[0]);
+                    updateItem(el);
 
                     el = selectedElements.value.find(e => e.id === id);
                     updateItem(el as any);
@@ -272,10 +272,8 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
             `${elements.value.filter(e => e.type === type).length + 1}`;
     }
 
-    function findElement<E extends BaseElement>(id: ElementID, type?: E['type']): [E, number] | undefined {
-        let index = elements.value
-            .findIndex(e => e.id === id && (type === undefined || e.type === type));
-        return [elements.value[index] as E, index];
+    function findElement<E extends BaseElement>(id: ElementID, type?: E['type']): E | undefined {
+        return elements.value.find(e => e.id === id && (type === undefined || e.type === type)) as E;
     }
 
     async function addBlock(edit?: (el: BlockElement) => void): Promise<BlockElement> {
@@ -341,8 +339,14 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
         el: E,
         ...changedAttribute: (keyof E)[]
     ) {
-        const changes = Object.fromEntries(changedAttribute.map(a => [a, el[a]]));
-        elements.value = elements.value.map(e => e.id === el.id ? { ...e, ...changes } : e);
+        const changes = Object.fromEntries(changedAttribute.map(a => [a, el[a] === undefined ? null : el[a]]));
+        for (const e of elements.value)
+            if (e.id === el.id)
+                for (const [key, value] of Object.entries(changes)) {
+                    const obj = e as any;
+                    if (value === null) delete obj[key];
+                    else obj[key] = value;
+                }
 
         await sendSocketMessage<UpdateSocketMessage>({
             command: SocketCommand.Update,
@@ -378,8 +382,7 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
     }
 
     function globalPosition(element: AnyElement): [number, number] {
-        let x = element.x;
-        let y = element.y;
+        const { x, y } = element;
 
         const parent = elements.value.find(e => e.id === element.parent);
         if (parent === undefined) return [x, y];
@@ -393,17 +396,31 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
         return [globalX - px, globalY - py];
     }
 
+    function detachFromParent(id: ElementID, parentToDetach: ElementID) {
+        const found = findElement(id);
+        if (found === undefined) return;
+        const parentToDetachEl = findElement(parentToDetach);
+        if (parentToDetachEl === undefined) return;
+
+        if (found.parent === parentToDetach)
+            makeChild(found.id, parentToDetachEl.parent);
+        else if (found.parent !== undefined)
+            detachFromParent(found.parent, parentToDetach);
+    }
+
     async function makeChild(id: ElementID, newParent?: ElementID) {
         const found = elements.value.find(e => e.id === id);
-        if (found === undefined) return;
-        const foundParent = elements.value.find(e => e.id === newParent);
-        if (foundParent === undefined) return;
+        if (found === undefined || found.parent === newParent) return;
 
-        // TODO detach when cycles (hopefully shouldn't happen though)
+        const foundParent = elements.value.find(e => e.id === newParent);
+        if (newParent !== undefined && foundParent === undefined) return;
+
+        if (newParent !== undefined)
+            detachFromParent(newParent, id);
 
         let oldPos = globalPosition(found);
+        let [newX, newY] = foundParent === undefined ? oldPos : localPosition(oldPos, foundParent);
         found.parent = newParent;
-        let [newX, newY] = localPosition(oldPos, foundParent);
         found.x = newX;
         found.y = newY;
         await updateElement(found, "parent", "x", "y");
@@ -428,6 +445,9 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
             });
         return accum;
     }
+
+    (window as any).elements = elements;
+    (window as any).traversedTree = traversedTree;
 
     // const elements = ref<AnyElement[]>({
     //   id: '1',
