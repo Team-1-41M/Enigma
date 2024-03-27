@@ -414,7 +414,7 @@ function updateTextEditor() {
     area.style.textAlign = text.alignment;
     setFont(area.style, text, true);
 
-    const [left, top] = worldToMouse([text.x, text.y]);
+    const [left, top] = worldToMouse(store.globalPosition(text));
     area.style.left = `${left}px`;
     area.style.top = `${top}px`;
 
@@ -908,9 +908,7 @@ function wheel(event: WheelEvent) {
     <div>
         <textarea ref="textEditor" :value="currentlyEditingText?.content" @input="updateText" @blur="finishTextEdit"
             @keydown.esc="finishTextEdit" style="display: none" />
-        <div style="height: 99%">
-            <canvas ref="canvas" @mousedown="mouseDown" @dblclick="doubleClick" @wheel="wheel" />
-        </div>
+        <canvas ref="canvas" @mousedown="mouseDown" @dblclick="doubleClick" @wheel="wheel" />
     </div>
 </template>
 
