@@ -28,7 +28,6 @@ api_v1_router.include_router(projects_router)
 
 app.include_router(api_v1_router)
 
-
 @app.on_event("startup")
 async def startup_event() -> None:
     """Creating models at application startup."""
