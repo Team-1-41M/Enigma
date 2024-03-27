@@ -223,28 +223,72 @@ function drawText(ctx: CanvasRenderingContext2D, element: TextElement) {
         ctx.fillText(line, x, y + lineHeight * (1 + i) - metrics.fontBoundingBoxDescent);
 }
 
+const BORDER_ADDITIONS = [
+    [0, 0, 1, 0], // top
+    [1, 0, 1, 1], // right
+    [1, 1, 0, 1], // bottom
+    [0, 1, 0, 0], // left
+];
+
 function drawBlock(ctx: CanvasRenderingContext2D, element: BlockElement) {
     const [x, y] = store.globalPosition(element);
 
     ctx.fillStyle = colorToColor(element.background);
     ctx.fillRect(x, y, element.width, element.height);
     // TODO arcs for border-radius
-    // TODO borders
+
+    if (element.borders !== undefined) {
+        let leftBorder, rightBorder, topBorder, bottomBorder;
+        if ('color' in element.borders)
+            leftBorder = rightBorder = topBorder = bottomBorder = element.borders;
+        else {
+            leftBorder = element.borders.left;
+            rightBorder = element.borders.right;
+            topBorder = element.borders.top;
+            bottomBorder = element.borders.bottom;
+        }
+
+        ctx.save();
+
+        for (const [i, border] of [topBorder, rightBorder, bottomBorder, leftBorder].entries()) {
+            const additions = BORDER_ADDITIONS[i];
+            ctx.moveTo(x + additions[0] * element.width, y + additions[1] * element.height);
+            ctx.lineTo(x + additions[2] * element.width, y + additions[3] * element.height);
+            let lineDash: number[];
+            switch (border.style) {
+                case 'solid':
+                    lineDash = [];
+                    break;
+                case 'dotted':
+                    lineDash = [1, 1];
+                    break;
+                case 'dashed':
+                    lineDash = [5, 5];
+                    break;
+            }
+            ctx.setLineDash(lineDash);
+            ctx.strokeStyle = colorToColor(border.color);
+            ctx.lineWidth = border.width * 2;
+            ctx.stroke();
+        }
+
+        ctx.restore();
+    }
 }
 
-function clipParent(ctx: CanvasRenderingContext2D, element: AnyElement) {
+function clipElementDrawingArea(ctx: CanvasRenderingContext2D, element: AnyElement) {
+    let { x, y, w, h } = elementBox(element);
+    const path = new Path2D();
+    path.moveTo(x, y);
+    path.lineTo(x + w, y);
+    path.lineTo(x + w, y + h);
+    path.lineTo(x, y + h);
+    path.closePath();
+    ctx.clip(path);
+
     const foundParent = element.parent === undefined ? undefined : store.findElement<AnyElement>(element.parent);
-    if (foundParent !== undefined) {
-        let { x, y, w, h } = elementBox(foundParent);
-        const path = new Path2D();
-        path.moveTo(x, y);
-        path.lineTo(x + w, y);
-        path.lineTo(x + w, y + h);
-        path.lineTo(x, y + h);
-        path.closePath();
-        ctx.clip(path);
-        clipParent(ctx, foundParent);
-    }
+    if (foundParent !== undefined)
+        clipElementDrawingArea(ctx, foundParent);
 }
 
 function drawElements(ctx: CanvasRenderingContext2D) {
@@ -253,10 +297,9 @@ function drawElements(ctx: CanvasRenderingContext2D) {
 
         ctx.save();
 
-        clipParent(ctx, element);
+        clipElementDrawingArea(ctx, element);
 
         // TODO do not draw outside of camera
-        // TODO use parent's position
         switch (element.type) {
             case ElementType.Block:
                 drawBlock(ctx, element);
