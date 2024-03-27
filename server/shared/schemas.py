@@ -1,10 +1,3 @@
-"""
-23.02.2024
-Alexander Tyamin.
-
-Entity validation schema. Used to other API schemas as a base class.
-"""
-
 import datetime
 from typing import Optional
 
