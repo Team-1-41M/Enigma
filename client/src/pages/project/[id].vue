@@ -14,7 +14,7 @@ await socketStore.socket; // FIXME show "Connecting..." modal (or toast, or anyt
 <template>
     <div class="project-page-wrapper">
         <EditHeader class="header" />
-        <ComponentTree />
+        <ComponentTree :tree="socketStore.elements" />
         <EditWidget />
         <AttributesEdit />
     </div>
