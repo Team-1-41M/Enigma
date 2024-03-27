@@ -89,18 +89,17 @@ const handleDragStart = (element: AnyElement | null) => {
   </ComponentTreeItem>
 </template>
 
-<style scoped lang="scss">
+<style scoped>
 .category-item-wrapper {
   display: flex;
   height: fit-content;
   align-items: center;
-  gap: $gap;
+  gap: 4px;
 }
 
 .summary-text {
   margin: 4px 0px;
-  font-size: $medium;
-  color: var(--text-950);
+  color: var(--text);
 }
 
 .lock-icon {

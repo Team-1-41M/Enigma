@@ -9,19 +9,23 @@ const props = defineProps<{
 </script>
 
 <template>
-    <div class="text-item-wrapper">
         <Icon icon="fluent:text-t-16-filled"/>
-        <label>element.name</label>
-    </div>
+        <p class="summary-text">{{ props.element.name }}</p>
 
 </template>
 
 <style scoped>
 .text-item-wrapper {
+    display: flex;
     width: 100%
 }
 
 svg {
     color: var(--text)
 }
+
+.summary-text {
+    margin: 4px 0px;
+    color: var(--text);
+  }
 </style>
