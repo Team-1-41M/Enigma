@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import { EditMode } from '~/types/editMode';
-import { ElementType, type Background, type BlockElement, type TextElement, type AnyElement, TextAlignment } from '~/types/elements';
+import { ElementType, type Background, type BlockElement, type TextElement, type AnyElement, TextAlignment, type ElementID } from '~/types/elements';
 
 const store = useCurrentProjectStore();
+
+// FIXME temp
+(window as any).debugPutAfter = (element: ElementID, after?: ElementID) =>
+    store.putElementAfter(element, after);
 
 const CONTROLS: [number, number, -1 | 0 | 1, -1 | 0 | 1][] = [
     [0, 0, -1, -1],
@@ -88,7 +92,7 @@ function mouseOverElement(
 ): AnyElement | undefined {
     const point = mouseToWorld(mousePos);
     return (elements ?? store.elements)
-        // FIXME find foremost
+        .toReversed() // FIXME find foremost
         .find(el => inside(point, elementBox(el)));
 }
 
