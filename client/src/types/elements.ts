@@ -137,7 +137,7 @@ export const createTextElement = (
     alignment: 'left',
     color: '#000000',
     fontSize: 12,
-    fontFamily: 'Roboto',
+    fontFamily: 'Inter',
 });
 
 //

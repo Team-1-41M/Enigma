@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { EditMode } from '~/types/editMode';
-import { ElementType, type Background, type BlockElement, type TextElement, type AnyElement } from '~/types/elements';
+import { ElementType, type Background, type BlockElement, type TextElement, type AnyElement, TextAlignment, type ElementID } from '~/types/elements';
 
 const store = useCurrentProjectStore();
 
-const CONTROLS = [
+// FIXME temp
+(window as any).debugPutAfter = (element: ElementID, after?: ElementID) =>
+    store.putElementAfter(element, after);
+
+const CONTROLS: [number, number, -1 | 0 | 1, -1 | 0 | 1][] = [
     [0, 0, -1, -1],
     [0, 0.5, -1, 0],
     [0, 1, -1, 1],
@@ -13,9 +17,9 @@ const CONTROLS = [
     [1, 0.5, 1, 0],
     [1, 0, 1, -1],
     [0.5, 0, 0, -1],
-] as [number, number, -1 | 0 | 1, -1 | 0 | 1][];
+];
 
-const CONTROL_RADIUS = 10;
+const CONTROL_RADIUS = 5;
 
 function isControlClicked(cx: -1 | 0 | 1, cy: -1 | 0 | 1): boolean {
     return click?.clicked.clickType === 'blockControl'
@@ -35,15 +39,25 @@ type Box = {
     h: number,
 };
 
-const camera = reactive({
-    pos: [0, 0] as Point,
+type Camera = {
+    pos: Point,
+    zoom: number,
+};
+const camera = reactive<Camera>({
+    pos: [0, 0],
     zoom: 1,
 });
+
+function mousePos(event: MouseEvent): Point {
+    const { pageX, pageY } = event;
+    const { x, y } = canvas.value!.getBoundingClientRect();
+    return [pageX - x, pageY - y];
+}
 
 function mouseToWorld(
     [x, y]: Point,
 ): Point {
-    let { pos: [hx, hy], zoom: hz } = camera;
+    const { pos: [hx, hy], zoom: hz } = camera;
     return [
         (x + hx) / hz,
         (y + hy) / hz,
@@ -53,7 +67,7 @@ function mouseToWorld(
 function worldToMouse(
     [x, y]: Point,
 ): Point {
-    let { pos: [hx, hy], zoom: hz } = camera;
+    const { pos: [hx, hy], zoom: hz } = camera;
     return [
         x * hz - hx,
         y * hz - hy,
@@ -76,9 +90,11 @@ function mouseOverElement(
     mousePos: Point,
     elements?: AnyElement[],
 ): AnyElement | undefined {
-    let point = mouseToWorld(mousePos);
-    return (elements ?? store.elements)
-        // FIXME find foremost
+    const point = mouseToWorld(mousePos);
+    return store.traversedTree()
+        .map(e => store.findElement(e) as AnyElement)
+        .filter(e => elements === undefined || elements.includes(e))
+        .toReversed()
         .find(el => inside(point, elementBox(el)));
 }
 
@@ -86,14 +102,15 @@ function mouseOverBlockControl(
     mousePos: Point,
     element?: BlockElement,
 ): { element: BlockElement, cx: -1 | 0 | 1, cy: -1 | 0 | 1 } | undefined {
-    let [mx, my] = mouseToWorld(mousePos);
+    const [mx, my] = mouseToWorld(mousePos);
 
     for (const el of element === undefined ? store.elements : [element]) {
         if (el.type !== ElementType.Block) continue;
 
-        for (let [ptx, pty, cx, cy] of CONTROLS) {
-            let x = el.x + ptx * el.width;
-            let y = el.y + pty * el.height;
+        for (const [ptx, pty, cx, cy] of CONTROLS) {
+            const [elx, ely] = store.globalPosition(el);
+            const x = elx + ptx * el.width + cx * (cy === 0 ? 8 : 6);
+            const y = ely + pty * el.height + cy * (cx === 0 ? 8 : 6);
             if (Math.sqrt((x - mx) ** 2 + (y - my) ** 2) <= CONTROL_RADIUS * camera.zoom)
                 return { element: el, cx, cy };
         }
@@ -107,10 +124,10 @@ function boxesIntersect(
     { x: x2, y: y2, w: w2, h: h2 }: Box,
 ): boolean {
     // TODO check
-    return x1 < x2 + w2
-        && x1 + w1 > x2
-        && y1 < y2 + h2
-        && y1 + h1 > y2;
+    return x1 <= x2 + w2
+        && x1 + w1 >= x2
+        && y1 <= y2 + h2
+        && y1 + h1 >= y2;
 }
 
 function inside(
@@ -121,14 +138,27 @@ function inside(
         && y <= py && py <= y + h;
 }
 
+function textWidth(ctx: CanvasRenderingContext2D, text: string, scale?: true): number {
+    let max = 0;
+    for (const line of text.split(/\r\n|\r|\n/g)) {
+        const metrics = ctx.measureText(line);
+        max = Math.max(max, metrics.width) * (scale ? camera.zoom : 1);
+    }
+    return max;
+}
+
 function elementBox(element: AnyElement): Box {
     let width, height;
 
     switch (element.type) {
         case ElementType.Text:
-            let measure = canvas.value!.getContext('2d')!.measureText(element.content);
-            width = measure.width;
-            height = measure.actualBoundingBoxAscent + measure.actualBoundingBoxDescent; // FIXME check if it supports multiline
+            let ctx = canvas.value!.getContext('2d')!;
+            setFont(ctx, element);
+            width = textWidth(ctx, element.content);
+            const metrics = ctx.measureText(element.content);
+            height
+                = (metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent)
+                * ((element.content.match(/\r\n|\r|\n/g) || '').length + 1)
             break;
         case ElementType.Block:
             width = element.width;
@@ -136,9 +166,10 @@ function elementBox(element: AnyElement): Box {
             break;
     };
 
+    let [x, y] = store.globalPosition(element);
+
     return {
-        x: element.x,
-        y: element.y,
+        x, y,
         w: width,
         h: height,
     };
@@ -158,30 +189,117 @@ function colorToColor(color: Background): string {
     return color;
 }
 
-function drawText(ctx: CanvasRenderingContext2D, element: TextElement) {
-    ctx.font =
-        `${element.fontFamily} ` +
-        `${element.fontSize}pt ` +
-        `${element.italic ? "italic" : ""} ` +
-        `${element.fontWeight}`;
-    ctx.fillStyle = colorToColor(element.color);
-    ctx.fillText(element.content, element.x, element.y);
+function setFont(hasFont: { font: string }, text: TextElement, scale?: true) {
+    hasFont.font =
+        `${text.italic ? "italic" : ""} ` +
+        `${text.fontWeight ?? ""}` +
+        (scale ? `calc(${text.fontSize}pt * ${camera.zoom})` : `${text.fontSize}pt`) + ` ` +
+        `${text.fontFamily}`;
 }
 
-function drawBlock(ctx: CanvasRenderingContext2D, element: BlockElement) {
-    ctx.fillStyle = colorToColor(element.background);
-    ctx.fillRect(element.x, element.y, element.width, element.height);
-    // TODO arcs for border-radius
-    // TODO borders
+function drawText(ctx: CanvasRenderingContext2D, element: TextElement) {
+    if (element.content === "" || currentlyEditingText.value?.id === element.id) return;
 
-    if (store.selectedElements.find(e => e.id === element.id))
-        drawSelectionBox(ctx, elementBox(element));
+    ctx.fillStyle = colorToColor(element.color);
+
+    setFont(ctx, element);
+    const metrics = ctx.measureText(element.content);
+    const w = textWidth(ctx, element.content);
+    const lineHeight = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
+
+    let [x, y] = store.globalPosition(element);
+
+    switch (element.alignment) {
+        case TextAlignment.Center:
+            x -= w / 2;
+            break;
+        case TextAlignment.Left:
+            break;
+        case TextAlignment.Right:
+            x -= w;
+            break;
+    }
+    for (const [i, line] of element.content.split(/\r\n|\r|\n/g).entries())
+        ctx.fillText(line, x, y + lineHeight * (1 + i) - metrics.fontBoundingBoxDescent);
+}
+
+const BORDER_ADDITIONS = [
+    [0, 0, 1, 0], // top
+    [1, 0, 1, 1], // right
+    [1, 1, 0, 1], // bottom
+    [0, 1, 0, 0], // left
+];
+
+function drawBlock(ctx: CanvasRenderingContext2D, element: BlockElement) {
+    const [x, y] = store.globalPosition(element);
+
+    ctx.fillStyle = colorToColor(element.background);
+    ctx.fillRect(x, y, element.width, element.height);
+    // TODO arcs for border-radius
+
+    if (element.borders !== undefined) {
+        let leftBorder, rightBorder, topBorder, bottomBorder;
+        if ('color' in element.borders)
+            leftBorder = rightBorder = topBorder = bottomBorder = element.borders;
+        else {
+            leftBorder = element.borders.left;
+            rightBorder = element.borders.right;
+            topBorder = element.borders.top;
+            bottomBorder = element.borders.bottom;
+        }
+
+        ctx.save();
+
+        for (const [i, border] of [topBorder, rightBorder, bottomBorder, leftBorder].entries()) {
+            const additions = BORDER_ADDITIONS[i];
+            ctx.moveTo(x + additions[0] * element.width, y + additions[1] * element.height);
+            ctx.lineTo(x + additions[2] * element.width, y + additions[3] * element.height);
+            let lineDash: number[];
+            switch (border.style) {
+                case 'solid':
+                    lineDash = [];
+                    break;
+                case 'dotted':
+                    lineDash = [1, 1];
+                    break;
+                case 'dashed':
+                    lineDash = [5, 5];
+                    break;
+            }
+            ctx.setLineDash(lineDash);
+            ctx.strokeStyle = colorToColor(border.color);
+            ctx.lineWidth = border.width * 2;
+            ctx.stroke();
+        }
+
+        ctx.restore();
+    }
+}
+
+function clipElementDrawingArea(ctx: CanvasRenderingContext2D, element: AnyElement) {
+    let { x, y, w, h } = elementBox(element);
+    const path = new Path2D();
+    path.moveTo(x, y);
+    path.lineTo(x + w, y);
+    path.lineTo(x + w, y + h);
+    path.lineTo(x, y + h);
+    path.closePath();
+    ctx.clip(path);
+
+    const foundParent = element.parent === undefined ? undefined : store.findElement<AnyElement>(element.parent);
+    if (foundParent !== undefined)
+        clipElementDrawingArea(ctx, foundParent);
 }
 
 function drawElements(ctx: CanvasRenderingContext2D) {
-    store.elements.forEach(element => {
+    store.traversedTree().forEach(id => {
+        const element = store.findElement(id) as AnyElement;
+
+        ctx.save();
+
+        clipElementDrawingArea(ctx, element);
+
         // TODO do not draw outside of camera
-        // TODO use parent's position
         switch (element.type) {
             case ElementType.Block:
                 drawBlock(ctx, element);
@@ -190,6 +308,11 @@ function drawElements(ctx: CanvasRenderingContext2D) {
                 drawText(ctx, element);
                 break;
         }
+
+        ctx.restore();
+
+        if (store.selectedElements.find(e => e.id === element.id))
+            drawSelectionBox(ctx, elementBox(element));
     });
 }
 
@@ -198,54 +321,54 @@ function drawSelectionBox(
     box: Box,
     alpha?: true,
 ) {
-    if (box.w === 0 || box.h === 0) return;
-
     const SELECTION_BOX_LINE_WIDTH = 7;
 
     if (alpha) {
         ctx.fillStyle = '#C63E3E' + (alpha ? '33' : '');
-        ctx.fillRect(
-            box.x + SELECTION_BOX_LINE_WIDTH / 2,
-            box.y + SELECTION_BOX_LINE_WIDTH / 2,
-            box.w - SELECTION_BOX_LINE_WIDTH,
-            box.h - SELECTION_BOX_LINE_WIDTH,
-        );
+        ctx.fillRect(box.x, box.y, box.w, box.h);
     }
 
     ctx.strokeStyle = '#C63E3E' + (alpha ? '77' : '');
     ctx.lineWidth = SELECTION_BOX_LINE_WIDTH;
-    ctx.strokeRect(box.x, box.y, box.w, box.h);
+    ctx.strokeRect(
+        box.x - SELECTION_BOX_LINE_WIDTH / 2,
+        box.y - SELECTION_BOX_LINE_WIDTH / 2,
+        box.w + SELECTION_BOX_LINE_WIDTH,
+        box.h + SELECTION_BOX_LINE_WIDTH,
+    );
 }
 
 function drawBlockControls(ctx: CanvasRenderingContext2D) {
     if (store.selectedElements.length !== 1) return;
 
-    let element = store.selectedElements[0];
+    const element = store.selectedElements[0];
     if (element.type !== ElementType.Block) return;
 
     drawSelectionBox(ctx, elementBox(element));
 
-    for (let [ptx, pty, cx, cy] of CONTROLS) {
+    for (const [ptx, pty, cx, cy] of CONTROLS) {
         ctx.lineWidth = 2;
         ctx.fillStyle = isControlClicked(cx, cy) ? '#FFF' : '#D9D9D9';
-        let radius = isControlClicked(cx, cy) ? 10 : 7;
-        let x = element.x + ptx * element.width + cx * (cy === 0 ? 5 : 2.5);
-        let y = element.y + pty * element.height + cy * (cx === 0 ? 5 : 2.5);
+        const radius = isControlClicked(cx, cy) ? 10 : 7;
+        const [elx, ely] = store.globalPosition(element);
+        const x = elx + ptx * element.width + cx * (cy === 0 ? 8 : 6);
+        const y = ely + pty * element.height + cy * (cx === 0 ? 8 : 6);
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, 2 * Math.PI);
         ctx.fill();
         ctx.stroke();
     }
 }
+
 function draw() {
     const ctx = canvas.value!.getContext('2d')!;
-    ctx.canvas.width = ctx.canvas.parentElement!.clientWidth;
-    ctx.canvas.height = ctx.canvas.parentElement!.clientHeight;
+    ctx.canvas.width = ctx.canvas.parentElement!.offsetWidth;
+    ctx.canvas.height = ctx.canvas.parentElement!.offsetHeight - 5; // FIXME
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
     ctx.save();
 
-    let { pos: [hx, hy], zoom: hz } = camera;
+    const { pos: [hx, hy], zoom: hz } = camera;
     ctx.translate(-hx, -hy);
     ctx.scale(hz, hz);
     drawElements(ctx);
@@ -258,7 +381,82 @@ function draw() {
 }
 
 //
-// Controlling
+// Text editing
+//
+
+const currentlyEditingText = ref<TextElement>();
+
+// TODO move to store so that it can be set by the GUI
+// TODO make all properties have custom defaults
+// TODO make defaults obvious
+let lastTextAlignment: TextAlignment = TextAlignment.Left;
+let lastFontSize = 12;
+
+const textEditor = ref<HTMLTextAreaElement>();
+
+watch([currentlyEditingText, camera], () => updateTextEditor());
+
+watch(currentlyEditingText, currentlyEditingText => {
+    if (currentlyEditingText === undefined) return;
+    setTimeout(() => textEditor.value!.focus(), 0);
+});
+
+function updateTextEditor() {
+    const area = textEditor.value!;
+
+    const text = currentlyEditingText.value;
+    if (text === undefined) {
+        area.style.display = 'none';
+        return;
+    }
+    area.style.display = 'initial';
+
+    area.style.textAlign = text.alignment;
+    setFont(area.style, text, true);
+
+    const [left, top] = worldToMouse(store.globalPosition(text));
+    area.style.left = `${left}px`;
+    area.style.top = `${top}px`;
+
+    const ctx = canvas.value!.getContext('2d')!;
+    setFont(ctx, text);
+    const metrics = ctx.measureText(text.content);
+    const width = textWidth(ctx, text.content, true);
+    const lineHeight = (metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent) * camera.zoom;
+    const height = lineHeight * ((text.content.match(/\r\n|\r|\n/g) || '').length + 1);
+
+    area.style.width = `${width}px`;
+    area.style.height = `${height}px`;
+    area.style.lineHeight = `${lineHeight}px`;
+    area.scrollTop = 0;
+}
+
+function updateText(e: Event) {
+    const text = currentlyEditingText.value;
+    if (text === undefined) return;
+
+    text.content = (e.target as HTMLInputElement).value;
+    store.updateElement(text, "content");
+
+    updateTextEditor();
+}
+
+async function finishTextEdit() {
+    const text = currentlyEditingText.value;
+    if (text === undefined) return;
+    if (!/\S/g.test(text.content)) await store.removeElement(text.id);
+    currentlyEditingText.value = undefined;
+}
+
+watch(store, () => {
+    const text = currentlyEditingText.value;
+    if (text === undefined) return;
+    if (!store.selectedElements.some(el => el.id === text.id))
+        finishTextEdit();
+});
+
+//
+// Clicking
 //
 
 const ClickType = {
@@ -286,6 +484,11 @@ const ClickType = {
      * Нажатие выбирает элементы.
      */
     Select: 'select',
+
+    /**
+     * Нажатие выбирает куда поместить текст.
+     */
+    PlacingText: 'placingText',
 } as const;
 type ClickType = typeof ClickType[keyof typeof ClickType];
 
@@ -293,7 +496,7 @@ type BaseClick = {
     clickType: ClickType,
 };
 
-type AnyClick = CameraClick | ElementsMoveClick | BlockControlClick | BlockDrawClick | SelectClick;
+type AnyClick = CameraClick | ElementsMoveClick | BlockControlClick | BlockDrawClick | SelectClick | PlacingTextClick;
 
 type CameraClick = BaseClick & {
     clickType: typeof ClickType.Camera,
@@ -323,7 +526,11 @@ type SelectClick = BaseClick & {
     clickType: typeof ClickType.Select,
 };
 
-let click = undefined as undefined | ClickInfo<AnyClick>;
+type PlacingTextClick = BaseClick & {
+    clickType: typeof ClickType.PlacingText,
+};
+
+let click: undefined | ClickInfo<AnyClick> = undefined;
 
 type ClickInfo<C extends AnyClick> = {
     /**
@@ -356,61 +563,61 @@ type ClickInfo<C extends AnyClick> = {
 
 const Actions = {
     [EditMode.Move]: (event: MouseEvent) => {
-        const mousePos = [event.offsetX, event.offsetY] as Point;
+        const mp: Point = mousePos(event);
 
         checkControls: if (store.selectedElements.length === 1) {
             const selected = store.selectedElements[0];
             if (selected.type !== ElementType.Block) break checkControls;
 
-            const control = mouseOverBlockControl(mousePos, selected);
+            const control = mouseOverBlockControl(mp, selected);
             if (control === undefined) break checkControls;
             const {
                 element: { x, y, width, height },
                 cx, cy,
             } = control;
 
-            return {
+            const result: BlockControlClick = {
                 clickType: ClickType.BlockControl,
                 x, y,
                 w: width,
                 h: height,
                 cx, cy,
-            } as BlockControlClick;
+            };
+            return result;
         }
 
         moveElements: {
-            const found = mouseOverElement(mousePos);
+            const found = mouseOverElement(mp);
             if (found === undefined) break moveElements;
 
             if (!store.selectedElements.find(e => e.id === found.id))
                 store.selectedElements = [found];
 
-            return {
+            const result: ElementsMoveClick = {
                 clickType: ClickType.ElementsMove,
-                elementsPosBeforeClick: store.selectedElements.map(({ x, y }) => [x, y]),
-            } as ElementsMoveClick;
+                elementsPosBeforeClick: store.selectedElements.map(e => store.globalPosition(e)),
+            };
+            return result;
         }
 
-        return {
+        const result: SelectClick = {
             clickType: ClickType.Select,
-        } as SelectClick;
+        };
+        return result;
     },
 
-    [EditMode.Block]: (event: MouseEvent) => ({
+    [EditMode.Block]: (_event: MouseEvent): BlockDrawClick => ({
         clickType: ClickType.BlockDraw,
-        x: event.offsetX,
-        y: event.offsetY,
-    } as BlockDrawClick),
+    }),
 
-    [EditMode.Text]: (event: MouseEvent) => {
-        // TODO
-        return Actions[EditMode.Camera](event);
-    },
+    [EditMode.Text]: (_event: MouseEvent): PlacingTextClick => ({
+        clickType: ClickType.PlacingText,
+    }),
 
-    [EditMode.Camera]: (_event: MouseEvent) => ({
+    [EditMode.Camera]: (_event: MouseEvent): CameraClick => ({
         clickType: ClickType.Camera,
         cameraBeforeClick: [...camera.pos],
-    } as CameraClick),
+    }),
 } as const;
 
 function mouseDown(event: MouseEvent) {
@@ -425,9 +632,12 @@ function mouseDown(event: MouseEvent) {
         store.currentMode = EditMode.Camera;
     }
 
+    finishTextEdit();
+
+    const mousePos: Point = [event.offsetX, event.offsetY];
     click = {
-        start: [event.offsetX, event.offsetY],
-        end: [event.offsetX, event.offsetY],
+        start: [...mousePos],
+        end: [...mousePos],
         draggedEnough: false,
         returnToMode,
         clicked: Actions[store.currentMode](event),
@@ -439,7 +649,7 @@ function mouseDown(event: MouseEvent) {
 type Updater<C extends AnyClick> = (click: ClickInfo<C>) => void;
 const Updaters: { [C in ClickType]?: Updater<Extract<AnyClick, { clickType: C }>> } = {
     [ClickType.Camera]: click => {
-        let {
+        const {
             start: [sx, sy],
             end: [ex, ey],
             clicked: { cameraBeforeClick: [hx, hy] },
@@ -453,25 +663,40 @@ const Updaters: { [C in ClickType]?: Updater<Extract<AnyClick, { clickType: C }>
 
     [ClickType.ElementsMove]: click => {
         store.selectedElements.forEach((element, i) => {
-            let { start, end, clicked: { elementsPosBeforeClick } } = click;
-            let [sx, sy] = mouseToWorld(start);
-            let [ex, ey] = mouseToWorld(end);
-            element.x = Math.round(elementsPosBeforeClick[i][0] + (ex - sx));
-            element.y = Math.round(elementsPosBeforeClick[i][1] + (ey - sy));
+            const { start, end, clicked: { elementsPosBeforeClick } } = click;
+            const [sx, sy] = mouseToWorld(start);
+            const [ex, ey] = mouseToWorld(end);
+            const globalPos: Point = [
+                Math.round(elementsPosBeforeClick[i][0] + (ex - sx)),
+                Math.round(elementsPosBeforeClick[i][1] + (ey - sy)),
+            ];
+            const foundParent = element.parent === undefined ? undefined : store.findElement<AnyElement>(element.parent);
+            const localPos = foundParent === undefined ? globalPos : store.localPosition(globalPos, foundParent);
+            element.x = localPos[0];
+            element.y = localPos[1];
             store.updateElement(element, 'x', 'y');
         });
+
+        const newParent = mouseOverElement(
+            click.end,
+            store.elements.filter(e => e.type === ElementType.Block && !store.selectedElements.some(s => s.id === e.id))
+        );
+
+        store.selectedElements
+            .map(e => e.id)
+            .forEach(id => store.makeChild(id, newParent === undefined ? undefined : newParent.id));
     },
 
     [ClickType.BlockControl]: click => {
-        let element = store.selectedElements[0];
+        const element = store.selectedElements[0];
         if (element.type !== ElementType.Block) return;
 
-        let { start, end } = click;
-        let [sx, sy] = mouseToWorld(start);
-        let [ex, ey] = mouseToWorld(end);
-        let dx = ex - sx;
-        let dy = ey - sy;
-        let { x, y, w, h, cx, cy } = click.clicked;
+        const { start, end } = click;
+        const [sx, sy] = mouseToWorld(start);
+        const [ex, ey] = mouseToWorld(end);
+        const dx = ex - sx;
+        const dy = ey - sy;
+        const { x, y, w, h, cx, cy } = click.clicked;
 
         if (cx === -1) {
             element.x = Math.min(Math.round(x + dx), Math.round(x + w - 1));
@@ -491,7 +716,7 @@ const Updaters: { [C in ClickType]?: Updater<Extract<AnyClick, { clickType: C }>
     },
 
     [ClickType.Select]: click => {
-        let selectionBox = twoPointsToBox(mouseToWorld(click.start), mouseToWorld(click.end));
+        const selectionBox = twoPointsToBox(mouseToWorld(click.start), mouseToWorld(click.end));
         store.selectedElements = store.elements
             .filter(element => boxesIntersect(selectionBox, elementBox(element)));
     }
@@ -502,8 +727,8 @@ function mouseMove(event: MouseEvent) {
 
     // check if moved enough; some actions may interpret this as an auxiliary completer upon release
     // (e.g. selecting a block)
-    let [sx, sy] = click.start;
-    let { offsetX: mx, offsetY: my } = event;
+    const [sx, sy] = click.start;
+    const [mx, my] = mousePos(event);
     click.draggedEnough
         ||= Math.abs(mx - sx) > 5
         || Math.abs(my - sy) > 5;
@@ -520,34 +745,51 @@ function mouseMove(event: MouseEvent) {
 type Completer<C extends AnyClick> = (click: ClickInfo<C>) => void;
 const Completers: { [C in ClickType]?: Completer<Extract<AnyClick, { clickType: C }>> } = {
     [ClickType.BlockDraw]: click => {
-        let { start, end } = click;
+        const { start, end } = click;
 
         let { x, y, w, h } = twoPointsToBox(mouseToWorld(start), mouseToWorld(end));
-        x = Math.round(x);
-        y = Math.round(y);
+
         w = Math.round(w);
         h = Math.round(h);
         if (w < 1 || h < 1) return;
 
         store.addBlock(el => {
-            el.x = x;
-            el.y = y;
+            el.x = Math.round(x);
+            el.y = Math.round(y);
             el.width = w;
             el.height = h;
         });
     },
 
+    [ClickType.ElementsMove]: click => {
+        if (click.draggedEnough) return;
+        const found = mouseOverElement(click.end);
+        store.selectedElements = found !== undefined ? [found] : [];
+    },
+
     [ClickType.Select]: click => {
         if (click.draggedEnough) return;
-        const found = mouseOverElement(mouseToWorld(click.end));
+        const found = mouseOverElement(click.end);
         store.selectedElements = found !== undefined ? [found] : [];
+    },
+
+    [ClickType.PlacingText]: async click => {
+        const [x, y] = mouseToWorld(click.end);
+        let text = await store.addText(el => {
+            el.x = Math.round(x);
+            el.y = Math.round(y);
+            el.alignment = lastTextAlignment;
+            el.fontSize = lastFontSize;
+        });
+        store.selectedElements = [text];
+        currentlyEditingText.value = text;
     }
 };
 
 function mouseUp() {
     if (click === undefined) return;
 
-    let completer = Completers[click.clicked.clickType];
+    const completer = Completers[click.clicked.clickType];
     if (completer !== undefined) completer(click as any);
 
     if (click.returnToMode !== undefined)
@@ -561,20 +803,87 @@ function mouseUp() {
 type Renderer<C extends AnyClick> = (ctx: CanvasRenderingContext2D, click: ClickInfo<C>) => void;
 const Renderers: { [C in ClickType]?: Renderer<Extract<AnyClick, { clickType: C }>> } = {
     [ClickType.BlockDraw]: (ctx, click) => {
+        // FIXME draw styled block instead, or add block element at click and resize actual created block
         drawSelectionBox(ctx, twoPointsToBox(mouseToWorld(click.start), mouseToWorld(click.end)), true);
     },
 
     [ClickType.Select]: (ctx, click) => {
+        if (!click.draggedEnough) return;
         drawSelectionBox(ctx, twoPointsToBox(mouseToWorld(click.start), mouseToWorld(click.end)), true);
     },
+
+    [ClickType.PlacingText]: (ctx, click) => {
+        const [x, y] = mouseToWorld(click.end);
+        const box = {
+            x, y,
+            w: lastFontSize / 1.5,
+            h: lastFontSize,
+        };
+        switch (lastTextAlignment) {
+            case TextAlignment.Center:
+                box.x -= box.w / 2;
+                break;
+            case TextAlignment.Left:
+                break;
+            case TextAlignment.Right:
+                box.x -= box.w;
+                break;
+        }
+        drawSelectionBox(ctx, box, true);
+    }
 };
 
 function drawClicks(ctx: CanvasRenderingContext2D) {
     if (click === undefined) return;
 
-    let renderer = Renderers[click.clicked.clickType];
+    const renderer = Renderers[click.clicked.clickType];
     if (renderer !== undefined) renderer(ctx, click as any);
 }
+
+// Other
+
+function doubleClick(event: MouseEvent) {
+    if (store.currentMode !== EditMode.Move
+        || store.selectedElements.length != 1) return;
+
+    // enter editing mode if clicked on selected text
+    const found = mouseOverElement(mousePos(event));
+    if (found !== undefined
+        && found.type === ElementType.Text
+
+        && found.id == store.selectedElements[0].id) {
+        currentlyEditingText.value = found;
+        return;
+    }
+}
+
+function keyEnter(event: KeyboardEvent) {
+    if (event.key !== "Enter"
+        || click !== undefined
+        || store.selectedElements.length !== 1
+        || store.selectedElements[0].type !== ElementType.Text) return;
+
+    currentlyEditingText.value = store.selectedElements[0];
+}
+
+function keyDelete(event: KeyboardEvent) {
+    if (event.key !== "Delete") return;
+
+    for (const element of [...store.selectedElements])
+        store.removeElement(element.id);
+}
+
+window.addEventListener('mousemove', mouseMove);
+window.addEventListener('mouseup', mouseUp);
+window.addEventListener('keyup', keyEnter);
+window.addEventListener('keyup', keyDelete);
+
+onUnmounted(() => {
+    window.removeEventListener('mousemove', mouseMove);
+    window.removeEventListener('mouseup', mouseUp);
+    window.removeEventListener('keyup', keyEnter);
+    window.removeEventListener('keyup', keyDelete);
+});
 
 // Wheel
 
@@ -585,7 +894,7 @@ function wheel(event: WheelEvent) {
     // worldMouse(mousePos, cameraBefore, zoomBefore) = worldMouse(mousePos, cameraAfter, zoomAfter)
     // (mousePos + cameraBefore) / zoomBefore = (mousePos + cameraAfter) / zoomAfter
     // cameraAfter = (mousePos + cameraBefore) * zoomAfter / zoomBefore - mousePos
-    const [mx, my] = [event.offsetX, event.offsetY];
+    const [mx, my] = mousePos(event);
     const zoomBefore = camera.zoom;
     camera.zoom = Math.min(2, Math.max(0.5, camera.zoom - event.deltaY / 1000));
     camera.pos = [
@@ -596,8 +905,25 @@ function wheel(event: WheelEvent) {
 </script>
 
 <template>
-    <!-- FIXME these events should be on window (otherwise causes bugs when dragging elements or camera outside window, releasing mouse, and moving back in) -->
-    <div style="height: 99%">
-        <canvas ref="canvas" @mousedown="mouseDown" @mousemove="mouseMove" @mouseup="mouseUp" @wheel="wheel" />
+    <div>
+        <textarea ref="textEditor" :value="currentlyEditingText?.content" @input="updateText" @blur="finishTextEdit"
+            @keydown.esc="finishTextEdit" style="display: none" />
+        <canvas ref="canvas" @mousedown="mouseDown" @dblclick="doubleClick" @wheel="wheel" />
     </div>
 </template>
+
+<style scoped>
+div {
+    position: relative;
+}
+
+textarea {
+    position: absolute;
+    resize: none;
+    padding: 0;
+    border: none;
+    outline: none;
+    background-color: transparent;
+    overflow: hidden;
+}
+</style>
