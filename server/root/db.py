@@ -109,9 +109,7 @@ async def init_db() -> None:
                 UserSignUpSchema(
                     name=os.getenv("SUPERUSER_NAME"),
                     email=os.getenv("SUPERUSER_EMAIL"),
-                    password=crypt_context.hash(
-                        os.getenv("SUPERUSER_PASSWORD")
-                    ),
+                    password=crypt_context.hash(os.getenv("SUPERUSER_PASSWORD")),
                 ).model_dump(),
                 session,
             )

@@ -199,6 +199,23 @@ def remove_defaults(data: dict) -> dict:
     return undefaulted
 
 
+def delete_element(elements, id_to_delete):
+    def find_descendants(element_id):
+        return [
+            element["id"] for element in elements if element.get("parent") == element_id
+        ]
+
+    def delete_recursive(element_id):
+        descendants = find_descendants(element_id)
+        for descendant in descendants:
+            delete_recursive(descendant)
+        nonlocal elements
+        elements = [element for element in elements if element["id"] != element_id]
+
+    delete_recursive(id_to_delete)
+    return elements
+
+
 @router.websocket("/{item_id}/content")
 async def process(
     item_id: int,
@@ -259,7 +276,6 @@ async def process(
                             detail="Element with this id already exists.",
                         )
                     content_list.append(element_data)
-
                 elif command == "update":
                     for i, element in enumerate(content_list):
                         if element["id"] == element_data["id"]:
@@ -272,18 +288,8 @@ async def process(
                             status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Element with this id not found.",
                         )
-
                 elif command == "delete":
-                    for i, element in enumerate(content_list):
-                        if element["id"] == element_data["id"]:
-                            del content_list[i]
-                            break
-                    else:
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="Element with this id not found.",
-                        )
-
+                    content_list = delete_element(content_list, element_data["id"])
                 else:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
