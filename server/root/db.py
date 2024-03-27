@@ -17,9 +17,9 @@ PASSWORD = os.getenv("DB_PASSWORD")
 HOST = os.getenv("DB_HOST")
 PORT = os.getenv("DB_PORT")
 
-AUTH: str = f"{USER}:{PASSWORD}" if USER and PASSWORD else ""
-LOCATION: str = f"{HOST}:{PORT}" if HOST and PORT else ""
-CREDENTIALS: str = f"{AUTH}@{LOCATION}" if AUTH and LOCATION else ""
+AUTH: str = f"{USER}:{PASSWORD}" if USER and PASSWORD else USER if USER else ""
+LOCATION: str = f"{HOST}:{PORT}" if HOST and PORT else HOST if HOST else ""
+CREDENTIALS: str = f"{AUTH}@{LOCATION}" if AUTH and LOCATION else LOCATION if LOCATION else ""
 
 DB_URL = f"{ENGINE}://{CREDENTIALS}/{NAME}"
 
