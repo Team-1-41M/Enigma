@@ -15,6 +15,7 @@ from server.root.db import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from starlette.exceptions import HTTPException
+from starlette.websockets import WebSocketDisconnect
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
@@ -233,64 +234,72 @@ async def process(
     await clients_storage.set(project.id, clients)
 
     # TODO: make send json
-    await socket.send_text(project.content)
+    try:
+        await socket.send_text(project.content)
+    except WebSocketDisconnect:
+        clients.remove(socket)
+        await clients_storage.set(project.id, clients)
 
     content_list = json.loads(project.content)
 
     while True:
-        # TODO: handle close
-        message = await socket.receive_text()
-
         try:
-            command, data = message.split(" ", 1)
+            message = await socket.receive_text()
 
-            element_data = json.loads(data)
+            try:
+                command, data = message.split(" ", 1)
 
-            if command == "create":
-                id = element_data["id"]
-                if any(e["id"] == id for e in content_list):
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Element with this id already exists.",
-                    )
-                content_list.append(element_data)
+                element_data = json.loads(data)
 
-            elif command == "update":
-                for i, element in enumerate(content_list):
-                    if element["id"] == element_data["id"]:
-                        for key, value in element_data.items():
-                            content_list[i][key] = value
-                        content_list[i] = remove_defaults(content_list[i])
-                        break
+                if command == "create":
+                    id = element_data["id"]
+                    if any(e["id"] == id for e in content_list):
+                        raise HTTPException(
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Element with this id already exists.",
+                        )
+                    content_list.append(element_data)
+
+                elif command == "update":
+                    for i, element in enumerate(content_list):
+                        if element["id"] == element_data["id"]:
+                            for key, value in element_data.items():
+                                content_list[i][key] = value
+                            content_list[i] = remove_defaults(content_list[i])
+                            break
+                    else:
+                        raise HTTPException(
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Element with this id not found.",
+                        )
+
+                elif command == "delete":
+                    for i, element in enumerate(content_list):
+                        if element["id"] == element_data["id"]:
+                            del content_list[i]
+                            break
+                    else:
+                        raise HTTPException(
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Element with this id not found.",
+                        )
+
                 else:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Element with this id not found.",
+                        detail="Invalid command.",
                     )
 
-            elif command == "delete":
-                for i, element in enumerate(content_list):
-                    if element["id"] == element_data["id"]:
-                        del content_list[i]
-                        break
-                else:
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Element with this id not found.",
-                    )
+                await project.update({"content": json.dumps(content_list)}, db)
 
-            else:
+                for client in clients:
+                    await client.send_text(message)
+            except AttributeError as e:
                 raise HTTPException(
+                    detail=str(e),
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Invalid command.",
                 )
-
-            await project.update({"content": json.dumps(content_list)}, db)
-
-            for client in clients:
-                await client.send_text(message)
-        except AttributeError as e:
-            raise HTTPException(
-                detail=str(e),
-                status_code=status.HTTP_400_BAD_REQUEST,
-            )
+        except WebSocketDisconnect:
+            clients.remove(socket)
+            await clients_storage.set(project.id, clients)
+            break
