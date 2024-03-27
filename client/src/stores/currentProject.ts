@@ -159,6 +159,7 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
                     break;
                 case SocketCommand.Delete:
                     elements.value = elements.value.filter(e => e.id !== id);
+                    selectedElements.value = selectedElements.value.filter(e => e.id !== id);
                     break;
             }
         };
