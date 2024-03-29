@@ -10,19 +10,20 @@ The ```master``` branch of the main repository builds Docker images of the clien
 
 ### Server
 
-Follow PEP-8.
+Follow [PEP-8](https://peps.python.org/pep-0008/).
 
 To control your code quality you can install some instruments to your activated venv:
-```cmd
-$ pip install -r ./server/requirements/test.txt
+```bash
+pip install -r ./server/requirements/test.txt
 ```
 
 Run formatter:
-```cmd
-$ ruff check --fix ./server
+```bash
+ruff check --fix ./server
 ```
 
 Test your code:
-```cmd
-$ python -m pytest ./server
+```bash
+python -m pytest ./server
 ```
+Don't forget configure .env in project root for tests.
