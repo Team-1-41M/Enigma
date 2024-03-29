@@ -1,12 +1,5 @@
 #!/usr/bin/env python
 
-"""
-20.02.2024
-Alexander Tyamin.
-
-Server launch script (entry point).
-"""
-
 import os
 import sys
 from pathlib import Path
