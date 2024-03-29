@@ -7,18 +7,18 @@
 #### Server
 You need to install Python (used 3.12).
 
-In server directory, create virtual environment and activate it:
+Create virtual environment and activate it:
 ```
-$ python -m venv .venv
+$ python -m venv ./server/.venv
 
-$ source .venv/bin/activate # Linux
+$ source ./server/.venv/bin/activate # Linux
 
-$ .venv\Scripts\activate # Windows
+$ .\server\.venv\Scripts\activate # Windows
 ```
 
 Install base (FastAPI, ORM, etc.) and local (SQLite) requirements:
 ```
-$ pip install -r requirements/base.txt -r requirements/local.txt
+$ pip install -r ./server/requirements/base.txt -r ./server/requirements/local.txt
 ```
 
 Configure .env file in project root:
@@ -47,7 +47,7 @@ DB_NAME=enigma.sqlite3
 
 Launch:
 ```
-$ python run.py
+$ python ./server/run.py
 ```
 After that you can visit server_address_in_dotenv/docs in your browser to get the API specification.
 
