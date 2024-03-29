@@ -1,10 +1,17 @@
 # Enigma
 
+- [Enigma](#enigma)
+  - [Launching](#launching)
+    - [Local](#local)
+      - [Client](#client)
+      - [Server](#server)
+    - [Docker Compose](#docker-compose)
+
 ## Launching
 
 ### Local
 
-Configure .env file in project root:
+Create .env file in project root:
 ```
 DEBUG=True
 
