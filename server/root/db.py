@@ -48,31 +48,12 @@ DB_URL = build_url(
     }
 )
 
-
-def create_engine() -> AsyncEngine:
-    """Creates a new database engine.
-
-    Returns:
-        AsyncEngine: database engine
-    """
-
-    return create_async_engine(DB_URL)
-
-
-def create_session_maker() -> async_sessionmaker:
-    """Creates a new session maker.
-
-    Returns:
-        async_sessionmaker: session maker
-    """
-
-    engine = create_engine()
-
-    return async_sessionmaker(
-        bind=engine,
-        expire_on_commit=False,
-        autoflush=False,
-    )
+engine: AsyncEngine = create_async_engine(DB_URL)
+session_maker: async_sessionmaker = async_sessionmaker(
+    bind=engine,
+    expire_on_commit=False,
+    autoflush=False,
+)
 
 
 async def get_db() -> AsyncSession:
@@ -83,8 +64,6 @@ async def get_db() -> AsyncSession:
         AsyncSession: database session
     """
 
-    session_maker = create_session_maker()
-
     async with session_maker() as session:
         try:
             yield session
@@ -93,12 +72,8 @@ async def get_db() -> AsyncSession:
 
 
 async def init_db() -> None:
-    engine = create_engine()
-
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-
-    session_maker = create_session_maker()
 
     async with session_maker() as session:
         try:
