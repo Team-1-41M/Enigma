@@ -1,9 +1,9 @@
 import os
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import AsyncGenerator
 
 from fastapi import APIRouter, FastAPI
-from contextlib import asynccontextmanager
 from server.auth.routes import router as auth_router
 from server.projects.routes import router as projects_router
 from server.root.db import init_db
