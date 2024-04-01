@@ -1,4 +1,5 @@
 import pytest
+from passlib.context import CryptContext
 from server.root.auth import verify_password
 from server.root.crypt import get_crypt_context
 from server.root.db import build_url
@@ -59,6 +60,16 @@ def test_build_db_url_no_credentials_and_location():
         "engine": "engine",
         "name": "name",
     }) == "engine:///name"
+
+
+@pytest.mark.asyncio
+async def test_get_crypt_context():
+    """Test: get crypt context."""
+
+    context = await get_crypt_context()
+
+    assert context
+    assert isinstance(context, CryptContext)
 
 
 @pytest.mark.asyncio
