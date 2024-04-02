@@ -1,8 +1,10 @@
 import pytest
+
+from sqlalchemy.ext.asyncio import AsyncSession
 from passlib.context import CryptContext
 from server.root.auth import verify_password
 from server.root.crypt import get_crypt_context
-from server.root.db import build_url
+from server.root.db import build_url, get_db
 
 
 def test_build_db_url_full():
@@ -60,6 +62,16 @@ def test_build_db_url_no_credentials_and_location():
         "engine": "engine",
         "name": "name",
     }) == "engine:///name"
+
+
+@pytest.mark.asyncio
+async def test_get_db():
+    """Test: get db as AsyncSession."""
+
+    session = await anext(get_db())
+
+    assert session
+    assert isinstance(session, AsyncSession)
 
 
 @pytest.mark.asyncio
