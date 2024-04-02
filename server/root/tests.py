@@ -1,10 +1,9 @@
 import pytest
-
-from sqlalchemy.ext.asyncio import AsyncSession
 from passlib.context import CryptContext
 from server.root.auth import verify_password
 from server.root.crypt import get_crypt_context
 from server.root.db import build_url, get_db
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 def test_build_db_url_full():

@@ -1,11 +1,10 @@
 import datetime
 from typing import AsyncIterator, Awaitable, Optional
 
+from server.root.models import Base
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
-
-from server.root.models import Base
 
 
 class Entity(Base):
