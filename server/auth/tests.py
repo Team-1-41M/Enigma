@@ -48,5 +48,21 @@ async def test_sign_in_wrong_credentials(name: str, password: str):
 
 
 @pytest.mark.asyncio
-async def test_sign_up_same_name():
-    pass
+@pytest.mark.parametrize(
+    "name, email", 
+    [
+        (os.getenv("SUPERUSER_NAME"), "wrong_email@example.com"), 
+        ("wrong_name", os.getenv("SUPERUSER_EMAIL")),
+    ]
+)
+async def test_sign_up_same_credentials(name: str, email: str):
+    response = client.post(
+        "/api/v1/auth/sign-up",
+        json={
+            "name": name,
+            "email": email,
+            "password": os.getenv("SUPERUSER_PASSWORD"),
+        }
+    )
+
+    assert response.status_code == 409
