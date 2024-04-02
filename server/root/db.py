@@ -76,18 +76,18 @@ async def init_db() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    async with session_maker() as session:
-        try:
-            if await User.by_email(os.getenv("SUPERUSER_EMAIL"), session):
-                return
+    session = await anext(get_db())
 
-            await User.create(
-                UserSignUpSchema(
-                    name=os.getenv("SUPERUSER_NAME"),
-                    email=os.getenv("SUPERUSER_EMAIL"),
-                    password=get_crypt_context().hash(os.getenv("SUPERUSER_PASSWORD")),
-                ).model_dump(),
-                session,
-            )
-        finally:
-            await session.close()
+    if await User.by_email(os.getenv("SUPERUSER_EMAIL"), session):
+                return
+            
+    context = await get_crypt_context()
+
+    await User.create(
+        UserSignUpSchema(
+            name=os.getenv("SUPERUSER_NAME"),
+            email=os.getenv("SUPERUSER_EMAIL"),
+            password=context.hash(os.getenv("SUPERUSER_PASSWORD")),
+        ).model_dump(),
+        session,
+    )
