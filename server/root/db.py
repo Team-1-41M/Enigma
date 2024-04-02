@@ -57,7 +57,7 @@ session_maker: async_sessionmaker = async_sessionmaker(
 )
 
 
-async def get_db() -> AsyncGenerator[AsyncSession, None, None]:
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
     Provides a database session.
 
