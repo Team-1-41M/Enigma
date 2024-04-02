@@ -3,7 +3,7 @@ from typing import AsyncGenerator
 
 from server.auth.models import User
 from server.auth.schemas import UserSignUpSchema
-from server.root.crypt import crypt_context
+from server.root.crypt import get_crypt_context
 from server.shared.models import Base
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -85,7 +85,7 @@ async def init_db() -> None:
                 UserSignUpSchema(
                     name=os.getenv("SUPERUSER_NAME"),
                     email=os.getenv("SUPERUSER_EMAIL"),
-                    password=crypt_context.hash(os.getenv("SUPERUSER_PASSWORD")),
+                    password=get_crypt_context().hash(os.getenv("SUPERUSER_PASSWORD")),
                 ).model_dump(),
                 session,
             )
