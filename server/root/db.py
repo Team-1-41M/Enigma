@@ -1,4 +1,5 @@
 import os
+from typing import AsyncGenerator
 
 from server.auth.models import User
 from server.auth.schemas import UserSignUpSchema
@@ -56,12 +57,12 @@ session_maker: async_sessionmaker = async_sessionmaker(
 )
 
 
-async def get_db() -> AsyncSession:
+async def get_db() -> AsyncGenerator[AsyncSession, None, None]:
     """
     Provides a database session.
 
     Returns:
-        AsyncSession: database session
+        AsyncGenerator[AsyncSession, None, None]: database session
     """
 
     async with session_maker() as session:
