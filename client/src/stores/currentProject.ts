@@ -303,6 +303,7 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
 
     async function addText(edit?: (el: TextElement) => void): Promise<TextElement> {
         const el = createTextElement(generateElementID(), generateName(ElementType.Text));
+        const def: TextElement = { ...el };
         if (edit !== undefined) edit(el);
         elements.value.push(el);
 
@@ -312,6 +313,15 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
             type: ElementType.Text,
             name: el.name,
         });
+
+        if (edit !== undefined) {
+            await updateElement(
+                el,
+                ...([...Object.keys(def), ...Object.keys(el)] as (keyof TextElement)[])
+                    .filter((value, index, array) => array.indexOf(value) === index)
+                    .filter(key => el[key] !== def[key])
+            );
+        }
 
         return el;
     };
