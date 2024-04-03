@@ -6,22 +6,23 @@ In each branch, run the linting tool and tests.
 
 The ```master``` branch of the main repository builds Docker images of the client and server.
 
-## Code style
+## Code style and quality
 
 ### Server
 
 Follow PEP-8.
 
-Before you make a pull request, please, run:
-```cmd
-$ ruff check --fix .
-```
-
-Also test your code by pytest:
-```cmd
-$ pytest ./server/
-```
-All of these packages can be installed in your activated venv:
+To control your code quality you can install some instruments to your activated venv:
 ```cmd
 $ pip install -r ./server/requirements/test.txt
+```
+
+Run formatter:
+```cmd
+$ ruff check --fix ./server
+```
+
+Test your code:
+```cmd
+$ python -m pytest ./server
 ```

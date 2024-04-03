@@ -14,7 +14,7 @@ await socketStore.socket; // FIXME show "Connecting..." modal (or toast, or anyt
 <template>
     <div class="project-page-wrapper">
         <EditHeader class="header" />
-        <ComponentTree />
+        <ComponentTree :tree="socketStore.elements" />
         <EditWidget />
         <AttributesEdit />
     </div>
@@ -24,8 +24,8 @@ await socketStore.socket; // FIXME show "Connecting..." modal (or toast, or anyt
 .project-page-wrapper {
     height: 100%;
     display: grid;
-    grid-template-columns: 0.3fr 1fr 0.3fr;
-    grid-template-rows: 0.06fr 0.94fr;
+    grid-template-columns: 15% 70% 15%;
+    grid-template-rows: 0.06fr 1fr;
     grid-template-areas:
         "header header header"
         ". . .";

@@ -89,19 +89,3 @@ Launch:
 $ docker compose up --build
 ```
 Docker will start a whole project, you can check it at localhost:some_port (for example, 8000 for the server and 3000 for the client).
-
-## Testing
-
-### Server
-
-Testing was done using pytest.
-
-Install it (and some instruments for linting and formatting) in your activated venv:
-```
-$ pip install -r requirements/test.txt
-```
-
-Launch:
-```
-$ pytest
-```
