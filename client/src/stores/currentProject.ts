@@ -303,6 +303,7 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
 
     async function addText(edit?: (el: TextElement) => void): Promise<TextElement> {
         const el = createTextElement(generateElementID(), generateName(ElementType.Text));
+        const def: TextElement = { ...el };
         if (edit !== undefined) edit(el);
         elements.value.push(el);
 
@@ -312,6 +313,15 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
             type: ElementType.Text,
             name: el.name,
         });
+
+        if (edit !== undefined) {
+            await updateElement(
+                el,
+                ...([...Object.keys(def), ...Object.keys(el)] as (keyof TextElement)[])
+                    .filter((value, index, array) => array.indexOf(value) === index)
+                    .filter(key => el[key] !== def[key])
+            );
+        }
 
         return el;
     };
@@ -448,49 +458,6 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
 
     (window as any).elements = elements;
     (window as any).traversedTree = traversedTree;
-
-    // const elements = ref<AnyElement[]>({
-    //   id: '1',
-    //   name: 'TestName',
-    //   X: 0,
-    //   Y: 0,
-    //   height: 400,
-    //   width: 800,
-    //   children: [
-    //     {
-    //       id: '2',
-    //       name: 'Топбар',
-    //       X: 0,
-    //       Y: 0,
-    //       height: 50,
-    //       width: 800,
-    //       borderRadius: 0,
-    //       children: [
-    //         {
-    //           id: '3',
-    //           name: 'Топбар',
-    //           X: 0,
-    //           Y: 0,
-    //           height: 50,
-    //           width: 800,
-    //           fontWeight: '100',
-    //           alignment: 'center'
-    //         },
-    //         {
-    //           id: '4',
-    //           name: 'Kvadratique',
-    //           X: 50,
-    //           Y: 50,
-    //           height: 50,
-    //           width: 50,
-    //           borderRadius: 5,
-    //           children: [
-    //           ]
-    //         }
-    //       ]
-    //     }
-    //   ]
-    // })
 
     return {
         socket,
