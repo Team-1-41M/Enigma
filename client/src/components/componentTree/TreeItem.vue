@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
+import type { AnyElement } from '~/types/elements';
 
 interface HoverableHTMLElement extends HTMLElement {
   hovered: boolean
 }
 
 interface Props {
-  treeItemId: string,
+  treeItem: AnyElement,
   index: number,
   parentId: string | undefined,
   childrenCount: number,
@@ -18,9 +19,9 @@ interface Props {
 const props = defineProps<Props>();
 const emit = defineEmits<{
   'update:isExpanded': [value: boolean],
-  'reorder': [ id: string, newParent: string | undefined, newIndex: number ],
-  'select': [ id: string ],
-  'dragged': [ id: string ]
+  'reorder': [ newParent: string | undefined, newIndex: number ],
+  'select': [ item: AnyElement ],
+  'dragged': [ item: AnyElement | null ]
 }>()
 
 const isDraggedOver = ref(false);
@@ -42,9 +43,7 @@ const handleToggle = (event: any) => {
   if (event === undefined) { // to show children on drop
     details.value!.open = true;
   }
-  isExpanded.value = event.newState === 'open';
-
-  emit('select', props.treeItemId);
+  emit('select', props.treeItem);
 }
 
 const preventDragEvents = (event: DragEvent) => {
@@ -54,7 +53,7 @@ const preventDragEvents = (event: DragEvent) => {
 
 const handleDragStart = (event: DragEvent) => {
   event.stopPropagation();
-  emit('dragged', props.treeItemId);
+  emit('dragged', props.treeItem);
 };
 
 const handleDragEnter = (event: DragEvent, targetRef: HoverableHTMLElement) => {
@@ -64,7 +63,7 @@ const handleDragEnter = (event: DragEvent, targetRef: HoverableHTMLElement) => {
   //   return;
 
 	const targetId = targetRef === itemRef.value
-		? props.treeItemId
+		? props.treeItem.id
 		: props.parentId;
 
 	// if (!props.isValidDropOnTopOrBottom(props.draggedItemId!, targetId))
@@ -86,7 +85,7 @@ const handleDragLeave = (event: DragEvent, targetRef: HoverableHTMLElement) => {
 
 const handleDragOver = (event: DragEvent, targetId: string | undefined) => {
 	preventDragEvents(event);
-  
+
   isDraggedOver.value = true;
 };
 
@@ -100,14 +99,13 @@ const handleDrop = (event: DragEvent, targetRef: HoverableHTMLElement, newParent
 
   handleToggle(undefined);
 
-  emit('dragged', '');
-
-  // emit('reorder', props.draggedItemId, newParent, newIndex);
+  emit('reorder', newParent, newIndex);
+  emit('dragged', null);
 };
 
 const handleDragEnd = (event: DragEvent) => {
 	preventDragEvents(event);
-  emit('dragged', '');
+  emit('dragged', null);
 	isDraggedOver.value = false;
 };
 </script>
@@ -138,8 +136,8 @@ const handleDragEnd = (event: DragEvent) => {
             :class="[ { 'hovered-summary': itemRef?.hovered && isDraggedOver }, { 'selected-details': selected} ]"
             @dragenter="handleDragEnter($event, itemRef!)"
             @dragleave="handleDragLeave($event, itemRef!)"
-            @dragover="handleDragOver($event, props.treeItemId)"
-            @drop="handleDrop($event, itemRef!, treeItemId, childrenCount)">
+            @dragover="handleDragOver($event, props.treeItem.id)"
+            @drop="handleDrop($event, itemRef!, treeItem.id, childrenCount)">
               <Icon
                 :class="{ 'disabled-pointer-events': isDraggedOver }"
                 class="menu-arrow-icon"
@@ -175,12 +173,12 @@ const handleDragEnd = (event: DragEvent) => {
 }
 
 .hovered-summary {
-	background: var(--primary);
+	background: var(--primary-light);
 	border: 2px dotted var(--primary-light);
 }
 .hovered-drop-target-area {
 	height: 2em !important;
-	background: var(--primary);
+	background: var(--primary-light);
 	border: 2px dotted var(--primary-light);
 }
 details summary {

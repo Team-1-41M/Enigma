@@ -1,16 +1,8 @@
-"""
-23.02.2024
-Alexander Tyamin.
-
-API schemas for working with user accounts, including registration and login.
-"""
-
-import re
 import datetime
+import re
 from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
-
 from server.shared.schemas import EntityDBSchema
 
 

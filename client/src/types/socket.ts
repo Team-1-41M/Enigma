@@ -4,6 +4,7 @@ export const SocketCommand = {
     Create: 'create',
     Delete: 'delete',
     Update: 'update',
+    PutAfter: 'put',
 } as const;
 export type SocketCommand = typeof SocketCommand[keyof typeof SocketCommand];
 
@@ -11,7 +12,7 @@ export type BaseSocketMessage = {
     command: SocketCommand,
 };
 
-export type AnySocketMessage = CreateSocketMessage | DeleteSocketMessage | UpdateSocketMessage;
+export type AnySocketMessage = CreateSocketMessage | DeleteSocketMessage | UpdateSocketMessage | PutAfterMessage;
 
 export type CreateSocketMessage = BaseSocketMessage & {
     command: typeof SocketCommand.Create,
@@ -29,4 +30,10 @@ export type UpdateSocketMessage = BaseSocketMessage & {
     command: typeof SocketCommand.Update,
     id: ElementID,
     [key: string]: any,
+};
+
+export type PutAfterMessage = BaseSocketMessage & {
+    command: typeof SocketCommand.PutAfter,
+    id: ElementID,
+    after?: ElementID,
 };

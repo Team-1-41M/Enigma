@@ -10,10 +10,10 @@ interface Props {
 const props = defineProps<Props>();
 const emits = defineEmits<{
   'update:isExpanded': [value: boolean],
-  'select': [ elementId: string ],
-  'openMenu': [ element: BlockElement, x: number, y: number ],
-  'reorder': [ id: string, newParent: string | undefined, newIndex: number ],
-  'setDraggingElement': [ id: string ],
+  'select': [ element: AnyElement ],
+  'openMenu': [ element: AnyElement, x: number, y: number ],
+  'reorder': [ newParent: string | undefined, newIndex: number ],
+  'setDraggingElement': [ element: AnyElement | null ],
 }>()
 const store = useCurrentProjectStore();
 
@@ -28,31 +28,31 @@ const isExpanded = computed({
   }
 });
 
-const handleReorder = (id: string, newParent: string | undefined, newIndex: number) => {
-  emits('reorder', id, newParent, newIndex);
+const handleReorder = (newParent: string | undefined, newIndex: number) => {
+  emits('reorder', newParent, newIndex);
 }
 
-const handleRightClick = (e: MouseEvent, element: BlockElement) => {
+const handleRightClick = (e: MouseEvent, element: AnyElement) => {
   e.stopImmediatePropagation()
   emits('openMenu', element, e.clientX, e.clientY);
 }
 
-const handleMenuOpening = (element: BlockElement, x: number, y: number) => {
+const handleMenuOpening = (element: AnyElement, x: number, y: number) => {
   emits('openMenu', element, x, y);
 }
 
-const handleSelection = (elementId: string) => {
-  emits('select', elementId)
+const handleSelection = (element: AnyElement) => {
+  emits('select', element)
 }
 
-const handleDragStart = (id: string) => {
-  emits('setDraggingElement', id);
+const handleDragStart = (element: AnyElement | null) => {
+  emits('setDraggingElement', element);
 }
 </script>
 
 <template>
   <ComponentTreeItem
-    :tree-item-id="element.id"
+    :tree-item="element"
     :index="0" 
     :parent-id="element.parent" 
     :children-count="0"
@@ -89,18 +89,17 @@ const handleDragStart = (id: string) => {
   </ComponentTreeItem>
 </template>
 
-<style scoped lang="scss">
+<style scoped>
 .category-item-wrapper {
   display: flex;
   height: fit-content;
   align-items: center;
-  gap: $gap;
+  gap: 4px;
 }
 
 .summary-text {
   margin: 4px 0px;
-  font-size: $medium;
-  color: var(--text-950);
+  color: var(--text);
 }
 
 .lock-icon {
