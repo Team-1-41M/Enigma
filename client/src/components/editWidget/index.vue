@@ -501,6 +501,33 @@ function drawBlock(ctx: CanvasRenderingContext2D, element: BlockElement) {
     }
 }
 
+function drawBlockShadow(ctx: CanvasRenderingContext2D, element: BlockElement) {
+    if (!element.shadow) return;
+
+    ctx.save();
+
+    const foundParent = element.parent === undefined ? undefined : store.findElement<AnyElement>(element.parent);
+    if (foundParent !== undefined)
+        clipElementDrawingArea(ctx, foundParent);
+
+    const [x, y] = store.globalPosition(element);
+
+    ctx.fillStyle = colorToColor(element.shadow.color);
+    ctx.beginPath();
+    ctx.filter = `blur(${element.shadow.blur}px)`;
+    fillPathWithRoundedCorners(
+        ctx,
+        x + element.shadow.offsetX - element.shadow.spread,
+        y + element.shadow.offsetY - element.shadow.spread,
+        element.width + element.shadow.spread * 2,
+        element.height + element.shadow.spread * 2,
+        element.borderRadius
+    );
+    ctx.fill();
+
+    ctx.restore();
+}
+
 function clipElementDrawingArea(ctx: CanvasRenderingContext2D, element: AnyElement) {
     let { x, y, w, h } = elementBox(element);
     const path = new Path2D();
@@ -515,6 +542,9 @@ function clipElementDrawingArea(ctx: CanvasRenderingContext2D, element: AnyEleme
 function drawElements(ctx: CanvasRenderingContext2D) {
     store.traversedTree().forEach(id => {
         const element = store.findElement(id) as AnyElement;
+
+        if (element.type === ElementType.Block)
+            drawBlockShadow(ctx, element);
 
         ctx.save();
 
