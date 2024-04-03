@@ -582,8 +582,8 @@ function drawBlockControls(ctx: CanvasRenderingContext2D) {
 
 function draw() {
     const ctx = canvas.value!.getContext('2d')!;
-    ctx.canvas.width = ctx.canvas.parentElement!.offsetWidth;
-    ctx.canvas.height = ctx.canvas.parentElement!.offsetHeight - 5; // FIXME
+    ctx.canvas.width = ctx.canvas.clientWidth;
+    ctx.canvas.height = ctx.canvas.clientHeight;
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
     ctx.save();
@@ -1135,6 +1135,12 @@ function wheel(event: WheelEvent) {
 <style scoped>
 div {
     position: relative;
+}
+
+canvas {
+    position: absolute;
+    width: 100%;
+    height: 100%;
 }
 
 textarea {
