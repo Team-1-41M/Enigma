@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import { EditMode } from '~/types/editMode';
-import { ElementType, type Background, type BlockElement, type TextElement, type AnyElement, TextAlignment, type ElementID } from '~/types/elements';
+import type { Border } from '~/types/elements';
+import { ElementType, type Background, type BlockElement, type TextElement, type AnyElement, TextAlignment, type ElementID, type BorderRadius } from '~/types/elements';
 
 const store = useCurrentProjectStore();
-
-// FIXME temp
-(window as any).debugPutAfter = (element: ElementID, after?: ElementID) =>
-    store.putElementAfter(element, after);
 
 const CONTROLS: [number, number, -1 | 0 | 1, -1 | 0 | 1][] = [
     [0, 0, -1, -1],
@@ -38,6 +35,25 @@ type Box = {
     w: number,
     h: number,
 };
+
+function vecAdd(...point: Point[]): Point {
+    return point.reduce((p, [x, y]) => [p[0] + x, p[1] + y], [0, 0]);
+}
+
+function vecMul(
+    [x, y]: Point,
+    scalar: number,
+): Point {
+    return [x * scalar, y * scalar];
+}
+
+// piecewise vector product (not dot product, not cross product)
+function vecScale(
+    [x, y]: Point,
+    [sx, sy]: Point,
+): Point {
+    return [x * sx, y * sy];
+}
 
 type Camera = {
     pos: Point,
@@ -123,7 +139,6 @@ function boxesIntersect(
     { x: x1, y: y1, w: w1, h: h1 }: Box,
     { x: x2, y: y2, w: w2, h: h2 }: Box,
 ): boolean {
-    // TODO check
     return x1 <= x2 + w2
         && x1 + w1 >= x2
         && y1 <= y2 + h2
@@ -208,7 +223,6 @@ function drawText(ctx: CanvasRenderingContext2D, element: TextElement) {
     const lineHeight = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
 
     let [x, y] = store.globalPosition(element);
-
     switch (element.alignment) {
         case TextAlignment.Center:
             x -= w / 2;
@@ -219,56 +233,267 @@ function drawText(ctx: CanvasRenderingContext2D, element: TextElement) {
             x -= w;
             break;
     }
-    for (const [i, line] of element.content.split(/\r\n|\r|\n/g).entries())
+
+    const lines = element.content.split(/\r\n|\r|\n/g);
+
+    const topLeft = worldToMouse([x, y]);
+    const bottomRight = worldToMouse([x + w, y + lineHeight * (lines.length + 1)]);
+    if (!boxesIntersect(twoPointsToBox(topLeft, bottomRight), { x: 0, y: 0, w: ctx.canvas.width, h: ctx.canvas.height }))
+        return;
+
+    for (const [i, line] of lines.entries())
         ctx.fillText(line, x, y + lineHeight * (1 + i) - metrics.fontBoundingBoxDescent);
 }
 
-const BORDER_ADDITIONS = [
-    [0, 0, 1, 0], // top
-    [1, 0, 1, 1], // right
-    [1, 1, 0, 1], // bottom
-    [0, 1, 0, 0], // left
-];
+// corner - amount of [width, height] to add to [x, y] to get a rect corner
+// centerVector - diagonal vector from corner to center
+//   (should I calculate that instead ? for ellipses...)
+const CORNER_ADDITIONS: { corner: Point, centerVector: Point, towardNextVector: Point }[] = [
+    { // top-left
+        corner: [0, 0],
+        centerVector: [1, 1],
+        towardNextVector: [1, 0],
+    },
+    { // top-right
+        corner: [1, 0],
+        centerVector: [-1, 1],
+        towardNextVector: [0, 1],
+    },
+    { // bottom-right
+        corner: [1, 1],
+        centerVector: [-1, -1],
+        towardNextVector: [-1, 0],
+    },
+    { // bottom-left
+        corner: [0, 1],
+        centerVector: [1, -1],
+        towardNextVector: [0, -1],
+    },
+] as const;
+
+// ifSmallerVector - point where to move border if border is smaller
+// ifLargerPrevVector - point where to move prev corner if border is larger
+//   (ifLargerNextVector = -ifLargerPrevVector)
+// prevAngles - angles of the arc of the prev corner (counter-clockwise)
+// nextAngles - angles of the arc of the next corner (clockwise)
+const BORDER_ADDITIONS: { ifSmallerVector: Point, ifLargerPrevVector: Point, prevAngles: [number, number], nextAngles: [number, number] }[] = [
+    { // top
+        ifSmallerVector: [0, -1],
+        ifLargerPrevVector: [-1, 0],
+        prevAngles: [Math.PI / 2, 3 * Math.PI / 4],
+        nextAngles: [Math.PI / 2, Math.PI / 4],
+    },
+    { // right
+        ifSmallerVector: [1, 0],
+        ifLargerPrevVector: [0, -1],
+        prevAngles: [0, Math.PI / 4],
+        nextAngles: [0, -Math.PI / 4],
+    },
+    { // bottom
+        ifSmallerVector: [0, 1],
+        ifLargerPrevVector: [1, 0],
+        prevAngles: [-Math.PI / 2, -Math.PI / 4],
+        nextAngles: [-Math.PI / 2, -3 * Math.PI / 4],
+    },
+    { // left
+        ifSmallerVector: [-1, 0],
+        ifLargerPrevVector: [0, 1],
+        prevAngles: [-Math.PI, -3 * Math.PI / 4],
+        nextAngles: [Math.PI, 3 * Math.PI / 4],
+    },
+] as const;
+
+function radii(width: number, height: number, radius: BorderRadius): [number, number, number, number] {
+    let topLeftRadius, topRightRadius, bottomRightRadius, bottomLeftRadius;
+    if (typeof (radius) === 'number')
+        topLeftRadius = topRightRadius = bottomRightRadius = bottomLeftRadius = radius;
+    else {
+        topLeftRadius = radius.topLeft;
+        topRightRadius = radius.topRight;
+        bottomRightRadius = radius.bottomRight;
+        bottomLeftRadius = radius.bottomLeft;
+    }
+
+    const radiusDivisor
+        = Math.max(
+            width, height,
+            topLeftRadius + topRightRadius,
+            topLeftRadius + bottomLeftRadius,
+            bottomLeftRadius + bottomRightRadius,
+            bottomRightRadius + topRightRadius,
+        ) / Math.min(width, height);
+
+    return [
+        topLeftRadius / radiusDivisor,
+        topRightRadius / radiusDivisor,
+        bottomRightRadius / radiusDivisor,
+        bottomLeftRadius / radiusDivisor,
+    ];
+}
+
+function fillPathWithRoundedCorners(
+    path: CanvasPath,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    radius?: BorderRadius,
+) {
+    if (radius === undefined) {
+        path.rect(x, y, width, height);
+        return;
+    }
+
+    const [topLeftRadius, topRightRadius, bottomRightRadius, bottomLeftRadius] = radii(width, height, radius);
+
+    // top, top-right
+    path.moveTo(x + topLeftRadius, y);
+    path.lineTo(x + width - topRightRadius, y);
+    path.arcTo(x + width, y, x + width, y + topRightRadius, topRightRadius);
+
+    // right, bottom-right
+    path.lineTo(x + width, y + height - bottomRightRadius);
+    path.arcTo(x + width, y + height, x + width - bottomRightRadius, y + height, bottomRightRadius);
+
+    // bottom, bottom-left
+    path.lineTo(x + bottomLeftRadius, y + height);
+    path.arcTo(x, y + height, x, y + height - bottomLeftRadius, bottomLeftRadius);
+
+    // left, top-left
+    path.lineTo(x, y + topLeftRadius);
+    path.arcTo(x, y, x + topLeftRadius, y, topLeftRadius);
+}
 
 function drawBlock(ctx: CanvasRenderingContext2D, element: BlockElement) {
     const [x, y] = store.globalPosition(element);
 
+    const topLeft = worldToMouse([x, y]);
+    const bottomRight = worldToMouse([x + element.width, y + element.height]);
+    if (!boxesIntersect(twoPointsToBox(topLeft, bottomRight), { x: 0, y: 0, w: ctx.canvas.width, h: ctx.canvas.height }))
+        return;
+
     ctx.fillStyle = colorToColor(element.background);
-    ctx.fillRect(x, y, element.width, element.height);
-    // TODO arcs for border-radius
+    ctx.beginPath();
+    fillPathWithRoundedCorners(ctx, x, y, element.width, element.height, element.borderRadius);
+    ctx.fill();
 
     if (element.borders !== undefined) {
-        let leftBorder, rightBorder, topBorder, bottomBorder;
+        let topBorder: Border | undefined;
+        let rightBorder: Border | undefined;
+        let bottomBorder: Border | undefined;
+        let leftBorder: Border | undefined;
         if ('color' in element.borders)
-            leftBorder = rightBorder = topBorder = bottomBorder = element.borders;
+            topBorder = rightBorder = bottomBorder = leftBorder = element.borders;
         else {
-            leftBorder = element.borders.left;
-            rightBorder = element.borders.right;
             topBorder = element.borders.top;
+            rightBorder = element.borders.right;
             bottomBorder = element.borders.bottom;
+            leftBorder = element.borders.left;
         }
 
         ctx.save();
 
-        for (const [i, border] of [topBorder, rightBorder, bottomBorder, leftBorder].entries()) {
-            const additions = BORDER_ADDITIONS[i];
-            ctx.moveTo(x + additions[0] * element.width, y + additions[1] * element.height);
-            ctx.lineTo(x + additions[2] * element.width, y + additions[3] * element.height);
+        const borders = [topBorder, rightBorder, bottomBorder, leftBorder];
+        const radiuses = element.borderRadius === undefined ? [0, 0, 0, 0] : radii(element.width, element.height, element.borderRadius);
+        for (const [i, border] of borders.entries()) {
+            if (border === undefined) continue;
+
             let lineDash: number[];
             switch (border.style) {
                 case 'solid':
                     lineDash = [];
                     break;
                 case 'dotted':
-                    lineDash = [1, 1];
+                    lineDash = [border.width, border.width];
                     break;
                 case 'dashed':
-                    lineDash = [5, 5];
+                    lineDash = [border.width * 3, border.width * 3];
                     break;
             }
             ctx.setLineDash(lineDash);
             ctx.strokeStyle = colorToColor(border.color);
+
+            // etymology: prev border - border with previous index (for top border - left border)
+            //            prev corner - corner with current index (for top border - left corner)
+            const prevBorder = borders[i == 0 ? borders.length - 1 : i - 1] ?? { width: 0 };
+            const nextBorder = borders[(i + 1) % borders.length] ?? { width: 0 };
+            const borderAdditions = BORDER_ADDITIONS[i];
+            const prevCornerAdditions = CORNER_ADDITIONS[i];
+            const nextCornerAdditions = CORNER_ADDITIONS[(i + 1) % CORNER_ADDITIONS.length];
+            const prevRadius = radiuses[i];
+            const nextRadius = radiuses[(i + 1) % radiuses.length];
+
+            // points at the corners of the rect (unadjusted)
+            const prevCornerPre = vecAdd(
+                [x, y],
+                vecScale(
+                    prevCornerAdditions.corner,
+                    [element.width, element.height],
+                ),
+            );
+            const nextCornerPre = vecAdd(
+                [x, y],
+                vecScale(
+                    nextCornerAdditions.corner,
+                    [element.width, element.height],
+                ),
+            );
+
+            // maxWidth determines the shift of the corners
+            const prevMaxWidth = Math.max(prevBorder.width, border.width);
+            const nextMaxWidth = Math.max(nextBorder.width, border.width);
+
+            // vectors that shift the corners
+            const prevVector = vecMul(
+                border.width < prevMaxWidth
+                    ? borderAdditions.ifSmallerVector
+                    : borderAdditions.ifLargerPrevVector,
+                Math.abs(prevBorder.width - border.width),
+            );
+            const nextVector = vecMul(
+                border.width < nextMaxWidth
+                    ? borderAdditions.ifSmallerVector
+                    : vecMul(borderAdditions.ifLargerPrevVector, -1),
+                Math.abs(nextBorder.width - border.width),
+            );
+
+            // points at the corners of the rect (adjusted)
+            const prevCorner = vecAdd(prevCornerPre, prevVector);
+            const nextCorner = vecAdd(nextCornerPre, nextVector);
+
+            // points at the inside of the arc
+            const prevCenter = vecAdd(
+                prevCorner,
+                vecMul(prevCornerAdditions.centerVector, prevRadius),
+            );
+            const nextCenter = vecAdd(
+                nextCorner,
+                vecMul(nextCornerAdditions.centerVector, nextRadius),
+            );
+
+            // vectors that point from each corner toward each opposite corner of the same border
+            const prevToNext = vecMul(prevCornerAdditions.towardNextVector, prevRadius);
+            const nextToPrev = vecMul(prevCornerAdditions.towardNextVector, -nextRadius);
+
+            // prev corner arc
+            ctx.beginPath();
+            ctx.moveTo(prevCornerPre[0] + prevToNext[0], prevCornerPre[1] + prevToNext[1]);
+            ctx.arc(prevCenter[0], prevCenter[1], prevRadius, -borderAdditions.prevAngles[0], -borderAdditions.prevAngles[1], true);
+            ctx.lineWidth = prevMaxWidth * 2;
+            ctx.stroke();
+
+            // line
+            ctx.beginPath();
+            ctx.moveTo(prevCornerPre[0] + prevToNext[0], prevCornerPre[1] + prevToNext[1]);
+            ctx.lineTo(nextCornerPre[0] + nextToPrev[0], nextCornerPre[1] + nextToPrev[1]);
             ctx.lineWidth = border.width * 2;
+            ctx.stroke();
+
+            // next corner arc
+            ctx.beginPath();
+            ctx.moveTo(nextCornerPre[0] + nextToPrev[0], nextCornerPre[1] + nextToPrev[1]);
+            ctx.arc(nextCenter[0], nextCenter[1], nextRadius, -borderAdditions.nextAngles[0], -borderAdditions.nextAngles[1]);
+            ctx.lineWidth = nextMaxWidth * 2;
             ctx.stroke();
         }
 
@@ -276,14 +501,37 @@ function drawBlock(ctx: CanvasRenderingContext2D, element: BlockElement) {
     }
 }
 
+function drawBlockShadow(ctx: CanvasRenderingContext2D, element: BlockElement) {
+    if (!element.shadow) return;
+
+    ctx.save();
+
+    const foundParent = element.parent === undefined ? undefined : store.findElement<AnyElement>(element.parent);
+    if (foundParent !== undefined)
+        clipElementDrawingArea(ctx, foundParent);
+
+    const [x, y] = store.globalPosition(element);
+
+    ctx.fillStyle = colorToColor(element.shadow.color);
+    ctx.beginPath();
+    ctx.filter = `blur(${element.shadow.blur}px)`;
+    fillPathWithRoundedCorners(
+        ctx,
+        x + element.shadow.offsetX - element.shadow.spread,
+        y + element.shadow.offsetY - element.shadow.spread,
+        element.width + element.shadow.spread * 2,
+        element.height + element.shadow.spread * 2,
+        element.borderRadius
+    );
+    ctx.fill();
+
+    ctx.restore();
+}
+
 function clipElementDrawingArea(ctx: CanvasRenderingContext2D, element: AnyElement) {
     let { x, y, w, h } = elementBox(element);
     const path = new Path2D();
-    path.moveTo(x, y);
-    path.lineTo(x + w, y);
-    path.lineTo(x + w, y + h);
-    path.lineTo(x, y + h);
-    path.closePath();
+    fillPathWithRoundedCorners(path, x, y, w, h, 'borderRadius' in element ? element.borderRadius : undefined);
     ctx.clip(path);
 
     const foundParent = element.parent === undefined ? undefined : store.findElement<AnyElement>(element.parent);
@@ -295,11 +543,13 @@ function drawElements(ctx: CanvasRenderingContext2D) {
     store.traversedTree().forEach(id => {
         const element = store.findElement(id) as AnyElement;
 
+        if (element.type === ElementType.Block)
+            drawBlockShadow(ctx, element);
+
         ctx.save();
 
         clipElementDrawingArea(ctx, element);
 
-        // TODO do not draw outside of camera
         switch (element.type) {
             case ElementType.Block:
                 drawBlock(ctx, element);
@@ -362,8 +612,8 @@ function drawBlockControls(ctx: CanvasRenderingContext2D) {
 
 function draw() {
     const ctx = canvas.value!.getContext('2d')!;
-    ctx.canvas.width = ctx.canvas.parentElement!.offsetWidth;
-    ctx.canvas.height = ctx.canvas.parentElement!.offsetHeight - 5; // FIXME
+    ctx.canvas.width = ctx.canvas.clientWidth;
+    ctx.canvas.height = ctx.canvas.clientHeight;
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
     ctx.save();
@@ -915,6 +1165,12 @@ function wheel(event: WheelEvent) {
 <style scoped>
 div {
     position: relative;
+}
+
+canvas {
+    position: absolute;
+    width: 100%;
+    height: 100%;
 }
 
 textarea {
