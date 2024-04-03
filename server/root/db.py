@@ -79,7 +79,7 @@ async def init_db() -> None:
     session = await anext(get_db())
 
     if await User.by_email(os.getenv("SUPERUSER_EMAIL"), session):
-                return
+        return
             
     context = await get_crypt_context()
 
