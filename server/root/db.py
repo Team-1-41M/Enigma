@@ -71,8 +71,8 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         finally:
             await session.close()
 
-from fastapi import Depends
-async def init_db(db: AsyncSession = Depends(get_db)) -> None:
+
+async def init_db() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
