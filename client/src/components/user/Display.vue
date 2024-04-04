@@ -23,6 +23,7 @@ userStore.fetchUser();
     border-radius: 10px;
     background-color: #1E0825;
     color: var(--text);
+    cursor: pointer;
 }
 
 .parent > div {

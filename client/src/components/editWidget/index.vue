@@ -475,10 +475,12 @@ function drawBlock(ctx: CanvasRenderingContext2D, element: BlockElement) {
             const prevToNext = vecMul(prevCornerAdditions.towardNextVector, prevRadius);
             const nextToPrev = vecMul(prevCornerAdditions.towardNextVector, -nextRadius);
 
+            const ANGLE_FIDDLE = 0.01;
+
             // prev corner arc
             ctx.beginPath();
             ctx.moveTo(prevCornerPre[0] + prevToNext[0], prevCornerPre[1] + prevToNext[1]);
-            ctx.arc(prevCenter[0], prevCenter[1], prevRadius, -borderAdditions.prevAngles[0], -borderAdditions.prevAngles[1], true);
+            ctx.arc(prevCenter[0], prevCenter[1], prevRadius, -borderAdditions.prevAngles[0] + ANGLE_FIDDLE, -borderAdditions.prevAngles[1] - ANGLE_FIDDLE, true);
             ctx.lineWidth = prevMaxWidth * 2;
             ctx.stroke();
 
@@ -492,7 +494,7 @@ function drawBlock(ctx: CanvasRenderingContext2D, element: BlockElement) {
             // next corner arc
             ctx.beginPath();
             ctx.moveTo(nextCornerPre[0] + nextToPrev[0], nextCornerPre[1] + nextToPrev[1]);
-            ctx.arc(nextCenter[0], nextCenter[1], nextRadius, -borderAdditions.nextAngles[0], -borderAdditions.nextAngles[1]);
+            ctx.arc(nextCenter[0], nextCenter[1], nextRadius, -borderAdditions.nextAngles[0] - ANGLE_FIDDLE, -borderAdditions.nextAngles[1] + ANGLE_FIDDLE);
             ctx.lineWidth = nextMaxWidth * 2;
             ctx.stroke();
         }

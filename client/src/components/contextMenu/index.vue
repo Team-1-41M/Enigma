@@ -28,6 +28,7 @@ onMounted(() => {
   margin: 0;
   border-radius: 7px;
   background-color: #1E0825;
+  outline: none;
 }
 
 .dropdown-options-list:focus {

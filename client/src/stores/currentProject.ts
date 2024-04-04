@@ -135,8 +135,9 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
 
             const commandPos = message.indexOf('{');
 
-            const command = message.slice(0, commandPos).trim();
-            const data = JSON.parse(message.slice(commandPos));
+            const command = message.slice(0, commandPos).trim() as SocketCommand;
+            const data = JSON.parse(message.slice(commandPos)) as AnySocketMessage;
+            data.command = command;
             // FIXME check if successful parse
 
             const id = data.id; // FIXME check if there is data.id
@@ -150,7 +151,7 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
 
             // this block does not cause new messages (which would be pain)
             let el = undefined;
-            switch (command) {
+            switch (data.command) {
                 case SocketCommand.Create:
                     if (elements.value.find(e => e.id === id)) return;
                     switch (data.type) {
@@ -191,7 +192,7 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
                     selectedElements.value = selectedElements.value.filter(e => e.id !== id);
                     break;
                 case SocketCommand.PutAfter:
-                    putAfter(id, data.whom);
+                    putAfter(id, data.after);
                     break;
             }
         };

@@ -1,7 +1,11 @@
 import type { User } from "~/types/user";
 
-export const me = async (): Promise<User> => { // TODO proper error type
+export const me = async (): Promise<User | undefined> => {
     const { $api } = useNuxtApp();
  
-    return (await $api.get('users/me')).data;
+    try {
+        return (await $api.get('users/me')).data;
+    } catch (e) {
+        return undefined;
+    }
 }
