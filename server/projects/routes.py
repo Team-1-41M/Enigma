@@ -1,23 +1,26 @@
 import json
-from typing import Awaitable
+from typing import Awaitable, List
 
 from fastapi import APIRouter, Depends, WebSocket
 from server.auth.models import User
-from server.projects.models import Project
+from server.projects.models import Project, Access
 from server.projects.schemas import (
     ProjectCreateSchema,
     ProjectDBSchema,
     ProjectUpdateSchema,
+    ProjectJoinSchema,
 )
 from server.root.auth import get_current_user
 from server.root.cache import get_clients_storage
 from server.root.db import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 from starlette import status
 from starlette.exceptions import HTTPException
 from starlette.websockets import WebSocketDisconnect
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
+
 
 @router.post(
     "",
@@ -58,6 +61,51 @@ async def create(
 
     return project
 
+@router.post(
+    "/project/{project_id}/join",
+    response_model=List[Access],
+    status_code=status.HTTP_201_CREATED,
+)
+async def join_project(
+    project_id: int,
+    data: List[ProjectJoinSchema],
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> List[Access]:
+    """
+    Join project.
+
+    Args:
+        project_id: project id to join.
+        data: list of user_id as ProjectJoinSchema.
+        db: db async session.
+
+    Returns:
+        List[Access]: list of created access data.
+
+    Raises:
+        HTTPException: 400 if some attribute from data
+        doesn't exist in the constructed object.
+    """
+
+    try:
+        accesses = []
+        for item in data:
+            access_data = {"project_id": project_id, "user_id": item.user_id}
+            access = await Access.create(access_data, db)
+            accesses.append(access)
+    except IntegrityError:
+        raise HTTPException(
+            detail="Some users already joined to the project",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+    except AttributeError as e:
+        raise HTTPException(
+            detail=str(e),
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    return accesses
 
 @router.get("/{item_id}", response_model=ProjectDBSchema)
 async def item(
@@ -128,20 +176,6 @@ async def update(
         )
 
     return project
-
-def delete_element(elements, id_to_delete):
-    def find_descendants(element_id):
-        return [element["id"] for element in elements if element.get("parent") == element_id]
-
-    def delete_recursive(element_id):
-        descendants = find_descendants(element_id)
-        for descendant in descendants:
-            delete_recursive(descendant)
-        nonlocal elements
-        elements = [element for element in elements if element["id"] != element_id]
-
-    delete_recursive(id_to_delete)
-    return elements
 
 
 @router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
