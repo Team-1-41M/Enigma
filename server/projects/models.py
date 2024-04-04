@@ -29,3 +29,13 @@ class Project(Entity):
 
         async for scalar in scalars:
             yield scalar
+
+
+class Access(Entity):
+    """Access information model."""
+
+    __tablename__ = "accesses"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
