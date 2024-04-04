@@ -71,23 +71,25 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         finally:
             await session.close()
 
-
-async def init_db() -> None:
+from fastapi import Depends
+async def init_db(db: AsyncSession = Depends(get_db)) -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    session = await anext(get_db())
-
-    if await User.by_email(os.getenv("SUPERUSER_EMAIL"), session):
-        return
+    async with session_maker() as session:
+        try:
+            if await User.by_email(os.getenv("SUPERUSER_EMAIL"), session):
+                return
             
-    context = await get_crypt_context()
+            context = await get_crypt_context()
 
-    await User.create(
-        UserSignUpSchema(
-            name=os.getenv("SUPERUSER_NAME"),
-            email=os.getenv("SUPERUSER_EMAIL"),
-            password=context.hash(os.getenv("SUPERUSER_PASSWORD")),
-        ).model_dump(),
-        session,
-    )
+            await User.create(
+                UserSignUpSchema(
+                    name=os.getenv("SUPERUSER_NAME"),
+                    email=os.getenv("SUPERUSER_EMAIL"),
+                    password=context.hash(os.getenv("SUPERUSER_PASSWORD")),
+                ).model_dump(),
+                db,
+            )
+        finally:
+            await session.close()
