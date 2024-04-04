@@ -191,7 +191,7 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
                     selectedElements.value = selectedElements.value.filter(e => e.id !== id);
                     break;
                 case SocketCommand.PutAfter:
-                    putAfter(id, data.whom);
+                    putAfter(id, data.after);
                     break;
             }
         };
