@@ -62,50 +62,36 @@ async def create(
     return project
 
 @router.post(
-    "/project/{project_id}/join",
-    response_model=List[Access],
+    "/{project_id}/join",
+    response_model=ProjectJoinSchema,
     status_code=status.HTTP_201_CREATED,
 )
 async def join_project(
     project_id: int,
-    data: List[ProjectJoinSchema],
+    data: ProjectJoinSchema,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-) -> List[Access]:
+) -> Awaitable[Access]:
     """
     Join project.
 
     Args:
-        project_id: project id to join.
-        data: list of user_id as ProjectJoinSchema.
+        project_id: project id.
+        data: user id as ProjectJoinSchema.
         db: db async session.
 
     Returns:
-        List[Access]: list of created access data.
+        Access: created access data.
 
     Raises:
         HTTPException: 400 if some attribute from data
         doesn't exist in the constructed object.
     """
 
-    try:
-        accesses = []
-        for item in data:
-            access_data = {"project_id": project_id, "user_id": item.user_id}
-            access = await Access.create(access_data, db)
-            accesses.append(access)
-    except IntegrityError:
-        raise HTTPException(
-            detail="Some users already joined to the project",
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
-    except AttributeError as e:
-        raise HTTPException(
-            detail=str(e),
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
+    access_data = {"project_id": project_id, "user_id": data.user_id}
+    access = await Access.create(access_data, db)
 
-    return accesses
+    return access
 
 @router.get("/{item_id}", response_model=ProjectDBSchema)
 async def item(
