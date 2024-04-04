@@ -32,7 +32,7 @@ async def me(
 
 
 @router.get("/me/projects", response_model=ProjectItemsSchema)
-async def created_projects(
+async def projects(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Awaitable[dict[str, Any]]:

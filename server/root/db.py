@@ -1,8 +1,9 @@
 import os
+from typing import AsyncGenerator
 
 from server.auth.models import User
 from server.auth.schemas import UserSignUpSchema
-from server.root.crypt import crypt_context
+from server.root.crypt import get_crypt_context
 from server.shared.models import Base
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -48,42 +49,21 @@ DB_URL = build_url(
     }
 )
 
-
-def create_engine() -> AsyncEngine:
-    """Creates a new database engine.
-
-    Returns:
-        AsyncEngine: database engine
-    """
-
-    return create_async_engine(DB_URL)
+engine: AsyncEngine = create_async_engine(DB_URL)
+session_maker: async_sessionmaker = async_sessionmaker(
+    bind=engine,
+    expire_on_commit=False,
+    autoflush=False,
+)
 
 
-def create_session_maker() -> async_sessionmaker:
-    """Creates a new session maker.
-
-    Returns:
-        async_sessionmaker: session maker
-    """
-
-    engine = create_engine()
-
-    return async_sessionmaker(
-        bind=engine,
-        expire_on_commit=False,
-        autoflush=False,
-    )
-
-
-async def get_db() -> AsyncSession:
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
     Provides a database session.
 
     Returns:
-        AsyncSession: database session
+        AsyncGenerator[AsyncSession, None, None]: database session
     """
-
-    session_maker = create_session_maker()
 
     async with session_maker() as session:
         try:
@@ -91,27 +71,25 @@ async def get_db() -> AsyncSession:
         finally:
             await session.close()
 
-
-async def init_db() -> None:
-    engine = create_engine()
-
+from fastapi import Depends
+async def init_db(db: AsyncSession = Depends(get_db)) -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-
-    session_maker = create_session_maker()
 
     async with session_maker() as session:
         try:
             if await User.by_email(os.getenv("SUPERUSER_EMAIL"), session):
                 return
+            
+            context = await get_crypt_context()
 
             await User.create(
                 UserSignUpSchema(
                     name=os.getenv("SUPERUSER_NAME"),
                     email=os.getenv("SUPERUSER_EMAIL"),
-                    password=crypt_context.hash(os.getenv("SUPERUSER_PASSWORD")),
+                    password=context.hash(os.getenv("SUPERUSER_PASSWORD")),
                 ).model_dump(),
-                session,
+                db,
             )
         finally:
             await session.close()

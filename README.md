@@ -1,27 +1,17 @@
 # Enigma
 
+- [Enigma](#enigma)
+  - [Launching](#launching)
+    - [Local](#local)
+      - [Client](#client)
+      - [Server](#server)
+    - [Docker Compose](#docker-compose)
+
 ## Launching
 
 ### Local
 
-#### Server
-You need to install Python (used 3.12).
-
-In server directory, create virtual environment and activate it:
-```
-$ python -m venv .venv
-
-$ source .venv/bin/activate # Linux
-
-$ .venv\Scripts\activate # Windows
-```
-
-Install base (FastAPI, ORM, etc.) and local (SQLite) requirements:
-```
-$ pip install -r requirements/base.txt -r requirements/local.txt
-```
-
-Configure .env file in project root:
+Create .env file in project root:
 ```
 DEBUG=True
 
@@ -45,11 +35,42 @@ DB_ENGINE=sqlite+aiosqlite
 DB_NAME=enigma.sqlite3
 ```
 
+#### Client
+Install dependencies:
+```bash
+npm i
+```
+
 Launch:
+```bash
+npx nuxi dev --doenv ../.env
 ```
-$ python run.py
+
+After that you can visit ```http://NUXT_HOST:NUXT_PORT``` to see client app.
+
+#### Server
+You need to install Python (used 3.12).
+
+Create virtual environment and activate it:
+```bash
+python -m venv ./server/.venv
+
+source ./server/.venv/bin/activate # Linux
+
+.\server\.venv\Scripts\activate # Windows
 ```
-After that you can visit server_address_in_dotenv/docs in your browser to get the API specification.
+
+Install base (FastAPI, ORM, etc.) and local (SQLite) requirements:
+```bash
+pip install -r ./server/requirements/base.txt -r ./server/requirements/local.txt
+```
+
+Launch:
+```bash
+python ./server/run.py
+```
+
+After that you can visit ```http://SERVER_HOST:SERVER_PORT/docs``` in your browser to get the API specification.
 
 ### Docker Compose
 
@@ -85,7 +106,7 @@ DB_PORT=5432
 ```
 
 Launch:
-```
-$ docker compose up --build
+```bash
+docker compose up --build
 ```
 Docker will start a whole project, you can check it at localhost:some_port (for example, 8000 for the server and 3000 for the client).
