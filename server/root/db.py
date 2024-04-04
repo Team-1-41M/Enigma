@@ -89,7 +89,7 @@ async def init_db() -> None:
                     email=os.getenv("SUPERUSER_EMAIL"),
                     password=context.hash(os.getenv("SUPERUSER_PASSWORD")),
                 ).model_dump(),
-                db,
+                session,
             )
         finally:
             await session.close()
