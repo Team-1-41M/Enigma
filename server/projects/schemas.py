@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from typing import List, Any
 from server.shared.schemas import EntityDBSchema
 
 
@@ -32,3 +33,8 @@ class ProjectItemsSchema(BaseModel):
 
     length: int
     data: list[ProjectDBSchema]
+
+
+class ProjectJoinSchema(BaseModel):
+    """Schema for joining a project."""
+    user_id: int
