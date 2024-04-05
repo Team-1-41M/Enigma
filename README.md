@@ -1,11 +1,10 @@
 # Enigma
 
-- [Enigma](#enigma)
-  - [Launching](#launching)
-    - [Local](#local)
-      - [Client](#client)
-      - [Server](#server)
-    - [Docker Compose](#docker-compose)
+- [Launching](#launching)
+  - [Local](#local)
+    - [Client](#client)
+    - [Server](#server)
+  - [Docker Compose](#docker-compose)
 
 ## Launching
 
