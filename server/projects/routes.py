@@ -1,7 +1,10 @@
 import json
-from typing import Awaitable
+import os
+from datetime import datetime, timedelta
+from typing import Awaitable, Literal
 
 from fastapi import APIRouter, Depends, WebSocket
+from jose import jwt
 from server.auth.models import User
 from server.projects.models import Project
 from server.projects.schemas import (
@@ -12,6 +15,7 @@ from server.projects.schemas import (
 from server.root.auth import get_current_user
 from server.root.cache import get_clients_storage
 from server.root.db import get_db
+from server.root.settings import ALGORITHM, TOKEN_EXPIRE
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from starlette.exceptions import HTTPException
@@ -214,6 +218,29 @@ def delete_element(elements, id_to_delete):
 
     delete_recursive(id_to_delete)
     return elements
+
+@router.post("/{item_id}/link", response_model=str)
+async def link(
+    item_id: int,
+    db: AsyncSession = Depends(get_db),
+    permission: Literal["read", "edit"] = "read",
+    current_user: User = Depends(get_current_user),
+) -> Awaitable[str]:
+    project = await Project.by_id(item_id, db)
+    if project is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Project with id {item_id} doesn't exist.",
+        )
+
+    payload = {
+        "id": str(item_id), 
+        "sub": str(current_user.id),
+        "exp": datetime.now(datetime.UTC) + timedelta(minutes=TOKEN_EXPIRE),
+        "permissions": permission,
+    }
+
+    return jwt.encode(payload, os.getenv("SECRET_KEY"), algorithm=ALGORITHM)
 
 
 @router.websocket("/{item_id}/content")
