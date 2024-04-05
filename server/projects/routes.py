@@ -1,7 +1,7 @@
+import datetime
 import json
 import os
-from datetime import datetime, timedelta
-from typing import Awaitable, Literal
+from typing import Awaitable
 
 from fastapi import APIRouter, Depends, WebSocket
 from jose import jwt
@@ -11,6 +11,7 @@ from server.projects.schemas import (
     ProjectCreateSchema,
     ProjectDBSchema,
     ProjectUpdateSchema,
+    ScopeSchema,
 )
 from server.root.auth import get_current_user
 from server.root.cache import get_clients_storage
@@ -219,11 +220,12 @@ def delete_element(elements, id_to_delete):
     delete_recursive(id_to_delete)
     return elements
 
+
 @router.post("/{item_id}/link", response_model=str)
 async def link(
     item_id: int,
+    scope: ScopeSchema,
     db: AsyncSession = Depends(get_db),
-    permission: Literal["read", "edit"] = "read",
     current_user: User = Depends(get_current_user),
 ) -> Awaitable[str]:
     project = await Project.by_id(item_id, db)
@@ -236,11 +238,11 @@ async def link(
     payload = {
         "id": str(item_id), 
         "sub": str(current_user.id),
-        "exp": datetime.now(datetime.UTC) + timedelta(minutes=TOKEN_EXPIRE),
-        "permissions": permission,
+        "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=TOKEN_EXPIRE),
+        "scope": scope.value,
     }
 
-    return jwt.encode(payload, os.getenv("SECRET_KEY"), algorithm=ALGORITHM)
+    return jwt.encode(payload, os.getenv("SECRET"), algorithm=ALGORITHM)
 
 
 @router.websocket("/{item_id}/content")
