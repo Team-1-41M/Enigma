@@ -8,7 +8,7 @@ from server.root.asgi import app
 @pytest.mark.asyncio
 async def test_sign_in_normal():
     """
-    Test: sign in normal mode. 
+    Test: sign in normal mode.
     Also check if session cookie is set.
     Trying to login as superuser because it's the only user in the database.
     """
@@ -19,7 +19,7 @@ async def test_sign_in_normal():
             json={
                 "name": os.getenv("SUPERUSER_NAME"),
                 "password": os.getenv("SUPERUSER_PASSWORD"),
-            }
+            },
         )
 
         assert response.status_code == 200
@@ -32,7 +32,7 @@ async def test_sign_in_normal():
     [
         (os.getenv("SUPERUSER_NAME"), "wrong_password"),
         ("wrong_name", os.getenv("SUPERUSER_PASSWORD")),
-    ]
+    ],
 )
 async def test_sign_in_wrong_credentials(name: str, password: str):
     with TestClient(app) as client:
@@ -41,7 +41,7 @@ async def test_sign_in_wrong_credentials(name: str, password: str):
             json={
                 "name": name,
                 "password": password,
-            }
+            },
         )
 
         assert response.status_code == 401
@@ -49,11 +49,11 @@ async def test_sign_in_wrong_credentials(name: str, password: str):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "name, email", 
+    "name, email",
     [
-        (os.getenv("SUPERUSER_NAME"), "wrong_email@example.com"), 
+        (os.getenv("SUPERUSER_NAME"), "wrong_email@example.com"),
         ("wrong_name", os.getenv("SUPERUSER_EMAIL")),
-    ]
+    ],
 )
 async def test_sign_up_same_credentials(name: str, email: str):
     with TestClient(app) as client:
@@ -63,7 +63,7 @@ async def test_sign_up_same_credentials(name: str, email: str):
                 "name": name,
                 "email": email,
                 "password": os.getenv("SUPERUSER_PASSWORD"),
-            }
+            },
         )
 
         assert response.status_code == 409

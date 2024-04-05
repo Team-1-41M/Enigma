@@ -9,7 +9,6 @@ def create(content_list, element_data):
     return content_list
 
 
-
 def _is_default(value) -> bool:
     """
     Checks if value is default.
@@ -49,6 +48,7 @@ def _remove_defaults(data: dict) -> dict:
 
     return undefaulted
 
+
 def update(content_list, element_data):
     for i, element in enumerate(content_list):
         if element["id"] == element_data["id"]:
@@ -61,15 +61,19 @@ def update(content_list, element_data):
 
 
 def put(content_list, element_data):
-    foundIndex = next((i for i, e in enumerate(content_list) if e["id"] == element_data["id"]), None)
+    foundIndex = next(
+        (i for i, e in enumerate(content_list) if e["id"] == element_data["id"]), None
+    )
     if foundIndex is None:
         return
     found = content_list[foundIndex]
-    temp = content_list[:foundIndex] + content_list[foundIndex + 1:]
+    temp = content_list[:foundIndex] + content_list[foundIndex + 1 :]
 
     newIndex = 0
     if "after" in element_data:
-        whomIndex = next((i for i, e in enumerate(temp) if e["id"] == element_data["after"]), None)
+        whomIndex = next(
+            (i for i, e in enumerate(temp) if e["id"] == element_data["after"]), None
+        )
         if whomIndex is None:
             return
         newIndex = whomIndex + 1
@@ -79,9 +83,7 @@ def put(content_list, element_data):
 
 def delete(elements, id):
     def find_descendants(id):
-        return [
-            element["id"] for element in elements if element.get("parent") == id
-        ]
+        return [element["id"] for element in elements if element.get("parent") == id]
 
     def delete_recursive(id):
         descendants = find_descendants(id)

@@ -31,11 +31,27 @@ def build_url(data: dict) -> str:
     host = data.get("host")
     port = data.get("port")
 
-    auth: str = f"{user}:{password}" if user is not None and password is not None else user if user is not None else None
-    location: str = f"{host}:{port}" if host is not None and port is not None else host if host is not None else None
-    credentials: str = f"{auth}@{location}" if auth is not None and location is not None else location if location is not None else None
+    auth: str = (
+        f"{user}:{password}"
+        if user is not None and password is not None
+        else user if user is not None else None
+    )
+    location: str = (
+        f"{host}:{port}"
+        if host is not None and port is not None
+        else host if host is not None else None
+    )
+    credentials: str = (
+        f"{auth}@{location}"
+        if auth is not None and location is not None
+        else location if location is not None else None
+    )
 
-    return f"{engine}://{credentials}/{name}" if credentials is not None else f"{engine}:///{name}"
+    return (
+        f"{engine}://{credentials}/{name}"
+        if credentials is not None
+        else f"{engine}:///{name}"
+    )
 
 
 DB_URL = build_url(
@@ -80,7 +96,7 @@ async def init_db() -> None:
         try:
             if await User.by_email(os.getenv("SUPERUSER_EMAIL"), session):
                 return
-            
+
             context = await get_crypt_context()
 
             await User.create(

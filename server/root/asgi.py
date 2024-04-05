@@ -14,7 +14,7 @@ from starlette.staticfiles import StaticFiles
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator:
     """Run operations on application startup and shutdown."""
-    
+
     await init_db()
 
     yield

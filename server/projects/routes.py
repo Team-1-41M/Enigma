@@ -6,6 +6,7 @@ from typing import Awaitable
 from fastapi import APIRouter, Depends, WebSocket
 from jose import jwt
 from server.auth.models import User
+from server.projects import content
 from server.projects.models import Project
 from server.projects.schemas import (
     ProjectCreateSchema,
@@ -17,7 +18,6 @@ from server.root.auth import get_current_user
 from server.root.cache import get_clients_storage
 from server.root.db import get_db
 from server.root.settings import ALGORITHM, TOKEN_EXPIRE
-from server.projects import content
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from starlette.exceptions import HTTPException
@@ -205,9 +205,6 @@ def remove_defaults(data: dict) -> dict:
     return undefaulted
 
 
-
-
-
 @router.post("/{item_id}/link", response_model=str)
 async def link(
     item_id: int,
@@ -223,9 +220,10 @@ async def link(
         )
 
     payload = {
-        "id": str(item_id), 
+        "id": str(item_id),
         "sub": str(current_user.id),
-        "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=TOKEN_EXPIRE),
+        "exp": datetime.datetime.now(datetime.UTC)
+        + datetime.timedelta(minutes=TOKEN_EXPIRE),
         "scope": scope.value,
     }
 
