@@ -17,6 +17,7 @@ from server.root.auth import get_current_user
 from server.root.cache import get_clients_storage
 from server.root.db import get_db
 from server.root.settings import ALGORITHM, TOKEN_EXPIRE
+from server.projects import content
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from starlette.exceptions import HTTPException
@@ -204,21 +205,7 @@ def remove_defaults(data: dict) -> dict:
     return undefaulted
 
 
-def delete_element(elements, id_to_delete):
-    def find_descendants(element_id):
-        return [
-            element["id"] for element in elements if element.get("parent") == element_id
-        ]
 
-    def delete_recursive(element_id):
-        descendants = find_descendants(element_id)
-        for descendant in descendants:
-            delete_recursive(descendant)
-        nonlocal elements
-        elements = [element for element in elements if element["id"] != element_id]
-
-    delete_recursive(id_to_delete)
-    return elements
 
 
 @router.post("/{item_id}/link", response_model=str)
@@ -292,63 +279,29 @@ async def process(
         try:
             message = await socket.receive_text()
 
-            try:
-                command, data = message.split(" ", 1)
+            command, data = message.split(" ", 1)
 
-                element_data = json.loads(data)
+            element_data = json.loads(data)
 
-                if command == "create":
-                    id = element_data["id"]
-                    if any(e["id"] == id for e in content_list):
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="Element with this id already exists.",
-                        )
-                    content_list.append(element_data)
-                elif command == "update":
-                    for i, element in enumerate(content_list):
-                        if element["id"] == element_data["id"]:
-                            for key, value in element_data.items():
-                                content_list[i][key] = value
-                            content_list[i] = remove_defaults(content_list[i])
-                            break
-                    else:
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="Element with this id not found.",
-                        )
-                elif command == "delete":
-                    content_list = delete_element(content_list, element_data["id"])
-                elif command == "put":
-                    foundIndex = next((i for i, e in enumerate(content_list) if e["id"] == element_data["id"]), None)
-                    if foundIndex is None:
-                        continue
-                    found = content_list[foundIndex]
-                    temp = content_list[:foundIndex] + content_list[foundIndex + 1:]
-
-                    newIndex = 0
-                    if "after" in element_data:
-                        whomIndex = next((i for i, e in enumerate(temp) if e["id"] == element_data["after"]), None)
-                        if whomIndex is None:
-                            continue
-                        newIndex = whomIndex + 1
-
-                    content_list = temp[:newIndex] + [found] + temp[newIndex:]
-                else:
+            match command:
+                case "create":
+                    content_list = content.create(content_list, element_data)
+                case "update":
+                    content_list = content.update(content_list, element_data)
+                case "delete":
+                    content_list = content.delete(content_list, element_data["id"])
+                case "put":
+                    content_list = content.put(content_list, element_data)
+                case _:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
                         detail="Invalid command.",
                     )
 
-                await project.update({"content": json.dumps(content_list)}, db)
+            await project.update({"content": json.dumps(content_list)}, db)
 
-                for client in clients:
-                    await client.send_text(message)
-            except AttributeError as e:
-                raise HTTPException(
-                    detail=str(e),
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                )
+            for client in clients:
+                await client.send_text(message)
         except WebSocketDisconnect:
             clients.remove(socket)
             await clients_storage.set(project.id, clients)
