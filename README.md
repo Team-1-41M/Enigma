@@ -23,6 +23,7 @@ SERVER_PORT=8000
 SERVER_RELOAD=True
 
 HTTPS=False
+SECRET="fastapi-secure-q6&gtanz!$%5g%p8fthuwi#a3p))$+%+g-r6d(fb2h+a9ne414"
 
 SUPERUSER_NAME=root
 SUPERUSER_EMAIL=root@example.com
@@ -86,6 +87,7 @@ SERVER_PORT=8000
 SERVER_RELOAD=True
 
 HTTPS=False
+SECRET="fastapi-secure-q6&gtanz!$%5g%p8fthuwi#a3p))$+%+g-r6d(fb2h+a9ne414"
 
 SUPERUSER_NAME=root
 SUPERUSER_EMAIL=root@example.com
