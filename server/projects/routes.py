@@ -205,33 +205,8 @@ def remove_defaults(data: dict) -> dict:
     return undefaulted
 
 
-@router.post("/{item_id}/link", response_model=str)
-async def link(
-    item_id: int,
-    scope: ScopeSchema,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-) -> Awaitable[str]:
-    project = await Project.by_id(item_id, db)
-    if project is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Project with id {item_id} doesn't exist.",
-        )
-
-    payload = {
-        "id": str(item_id),
-        "sub": str(current_user.id),
-        "exp": datetime.datetime.now(datetime.UTC)
-        + datetime.timedelta(minutes=TOKEN_EXPIRE),
-        "scope": scope.value,
-    }
-
-    return jwt.encode(payload, os.getenv("SECRET"), algorithm=ALGORITHM)
-
-
 @router.websocket("/{item_id}/content")
-async def process(
+async def content_by_id(
     item_id: int,
     socket: WebSocket,
     db: AsyncSession = Depends(get_db),
@@ -300,6 +275,102 @@ async def process(
 
             for client in clients:
                 await client.send_text(message)
+        except WebSocketDisconnect:
+            clients.remove(socket)
+            await clients_storage.set(project.id, clients)
+            break
+
+
+@router.post("/{item_id}/link", response_model=str)
+async def link(
+    item_id: int,
+    scope: ScopeSchema,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Awaitable[str]:
+    project = await Project.by_id(item_id, db)
+    if project is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Project with id {item_id} doesn't exist.",
+        )
+
+    payload = {
+        "id": str(item_id),
+        "sub": str(current_user.id),
+        "exp": datetime.datetime.now(datetime.UTC)
+        + datetime.timedelta(minutes=TOKEN_EXPIRE),
+        "scope": scope.value,
+    }
+
+    return jwt.encode(payload, os.getenv("SECRET"), algorithm=ALGORITHM)
+
+
+@router.websocket("/{link}")
+async def content_by_link(
+    link: str,
+    socket: WebSocket,
+    db: AsyncSession = Depends(get_db),
+    clients_storage=Depends(get_clients_storage),
+) -> None:
+    payload = jwt.decode(link, os.getenv("SECRET"), algorithms=[ALGORITHM])
+
+    item_id = int(payload["id"])
+    scope = payload["scope"]
+
+    project = await Project.by_id(item_id, db)
+    if project is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Project with id {item_id} doesn't exist.",
+        )
+
+    await socket.accept()
+
+    clients = await clients_storage.get(project.id)
+    if clients is None:
+        clients = {socket}
+    else:
+        clients.add(socket)
+    await clients_storage.set(project.id, clients)
+
+    # TODO: make send json
+    try:
+        await socket.send_text(project.content)
+    except WebSocketDisconnect:
+        clients.remove(socket)
+        await clients_storage.set(project.id, clients)
+
+    content_list = json.loads(project.content)
+
+    while True:
+        try:
+            message = await socket.receive_text()
+
+            if scope == "edit":
+                command, data = message.split(" ", 1)
+
+                element_data = json.loads(data)
+
+                match command:
+                    case "create":
+                        content_list = content.create(content_list, element_data)
+                    case "update":
+                        content_list = content.update(content_list, element_data)
+                    case "delete":
+                        content_list = content.delete(content_list, element_data["id"])
+                    case "put":
+                        content_list = content.put(content_list, element_data)
+                    case _:
+                        raise HTTPException(
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Invalid command.",
+                        )
+
+                await project.update({"content": json.dumps(content_list)}, db)
+
+                for client in clients:
+                    await client.send_text(message)
         except WebSocketDisconnect:
             clients.remove(socket)
             await clients_storage.set(project.id, clients)
