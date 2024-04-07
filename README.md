@@ -42,7 +42,7 @@ npm i
 
 Launch:
 ```bash
-npx nuxi dev --doenv ../.env
+npx nuxi dev --dotenv ../.env
 ```
 
 After that you can visit ```http://NUXT_HOST:NUXT_PORT``` to see client app.
