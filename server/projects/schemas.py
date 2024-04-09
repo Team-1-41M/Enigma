@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel
 from server.shared.schemas import EntityDBSchema
 
@@ -32,3 +34,7 @@ class ProjectItemsSchema(BaseModel):
 
     length: int
     data: list[ProjectDBSchema]
+
+
+class ScopeSchema(BaseModel):
+    value: Literal["read", "edit"]

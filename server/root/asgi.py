@@ -14,7 +14,7 @@ from starlette.staticfiles import StaticFiles
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator:
     """Run operations on application startup and shutdown."""
-    
+
     await init_db()
 
     yield
@@ -26,7 +26,7 @@ app = FastAPI(
     title="Enigma",
     summary="An API for the best Figma clone ever.",
     description="Primarily includes function for authentication and project management.",
-    version="0.1.0",
+    version="0.1.1",
     lifespan=lifespan,
 )
 

@@ -1,11 +1,10 @@
 # Enigma
 
-- [Enigma](#enigma)
-  - [Launching](#launching)
-    - [Local](#local)
-      - [Client](#client)
-      - [Server](#server)
-    - [Docker Compose](#docker-compose)
+- [Launching](#launching)
+  - [Local](#local)
+    - [Client](#client)
+    - [Server](#server)
+  - [Docker Compose](#docker-compose)
 
 ## Launching
 
@@ -24,6 +23,7 @@ SERVER_PORT=8000
 SERVER_RELOAD=True
 
 HTTPS=False
+SECRET="fastapi-secure-q6&gtanz!$%5g%p8fthuwi#a3p))$+%+g-r6d(fb2h+a9ne414"
 
 SUPERUSER_NAME=root
 SUPERUSER_EMAIL=root@example.com
@@ -43,7 +43,7 @@ npm i
 
 Launch:
 ```bash
-npx nuxi dev --doenv ../.env
+npx nuxi dev --dotenv ../.env
 ```
 
 After that you can visit ```http://NUXT_HOST:NUXT_PORT``` to see client app.
@@ -87,6 +87,7 @@ SERVER_PORT=8000
 SERVER_RELOAD=True
 
 HTTPS=False
+SECRET="fastapi-secure-q6&gtanz!$%5g%p8fthuwi#a3p))$+%+g-r6d(fb2h+a9ne414"
 
 SUPERUSER_NAME=root
 SUPERUSER_EMAIL=root@example.com
