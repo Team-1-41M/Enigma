@@ -19,11 +19,9 @@ services:
     build: client/
     container_name: client
     ports:
-      - ${NUXT_PORT}:${NUXT_PORT}
+      - 3000:3000
     environment:
       - API_BASE_URL=${API_BASE_URL}
-      - NUXT_HOST=${NUXT_HOST}
-      - NUXT_PORT=${NUXT_PORT}
 
   server:
     build: server/
@@ -35,12 +33,12 @@ services:
       - cache
       - client
     ports:
-      - ${SERVER_PORT}:${SERVER_PORT}
+      - ${PORT}:${PORT}
     environment:
       - DEBUG=${DEBUG}
-      - SERVER_HOST=${SERVER_HOST}
-      - SERVER_PORT=${SERVER_PORT}
-      - SERVER_RELOAD=${SERVER_RELOAD}
+      - HOST=${HOST}
+      - PORT=${PORT}
+      - RELOAD=${RELOAD}
       - HTTPS=${HTTPS}
       - SECRET=${SECRET}
       - SUPERUSER_NAME=${SUPERUSER_NAME}
