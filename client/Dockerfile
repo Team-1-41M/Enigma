@@ -8,4 +8,4 @@ COPY . .
 
 RUN npm install
 
-ENTRYPOINT [ "bash", "-c", "rm -rf /tmp/nitro/worker-* && ./run.sh" ]
+ENTRYPOINT [ "bash", "-c", "rm -rf /tmp/nitro/worker-* && chmod +x ./run.sh && ./run.sh" ]
