@@ -16,9 +16,9 @@ DEBUG=True
 
 API_BASE_URL=http://127.0.0.1:8000
 
-HOST=127.0.0.1
-PORT=8000
-RELOAD=True
+SERVER_HOST=127.0.0.1
+SERVER_PORT=8000
+SERVER_RELOAD=True
 
 HTTPS=False
 SECRET="fastapi-secure-q6&gtanz!$%5g%p8fthuwi#a3p))$+%+g-r6d(fb2h+a9ne414"
@@ -79,9 +79,9 @@ DEBUG=True
 
 API_BASE_URL=http://server:8000
 
-HOST=0.0.0.0
-PORT=8000
-RELOAD=True
+SERVER_HOST=0.0.0.0
+SERVER_PORT=8000
+SERVER_RELOAD=True
 
 HTTPS=False
 SECRET="fastapi-secure-q6&gtanz!$%5g%p8fthuwi#a3p))$+%+g-r6d(fb2h+a9ne414"
