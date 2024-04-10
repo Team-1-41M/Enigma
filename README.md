@@ -14,13 +14,11 @@ Create .env file in project root:
 ```
 DEBUG=True
 
-NUXT_HOST=127.0.0.1
-NUXT_PORT=3000
 API_BASE_URL=http://127.0.0.1:8000
 
-SERVER_HOST=127.0.0.1
-SERVER_PORT=8000
-SERVER_RELOAD=True
+HOST=127.0.0.1
+PORT=8000
+RELOAD=True
 
 HTTPS=False
 SECRET="fastapi-secure-q6&gtanz!$%5g%p8fthuwi#a3p))$+%+g-r6d(fb2h+a9ne414"
@@ -33,6 +31,7 @@ CACHE_TYPE=dict
 
 DB_ENGINE=sqlite+aiosqlite
 DB_NAME=enigma.sqlite3
+
 ```
 
 #### Client
@@ -78,13 +77,11 @@ Configure .env file in project root:
 ```
 DEBUG=True
 
-NUXT_HOST=0.0.0.0
-NUXT_PORT=3000
 API_BASE_URL=http://server:8000
 
-SERVER_HOST=0.0.0.0
-SERVER_PORT=8000
-SERVER_RELOAD=True
+HOST=0.0.0.0
+PORT=8000
+RELOAD=True
 
 HTTPS=False
 SECRET="fastapi-secure-q6&gtanz!$%5g%p8fthuwi#a3p))$+%+g-r6d(fb2h+a9ne414"
