@@ -8,6 +8,13 @@ definePageMeta({
     validate: route => route.params.method == 'in' || route.params.method == 'up',
 });
 
+const userStore = useUserStore();
+await userStore.fetchUser();
+if (userStore.user) navigateTo('/projects');
+userStore.$subscribe((_, userStore) => {
+    if (userStore.user) navigateTo('/projects');
+});
+
 const route = useRoute();
 
 const variant = computed(() => route.params.method as 'in' | 'up');

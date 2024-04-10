@@ -1,18 +1,10 @@
 import datetime
 from typing import AsyncIterator, Awaitable, Optional
 
+from server.root.models import Base
 from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncAttrs, AsyncSession
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-
-
-class Base(DeclarativeBase, AsyncAttrs):
-    """
-    Base class to work with SQLAlchemy functionality.
-    Primarily used for Entity class.
-    """
-
-    pass
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Mapped, mapped_column
 
 
 class Entity(Base):

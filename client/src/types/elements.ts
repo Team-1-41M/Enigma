@@ -230,10 +230,10 @@ export type Border = {
  * Если указана только одна сторона, то она будет применена ко всем сторонам.
  */
 export type Borders = Border | {
-    top: Border,
-    right: Border,
-    bottom: Border,
-    left: Border,
+    top?: Border,
+    right?: Border,
+    bottom?: Border,
+    left?: Border,
 };
 
 /**

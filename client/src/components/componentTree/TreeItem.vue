@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
 import type { AnyElement } from '~/types/elements';
+import { useTreeStore } from './treeStore';
+import { isValidDropOnTarget, isValidDropOnTopOrBottom, isValidReorder } from './validators';
 
 interface HoverableHTMLElement extends HTMLElement {
   hovered: boolean
@@ -13,8 +15,6 @@ interface Props {
   childrenCount: number,
   selected: boolean,
   isExpanded?: boolean,
-//   isValidDropOnTopOrBottom: (draggindId: string, targetId: string | null) => boolean,
-// 	isValidDropOnTarget: (targetId: string | null) => boolean,
 }
 const props = defineProps<Props>();
 const emit = defineEmits<{
@@ -59,20 +59,22 @@ const handleDragStart = (event: DragEvent) => {
 const handleDragEnter = (event: DragEvent, targetRef: HoverableHTMLElement) => {
 	preventDragEvents(event);
 
-  // if (props.draggedItemId === props.treeItemId)
-  //   return;
+  const { draggedElement } = useTreeStore();
+  if (draggedElement?.id === props.treeItem.id)
+    return;
 
 	const targetId = targetRef === itemRef.value
 		? props.treeItem.id
 		: props.parentId;
 
-	// if (!props.isValidDropOnTopOrBottom(props.draggedItemId!, targetId))
-	// 	return;
+
+	if (!isValidDropOnTopOrBottom(draggedElement!.id, targetId))
+		return;
 
   isDraggedOver.value = true;
 
-//   if (props.isValidDropOnTarget(targetId))
-//     targetRef.hovered = true;
+  if (isValidDropOnTarget(targetId))
+    targetRef.hovered = true;
 };
 
 const handleDragLeave = (event: DragEvent, targetRef: HoverableHTMLElement) => {
@@ -94,8 +96,9 @@ const handleDrop = (event: DragEvent, targetRef: HoverableHTMLElement, newParent
 	targetRef.hovered = false;
 	isDraggedOver.value = false;
 
-//   if (!props.isValidDropOnTopOrBottom(props.draggedItemId, newParent) || !props.isValidDropOnTarget(newParent))
-// 		return;
+  const { draggedElement } = useTreeStore();
+  if (!isValidDropOnTopOrBottom(draggedElement!.id, newParent) || !isValidDropOnTarget(newParent))
+		return;
 
   handleToggle(undefined);
 

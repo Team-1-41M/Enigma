@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import EditHeader from '~/components/EditHeader.vue';
 
+const userStore = useUserStore();
+await userStore.fetchUser();
+if (!userStore.user) navigateTo('/sign-in');
+userStore.$subscribe((_, userStore) => {
+    if (!userStore.user) navigateTo('/sign-in');
+});
+
 const route = useRoute();
 
 const projectID = route.params.id as any;

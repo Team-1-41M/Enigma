@@ -1,4 +1,5 @@
 import asyncio
+import sys
 
 from aiohttp import ClientSession
 
@@ -6,7 +7,7 @@ from aiohttp import ClientSession
 async def main():
     async with ClientSession() as session:
         async with session.ws_connect(
-            "http://127.0.0.1:8000/api/v1/projects/1/content"
+            f"http://127.0.0.1:8000/api/v1/projects/{sys.argv[1]}"
         ) as ws:
             loop = asyncio.get_event_loop()
 

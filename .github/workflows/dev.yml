@@ -10,6 +10,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: 'pip'
       - name: Install test dependencies
         run: |
           pip install -r server/requirements/test.txt
@@ -24,10 +25,31 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: 'pip'
       - name: Install base and test dependencies
         run: |
           pip install -r server/requirements/base.txt
+          pip install -r server/requirements/local.txt
           pip install -r server/requirements/test.txt
       - name: Run tests
         run: |
+          touch .env
+            
+          echo "DEBUG=True" >> .env
+
+          echo "SERVER_HOST=127.0.0.1" >> .env
+          echo "SERVER_PORT=8000" >> .env
+          echo "SERVER_RELOAD=True" >> .env
+
+          echo "HTTPS=False" >> .env
+
+          echo "SUPERUSER_NAME=root" >> .env
+          echo "SUPERUSER_EMAIL=root@example.com" >> .env
+          echo "SUPERUSER_PASSWORD=Master#chew123_$" >> .env
+
+          echo "CACHE_TYPE=dict" >> .env
+
+          echo "DB_ENGINE=sqlite+aiosqlite" >> .env
+          echo "DB_NAME=enigma.sqlite3" >> .env
+
           python -m pytest ./server
