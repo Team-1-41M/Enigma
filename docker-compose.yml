@@ -33,6 +33,6 @@ services:
       - cache
       - client
     ports:
-      - ${PORT}:${PORT}
+      - ${SERVER_PORT}:${SERVER_PORT}
     env_file:
       - .env
