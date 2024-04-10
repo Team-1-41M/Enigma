@@ -34,23 +34,5 @@ services:
       - client
     ports:
       - ${PORT}:${PORT}
-    environment:
-      - DEBUG=${DEBUG}
-      - HOST=${HOST}
-      - PORT=${PORT}
-      - RELOAD=${RELOAD}
-      - HTTPS=${HTTPS}
-      - SECRET=${SECRET}
-      - SUPERUSER_NAME=${SUPERUSER_NAME}
-      - SUPERUSER_EMAIL=${SUPERUSER_EMAIL}
-      - SUPERUSER_PASSWORD=${SUPERUSER_PASSWORD}
-      - DB_ENGINE=${DB_ENGINE}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT}
-      - DB_NAME=${DB_NAME}
-      - CACHE_TYPE=${CACHE_TYPE}
-      - CACHE_HOST=${CACHE_HOST}
-      - CACHE_PORT=${CACHE_PORT}
-      - CACHE_DB=${CACHE_DB}
+    env_file:
+      - .env
