@@ -26,7 +26,7 @@ app = FastAPI(
     title="Enigma",
     summary="An API for the best Figma clone ever.",
     description="Primarily includes function for authentication and project management.",
-    version="0.1.1",
+    version="0.1.2",
     lifespan=lifespan,
 )
 
