@@ -38,3 +38,7 @@ class ProjectItemsSchema(BaseModel):
 
 class CredentialsSchema(BaseModel):
     value: Literal["read", "edit"]
+
+
+class TokenSchema(BaseModel):
+    token: str
