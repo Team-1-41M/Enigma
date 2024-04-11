@@ -12,7 +12,8 @@ from server.projects.schemas import (
     ProjectCreateSchema,
     ProjectDBSchema,
     ProjectUpdateSchema,
-    ScopeSchema,
+    CredentialsSchema,
+    TokenSchema,
 )
 from server.root.auth import get_current_user
 from server.root.cache import get_clients_storage
@@ -205,86 +206,10 @@ def remove_defaults(data: dict) -> dict:
     return undefaulted
 
 
-@router.websocket("/{item_id}/content")
-async def content_by_id(
-    item_id: int,
-    socket: WebSocket,
-    db: AsyncSession = Depends(get_db),
-    clients_storage=Depends(get_clients_storage),
-) -> None:
-    """
-    Collects project content changes from the client
-    and notifies other clients about this.
-
-    Args:
-        socket: client socket.
-
-    Returns:
-        None.
-    """
-
-    project = await Project.by_id(item_id, db)
-    if project is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Project with id {item_id} doesn't exist.",
-        )
-
-    await socket.accept()
-
-    clients = await clients_storage.get(project.id)
-    if clients is None:
-        clients = {socket}
-    else:
-        clients.add(socket)
-    await clients_storage.set(project.id, clients)
-
-    # TODO: make send json
-    try:
-        await socket.send_text(project.content)
-    except WebSocketDisconnect:
-        clients.remove(socket)
-        await clients_storage.set(project.id, clients)
-
-    content_list = json.loads(project.content)
-
-    while True:
-        try:
-            message = await socket.receive_text()
-
-            command, data = message.split(" ", 1)
-
-            element_data = json.loads(data)
-
-            match command:
-                case "create":
-                    content_list = content.create(content_list, element_data)
-                case "update":
-                    content_list = content.update(content_list, element_data)
-                case "delete":
-                    content_list = content.delete(content_list, element_data["id"])
-                case "put":
-                    content_list = content.put(content_list, element_data)
-                case _:
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Invalid command.",
-                    )
-
-            await project.update({"content": json.dumps(content_list)}, db)
-
-            for client in clients:
-                await client.send_text(message)
-        except WebSocketDisconnect:
-            clients.remove(socket)
-            await clients_storage.set(project.id, clients)
-            break
-
-
-@router.post("/{item_id}/link", response_model=str)
+@router.post("/{item_id}/link", response_model=TokenSchema)
 async def link(
     item_id: int,
-    scope: ScopeSchema,
+    credentials: CredentialsSchema,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Awaitable[str]:
@@ -300,23 +225,40 @@ async def link(
         "sub": str(current_user.id),
         "exp": datetime.datetime.now(datetime.UTC)
         + datetime.timedelta(minutes=TOKEN_EXPIRE),
-        "scope": scope.value,
+        "credentials": credentials.value,
     }
 
-    return jwt.encode(payload, os.getenv("SECRET"), algorithm=ALGORITHM)
+    return {
+        "token": jwt.encode(payload, os.getenv("SECRET"), algorithm=ALGORITHM)
+    }
 
 
-@router.websocket("/{link}")
-async def content_by_link(
-    link: str,
+@router.websocket("/{identifier}/content")
+async def manage(
+    identifier: str,
     socket: WebSocket,
     db: AsyncSession = Depends(get_db),
     clients_storage=Depends(get_clients_storage),
 ) -> None:
-    payload = jwt.decode(link, os.getenv("SECRET"), algorithms=[ALGORITHM])
+    """
+    Collects project content changes from the client
+    and notifies other clients about this.
 
-    item_id = int(payload["id"])
-    scope = payload["scope"]
+    Args:
+        socket: client socket.
+
+    Returns:
+        None.
+    """
+
+    if identifier.isnumeric():
+        item_id = int(identifier)
+        credentials = "edit"
+    else:
+        payload = jwt.decode(identifier, os.getenv("SECRET"), algorithms=[ALGORITHM])
+
+        item_id = int(payload["id"])
+        credentials = payload["credentials"]
 
     project = await Project.by_id(item_id, db)
     if project is None:
@@ -347,7 +289,7 @@ async def content_by_link(
         try:
             message = await socket.receive_text()
 
-            if scope == "edit":
+            if credentials == "edit":
                 command, data = message.split(" ", 1)
 
                 element_data = json.loads(data)
