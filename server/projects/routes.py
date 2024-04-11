@@ -12,7 +12,7 @@ from server.projects.schemas import (
     ProjectCreateSchema,
     ProjectDBSchema,
     ProjectUpdateSchema,
-    CredentialsSchema,
+    AccessSchema,
     TokenSchema,
 )
 from server.root.auth import get_current_user
@@ -209,7 +209,7 @@ def remove_defaults(data: dict) -> dict:
 @router.post("/{item_id}/link", response_model=TokenSchema)
 async def link(
     item_id: int,
-    credentials: CredentialsSchema,
+    access: AccessSchema,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Awaitable[str]:
@@ -225,7 +225,7 @@ async def link(
         "sub": str(current_user.id),
         "exp": datetime.datetime.now(datetime.UTC)
         + datetime.timedelta(minutes=TOKEN_EXPIRE),
-        "credentials": credentials.value,
+        "credential": access.credential,
     }
 
     return {
@@ -253,12 +253,12 @@ async def manage(
 
     if identifier.isnumeric():
         item_id = int(identifier)
-        credentials = "edit"
+        credential = "edit"
     else:
         payload = jwt.decode(identifier, os.getenv("SECRET"), algorithms=[ALGORITHM])
 
         item_id = int(payload["id"])
-        credentials = payload["credentials"]
+        credential = payload["credential"]
 
     project = await Project.by_id(item_id, db)
     if project is None:
@@ -289,7 +289,7 @@ async def manage(
         try:
             message = await socket.receive_text()
 
-            if credentials == "edit":
+            if credential == "edit":
                 command, data = message.split(" ", 1)
 
                 element_data = json.loads(data)
