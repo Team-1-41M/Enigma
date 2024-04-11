@@ -9,10 +9,10 @@ from server.auth.models import User
 from server.projects import content
 from server.projects.models import Project
 from server.projects.schemas import (
+    AccessSchema,
     ProjectCreateSchema,
     ProjectDBSchema,
     ProjectUpdateSchema,
-    AccessSchema,
     TokenSchema,
 )
 from server.root.auth import get_current_user
