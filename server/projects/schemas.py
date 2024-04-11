@@ -36,5 +36,9 @@ class ProjectItemsSchema(BaseModel):
     data: list[ProjectDBSchema]
 
 
-class ScopeSchema(BaseModel):
-    value: Literal["read", "edit"]
+class AccessSchema(BaseModel):
+    credential: Literal["read", "edit"]
+
+
+class TokenSchema(BaseModel):
+    token: str
