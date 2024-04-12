@@ -1,5 +1,4 @@
-const API_BASE_URL = process.env.API_BASE_URL
-    ?.replace(/\/*$/, "");
+const API_BASE_URL = process.env.API_BASE_URL?.trim();
 const SECURE = process.env.API_BASE_URL
     ?.startsWith("https://");
 const API_DOMAIN = API_BASE_URL
@@ -32,8 +31,4 @@ export default defineNuxtConfig({
             },
         },
     },
-    // https://nuxt.com/docs/guide/going-further/runtime-config
-    runtimeConfig: {
-        apiDomain: API_DOMAIN,
-    }
 })

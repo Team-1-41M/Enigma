@@ -4,7 +4,7 @@ from typing import AsyncGenerator
 from server.auth.models import User
 from server.auth.schemas import UserSignUpSchema
 from server.root.crypt import get_crypt_context
-from server.shared.models import Base
+from server.root.models import Base
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
