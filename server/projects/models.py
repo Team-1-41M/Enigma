@@ -20,9 +20,10 @@ class Project(Entity):
 
     __tablename__ = "projects"
 
-    title: Mapped[str]
+    archived: Mapped[bool] = mapped_column(default=False)
     author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     content: Mapped[str]
+    title: Mapped[str]
 
     @staticmethod
     async def by_author(
