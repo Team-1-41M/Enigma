@@ -1,15 +1,20 @@
 import datetime
 import json
 import os
-from typing import Awaitable
+from typing import Any, Awaitable
 
 from fastapi import APIRouter, Depends, WebSocket
 from jose import jwt
 from server.auth.models import User
 from server.projects import content
-from server.projects.models import Project
+from server.projects.models import Change, Comment, Join, Project
 from server.projects.schemas import (
     AccessSchema,
+    ChangeItemsSchema,
+    CommentCreate,
+    CommentOut,
+    JoinCreateSchema,
+    JoinDBSchema,
     ProjectCreateSchema,
     ProjectDBSchema,
     ProjectUpdateSchema,
@@ -66,6 +71,96 @@ async def create(
 
     return project
 
+
+@router.post("/{item_id}/join", response_model=JoinDBSchema)
+async def join(
+        item_id: int,
+        data: JoinCreateSchema,
+        db: AsyncSession = Depends(get_db),
+) -> Awaitable[Join]:
+    """
+    Join project.
+
+    Args:
+        project_id: project id.
+        data: user id as ProjectJoinSchema.
+        db: db async session.
+
+    Returns:
+        ProjectJoinSchema: created access data with id.
+
+    Raises:
+        HTTPException: 400 if some attribute from data
+        doesn't exist in the constructed object.
+    """
+    project = await Project.by_id(item_id, db)
+    if project is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Project with id {item_id} doesn't exist.",
+        )
+
+    joined_user = await User.by_id(data.user_id, db)
+    if joined_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with id {data.user_id} doesn't exist.",
+        )
+
+    try:
+        join = await Join.create({"project_id": item_id, "user_id": data.user_id}, db)
+    except AttributeError as e:
+        raise HTTPException(
+            detail=str(e),
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    return join
+
+@router.post("/{project_id}/comments", response_model=CommentOut)
+async def create_comment(
+    project_id: int,
+    comment: CommentCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Awaitable[Comment]:
+    """
+    Create comment for project.
+
+    Args:
+        project_id: project id as integer.
+        comment: comment data as CommentCreate.
+        db: db async session.
+        current_user: current user.
+
+    Returns:
+        Comment: created comment data.
+
+    Raises:
+        HTTPException: 404 if project with specified id not found.
+
+        HTTPException: 400 if some attribute from data
+        doesn't exist in the constructed object.
+    """
+
+    project = await Project.by_id(project_id, db)
+    if project is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Project with id {project_id} doesn't exist.",
+        )
+
+    try:
+        comment = await Comment.create(
+            {"project_id": project_id, "user_id": current_user.id, **comment.dict()}, db
+        )
+    except AttributeError as e:
+        raise HTTPException(
+            detail=str(e),
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    return comment
 
 @router.get("/{item_id}", response_model=ProjectDBSchema)
 async def item(
@@ -166,46 +261,6 @@ async def delete(
         )
 
 
-def is_default(value) -> bool:
-    """
-    Checks if value is default.
-
-    Args:
-        value: value to check.
-
-    Returns:
-        bool: True if value is default, False otherwise.
-    """
-
-    if isinstance(value, int) or isinstance(value, float):
-        return value == 0
-
-    if isinstance(value, str):
-        return value == ""
-
-    return False
-
-
-def remove_defaults(data: dict) -> dict:
-    """
-    Removes default values from data.
-
-    Args:
-        data: data to remove default values from.
-
-    Returns:
-        dict: data without default values.
-    """
-
-    undefaulted = {}
-
-    for key, value in data.items():
-        if value is not None and not is_default(value):
-            undefaulted[key] = value
-
-    return undefaulted
-
-
 @router.post("/{item_id}/link", response_model=TokenSchema)
 async def link(
     item_id: int,
@@ -230,6 +285,18 @@ async def link(
 
     return {
         "token": jwt.encode(payload, os.getenv("SECRET"), algorithm=ALGORITHM)
+    }
+
+
+@router.get("/{item_id}/changes", response_model=ChangeItemsSchema)
+async def changes(
+    item_id: int,
+    db: AsyncSession = Depends(get_db),
+) -> Awaitable[dict[str, Any]]:
+    data = [_ async for _ in Change.by_project(item_id, db)]
+    return {
+        "data": data,
+        "length": len(data),
     }
 
 
@@ -310,6 +377,13 @@ async def manage(
                         )
 
                 await project.update({"content": json.dumps(content_list)}, db)
+
+                # FIXME: need a real user's id here
+                await Change.create(
+                    project_id=project.id,
+                    user_id=1,
+                    content=message,
+                )
 
                 for client in clients:
                     await client.send_text(message)

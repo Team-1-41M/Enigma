@@ -1,9 +1,11 @@
+from datetime import datetime
 from typing import AsyncIterator
 
 from server.shared.models import Entity
-from sqlalchemy import ForeignKey, select
+from sqlalchemy import DateTime, ForeignKey, Text, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.sql import func
 
 
 class Project(Entity):
@@ -14,9 +16,10 @@ class Project(Entity):
 
     __tablename__ = "projects"
 
-    title: Mapped[str]
+    archived: Mapped[bool] = mapped_column(default=False)
     author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     content: Mapped[str]
+    title: Mapped[str]
 
     @staticmethod
     async def by_author(
@@ -29,3 +32,46 @@ class Project(Entity):
 
         async for scalar in scalars:
             yield scalar
+
+
+class Change(Entity):
+    """Project history tracking."""
+
+    __tablename__ = "changes"
+
+    message: Mapped[str]
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+
+    @staticmethod
+    async def by_project(
+        project_id: int,
+        session: AsyncSession,
+    ) -> AsyncIterator:
+        scalars = await session.stream_scalars(
+            select(Change).where(Change.project_id == project_id)
+        )
+
+        async for scalar in scalars:
+            yield scalar
+
+
+class Join(Entity):
+    """Access information model."""
+
+    __tablename__ = "joins"
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"))
+
+
+class Comment(Entity):
+    """
+    Model for user comments on projects.
+    """
+
+    __tablename__ = "comments"
+
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    text: Mapped[str] = mapped_column(Text)
