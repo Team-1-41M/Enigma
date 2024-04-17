@@ -25,6 +25,7 @@ await socketStore.socket; // FIXME show "Connecting..." modal (or toast, or anyt
         <EditWidget />
         <AttributesEdit />
     </div>
+    <Notifications/>
 </template>
 
 <style scoped>

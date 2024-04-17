@@ -216,6 +216,15 @@ summary h3 {
     margin: 0;
 }
 
+select {
+    background-color: transparent;
+    color: var(--text)
+}
+  
+option {
+    background-color: var(--primary-darker);
+    color: var(--text)
+}
 
 input {
     width: 82px;
