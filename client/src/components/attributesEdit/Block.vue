@@ -74,7 +74,8 @@ const elementColor = computed(() => {
 }
 
 input {
-    width: 82px;
+    width: 100%;    
+    max-width: 82px;
     background-color: transparent;
     border: none;
     color: var(--text);
@@ -100,7 +101,7 @@ input[type=number] {
 .horisontal-block {
     display: flex;
     gap: 4px;
-    width: fit-content
+    width: 100%
 }
 
 .hoverable:hover {
