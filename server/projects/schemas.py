@@ -19,7 +19,7 @@ class ProjectCreateSchema(ProjectBaseSchema):
 class ProjectUpdateSchema(ProjectBaseSchema):
     """Information that the user must provide to update a project."""
 
-    pass
+    archived: bool
 
 
 class ProjectDBSchema(EntityDBSchema, ProjectCreateSchema):
