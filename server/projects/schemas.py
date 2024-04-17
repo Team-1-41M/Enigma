@@ -36,6 +36,13 @@ class ProjectItemsSchema(BaseModel):
     data: list[ProjectDBSchema]
 
 
+class ChangeItemsSchema(BaseModel):
+    """Details of requested changes with some additional information."""
+
+    length: int
+    data: list[ChangeDBSchema]
+
+
 class AccessSchema(BaseModel):
     credential: Literal["read", "edit"]
 
