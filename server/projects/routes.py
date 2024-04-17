@@ -8,9 +8,6 @@ from jose import jwt
 from server.auth.models import User
 from server.projects import content
 from server.projects.models import Change, Comment, Join, Project
-from server.projects.schemas import (
-    AccessSchema,
-    ChangeItemsSchema,
 from server.projects.models import Comment, Join, Project
 from server.projects.schemas import (
     AccessSchema,
