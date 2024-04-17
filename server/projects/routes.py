@@ -1,15 +1,20 @@
 import datetime
 import json
 import os
-from typing import Awaitable
+from typing import Any, Awaitable
 
 from fastapi import APIRouter, Depends, WebSocket
 from jose import jwt
 from server.auth.models import User
 from server.projects import content
+from server.projects.models import Change, Comment, Join, Project
+from server.projects.schemas import (
+    AccessSchema,
+    ChangeItemsSchema,
 from server.projects.models import Comment, Join, Project
 from server.projects.schemas import (
     AccessSchema,
+    ChangeItemsSchema,
     CommentCreate,
     CommentOut,
     JoinCreateSchema,
@@ -260,46 +265,6 @@ async def delete(
         )
 
 
-def is_default(value) -> bool:
-    """
-    Checks if value is default.
-
-    Args:
-        value: value to check.
-
-    Returns:
-        bool: True if value is default, False otherwise.
-    """
-
-    if isinstance(value, int) or isinstance(value, float):
-        return value == 0
-
-    if isinstance(value, str):
-        return value == ""
-
-    return False
-
-
-def remove_defaults(data: dict) -> dict:
-    """
-    Removes default values from data.
-
-    Args:
-        data: data to remove default values from.
-
-    Returns:
-        dict: data without default values.
-    """
-
-    undefaulted = {}
-
-    for key, value in data.items():
-        if value is not None and not is_default(value):
-            undefaulted[key] = value
-
-    return undefaulted
-
-
 @router.post("/{item_id}/link", response_model=TokenSchema)
 async def link(
     item_id: int,
@@ -324,6 +289,18 @@ async def link(
 
     return {
         "token": jwt.encode(payload, os.getenv("SECRET"), algorithm=ALGORITHM)
+    }
+
+
+@router.get("/{item_id}/changes", response_model=ChangeItemsSchema)
+async def changes(
+    item_id: int,
+    db: AsyncSession = Depends(get_db),
+) -> Awaitable[dict[str, Any]]:
+    data = [_ async for _ in Change.by_project(item_id, db)]
+    return {
+        "data": data,
+        "length": len(data),
     }
 
 
@@ -404,6 +381,13 @@ async def manage(
                         )
 
                 await project.update({"content": json.dumps(content_list)}, db)
+
+                # FIXME: need a real user's id here
+                await Change.create(
+                    project_id=project.id,
+                    user_id=1,
+                    content=message,
+                )
 
                 for client in clients:
                     await client.send_text(message)

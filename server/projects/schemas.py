@@ -36,18 +36,36 @@ class ProjectItemsSchema(BaseModel):
     data: list[ProjectDBSchema]
 
 
+class ChangeDBSchema(EntityDBSchema):
+    """Change data in the database."""
+
+    project_id: int
+    user_id: int
+    content: str
+
+
+class ChangeItemsSchema(BaseModel):
+    """Details of requested changes with some additional information."""
+
+    length: int
+    data: list[ChangeDBSchema]
+
+
 class JoinCreateSchema(BaseModel):
     """Information to join another user to a project."""
 
     user_id: int
+
 
 class JoinDBSchema(JoinCreateSchema, EntityDBSchema):
     """Join data in the database"""
 
     project_id: int
 
+
 class CommentCreate(BaseModel):
     text: str
+
 
 class CommentOut(BaseModel):
     id: int
