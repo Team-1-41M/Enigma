@@ -166,26 +166,6 @@ async def delete(
         )
 
 
-def is_default(value) -> bool:
-    """
-    Checks if value is default.
-
-    Args:
-        value: value to check.
-
-    Returns:
-        bool: True if value is default, False otherwise.
-    """
-
-    if isinstance(value, int) or isinstance(value, float):
-        return value == 0
-
-    if isinstance(value, str):
-        return value == ""
-
-    return False
-
-
 @router.post("/{item_id}/link", response_model=TokenSchema)
 async def link(
     item_id: int,
