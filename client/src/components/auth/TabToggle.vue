@@ -10,7 +10,7 @@ defineProps<{
 </script>
 
 <template>
-    <div class="parent">
+    <div class="parent" :style="{'--left': (selected * 172 - variantCount * 172 / 2) + 'px'}">
         <div v-for="(variant, index) in variants" :onclick="() => tabSelect(variant, index)" :selected="selected == index">
             <slot :name="variant" />
         </div>
@@ -28,7 +28,12 @@ defineProps<{
 .parent::before {
     content: '';
     position: absolute;
-    left: calc(50% + v-bind((selected * 172 - variantCount * 172 / 2) + 'px'));
+    /*
+     * bug in vue does not allow us to `v-bind` in `npm run build` version,
+     * as it generates wrong var name for it.
+     * let's copy what it was trying to do, and make a variable `--left` ourselves
+     */
+    left: calc(50% + var(--left));
     transition: left 250ms;
     background-color: var(--auth-primary);
 
