@@ -1,5 +1,5 @@
 from typing import AsyncIterator
-from datetime import datetim
+from datetime import datetime
 
 from server.shared.models import Entity
 from sqlalchemy import ForeignKey, select, Text, DateTime
