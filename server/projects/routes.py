@@ -1,7 +1,7 @@
 import datetime
 import json
 import os
-from typing import Awaitable
+from typing import Any, Awaitable
 
 from fastapi import APIRouter, Depends, WebSocket
 from jose import jwt
@@ -10,6 +10,7 @@ from server.projects import content
 from server.projects.models import Change, Project
 from server.projects.schemas import (
     AccessSchema,
+    ChangeItemsSchema,
     ProjectCreateSchema,
     ProjectDBSchema,
     ProjectUpdateSchema,
@@ -190,6 +191,18 @@ async def link(
 
     return {
         "token": jwt.encode(payload, os.getenv("SECRET"), algorithm=ALGORITHM)
+    }
+
+
+@router.get("/{item_id}/changes", response_model=ChangeItemsSchema)
+async def changes(
+    item_id: int,
+    db: AsyncSession = Depends(get_db),
+) -> Awaitable[dict[str, Any]]:
+    data = [_ async for _ in Change.by_project(item_id, db)]
+    return {
+        "data": data,
+        "length": len(data),
     }
 
 
