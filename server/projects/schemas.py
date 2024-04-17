@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel
@@ -8,7 +9,6 @@ class ProjectBaseSchema(BaseModel):
     """Minimal information about the project."""
 
     title: str
-
 
 class ProjectCreateSchema(ProjectBaseSchema):
     """Information that the user must provide to create a project."""
@@ -34,6 +34,30 @@ class ProjectItemsSchema(BaseModel):
 
     length: int
     data: list[ProjectDBSchema]
+
+
+class JoinCreateSchema(BaseModel):
+    """Information to join another user to a project."""
+
+    user_id: int
+
+class JoinDBSchema(JoinCreateSchema, EntityDBSchema):
+    """Join data in the database"""
+
+    project_id: int
+
+class CommentCreate(BaseModel):
+    text: str
+
+class CommentOut(BaseModel):
+    id: int
+    project_id: int
+    user_id: int
+    text: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
 
 
 class AccessSchema(BaseModel):
