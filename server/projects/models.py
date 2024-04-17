@@ -38,4 +38,16 @@ class Change(Entity):
 
     message: Mapped[str]
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"))
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))    
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+
+    @staticmethod
+    async def by_project(
+        project_id: int,
+        session: AsyncSession,
+    ) -> AsyncIterator:
+        scalars = await session.stream_scalars(
+            select(Change).where(Change.project_id == project_id)
+        )
+
+        async for scalar in scalars:
+            yield scalar
