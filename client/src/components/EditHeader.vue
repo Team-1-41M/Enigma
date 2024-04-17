@@ -2,7 +2,20 @@
 import { Icon } from '@iconify/vue';
 import type { Project } from '~/types/project';
 import { EditMode } from '~/types/editMode';
+import ProfileMenu from './auth/ProfileMenu.vue';
+import { useSignOutModalStore } from './auth/signOutModal/signOutModalStore';
+import { useInviteModalStore } from './inviteModal/inviteModalStore'
 
+const profileMenuStore = useProfileMenuStore();
+const signOutModalStore = useSignOutModalStore();
+
+const handleDisplayClick = (event: MouseEvent) => {
+    profileMenuStore.openMenu();
+}
+
+const handleSignOut = () => {
+    signOutModalStore.openModal()
+}
 const store = useCurrentProjectStore();
 const route = useRoute();
 
@@ -10,7 +23,14 @@ const projectID = route.params.id as any;
 const projectsStore = useProjectStore();
 
 await projectsStore.fetchProjects();
-const projectTitle = ref<string>(projectsStore.projectList.find(e => e.id == projectID)!.title)
+const projectTitle = ref<string>(projectsStore.projectList.find(e => e.id == projectID)?.title ?? '')
+
+const inviteModal = useInviteModalStore();
+
+const openInviteModal = () => {
+    inviteModal.openModal();
+}
+
 </script>
 
 <template>
@@ -44,11 +64,19 @@ const projectTitle = ref<string>(projectsStore.projectList.find(e => e.id == pro
     <h2>
         {{ projectTitle }}
     </h2>
-    <div class="user-display-container">
-        <!-- <UserDisplay class="user-display"
-            @click="navigateTo('/sign-in')"/> -->
+    <div class="share-button"
+        @click="openInviteModal">
+        Поделиться
     </div>
+    <div class="user-display-container">
+        <UserDisplay @click="handleDisplayClick" />
+        <ProfileMenu
+            @sign-out="handleSignOut" />
+        <AuthSignOutModal />
+    </div>
+    <InviteModal/>
 </header>
+
 </template>
 
 <style scoped>
@@ -80,6 +108,13 @@ h2 {
     line-height: 29px;
     letter-spacing: -0.04em;
     text-align: left;
+}
+
+.share-button {
+    background-color: var(--accent);
+    color: var(--text);
+    cursor: pointer;
+    border-radius: 4px;
 }
 
 .logo {

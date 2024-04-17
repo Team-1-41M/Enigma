@@ -38,3 +38,12 @@ export const renameProjectAsync = async (id: number, title: string) => {
     const response = await $api.put(`projects/${id}`, { title });
     return response;
 }
+
+export const getProjectShareLinkAsync = async (id: number, mode: "read" | "edit") => {
+    const { $api } = useNuxtApp();
+
+    const response = await $api.post(`projects/${id}/link`, {
+        credential: mode
+    })
+    return response;
+}
