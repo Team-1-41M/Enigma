@@ -7,17 +7,17 @@ from fastapi import APIRouter, Depends, WebSocket
 from jose import jwt
 from server.auth.models import User
 from server.projects import content
-from server.projects.models import Project, Join, Comment
+from server.projects.models import Comment, Join, Project
 from server.projects.schemas import (
     AccessSchema,
+    CommentCreate,
+    CommentOut,
+    JoinCreateSchema,
+    JoinDBSchema,
     ProjectCreateSchema,
     ProjectDBSchema,
     ProjectUpdateSchema,
     TokenSchema,
-    JoinDBSchema,
-    JoinCreateSchema,
-    CommentCreate,
-    CommentOut,
 )
 from server.root.auth import get_current_user
 from server.root.cache import get_clients_storage

@@ -1,8 +1,8 @@
+from datetime import datetime
 from typing import AsyncIterator
-from datetime import datetim
 
 from server.shared.models import Entity
-from sqlalchemy import ForeignKey, select, Text, DateTime
+from sqlalchemy import DateTime, ForeignKey, Text, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
@@ -49,4 +49,3 @@ class Comment(Entity):
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"))
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     text: Mapped[str] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(default=func.now())
