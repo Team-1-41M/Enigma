@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, WebSocket
 from jose import jwt
 from server.auth.models import User
 from server.projects import content
-from server.projects.models import Project
+from server.projects.models import Change, Project
 from server.projects.schemas import (
     AccessSchema,
     ProjectCreateSchema,
@@ -186,26 +186,6 @@ def is_default(value) -> bool:
     return False
 
 
-def remove_defaults(data: dict) -> dict:
-    """
-    Removes default values from data.
-
-    Args:
-        data: data to remove default values from.
-
-    Returns:
-        dict: data without default values.
-    """
-
-    undefaulted = {}
-
-    for key, value in data.items():
-        if value is not None and not is_default(value):
-            undefaulted[key] = value
-
-    return undefaulted
-
-
 @router.post("/{item_id}/link", response_model=TokenSchema)
 async def link(
     item_id: int,
@@ -310,6 +290,13 @@ async def manage(
                         )
 
                 await project.update({"content": json.dumps(content_list)}, db)
+
+                # FIXME: need a real user's id here
+                await Change.create(
+                    project_id=project.id,
+                    user_id=1,
+                    content=message,
+                )
 
                 for client in clients:
                     await client.send_text(message)
