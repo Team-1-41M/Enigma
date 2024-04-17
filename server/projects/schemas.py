@@ -36,6 +36,16 @@ class ProjectItemsSchema(BaseModel):
     data: list[ProjectDBSchema]
 
 
+
+class ChangeDBSchema(EntityDBSchema):
+    """Change data in the database."""
+
+    project_id: int
+    user_id: int
+    content: str
+
+
+
 class ChangeItemsSchema(BaseModel):
     """Details of requested changes with some additional information."""
 
