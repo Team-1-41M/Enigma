@@ -29,3 +29,13 @@ class Project(Entity):
 
         async for scalar in scalars:
             yield scalar
+
+
+class Change(Entity):
+    """Project history tracking."""
+
+    __tablename__ = "changes"
+
+    message: Mapped[str]
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))    
