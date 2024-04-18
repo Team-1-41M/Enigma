@@ -30,10 +30,6 @@ const inviteModal = useInviteModalStore();
 const openInviteModal = () => {
     inviteModal.openModal();
 }
-
-const handleCommentsClick = ()  => {
-
-}
 </script>
 
 <template>

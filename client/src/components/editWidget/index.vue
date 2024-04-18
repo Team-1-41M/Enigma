@@ -3,6 +3,12 @@ import { EditMode } from '~/types/editMode';
 import type { Border } from '~/types/elements';
 import { ElementType, type Background, type BlockElement, type TextElement, type AnyElement, TextAlignment, type ElementID, type BorderRadius } from '~/types/elements';
 
+interface Emits {
+  (e: 'comment', x: number, y: number, componentId: string): void,
+  (e: 'closeComments'): void,
+}
+const emit = defineEmits<Emits>();
+
 const store = useCurrentProjectStore();
 
 const CONTROLS: [number, number, -1 | 0 | 1, -1 | 0 | 1][] = [
@@ -881,7 +887,7 @@ const Actions = {
     }),
 
     [EditMode.Comments]: (_event: MouseEvent): OpenCommentsClick => ({
-
+        clickType: ClickType.OpenComments
     })
 } as const;
 
@@ -987,8 +993,7 @@ const Updaters: { [C in ClickType]?: Updater<Extract<AnyClick, { clickType: C }>
     },
 
     [ClickType.OpenComments]: click => {
-        console.log(click.start)
-        console.log(click.end)
+        return;
     }
 }
 
@@ -1053,6 +1058,18 @@ const Completers: { [C in ClickType]?: Completer<Extract<AnyClick, { clickType: 
         });
         store.selectedElements = [text];
         currentlyEditingText.value = text;
+    },
+
+    [ClickType.OpenComments]: click => {
+        const found = mouseOverElement(click.end);
+        if(found) {
+            emit('comment', click.end[0], click.end[1], found?.id);
+            store.selectedElements = [found];
+        } else {
+            emit('closeComments');
+            store.selectedElements = [];
+        }
+            
     }
 };
 

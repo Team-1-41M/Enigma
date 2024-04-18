@@ -1,6 +1,6 @@
 export type Comment = {
     id: number,
-    componentId: number,
+    componentId: string,
     componentName: string,
     authorName: string,
     createdAt: string,
