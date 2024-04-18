@@ -22,7 +22,7 @@ class ProjectUpdateSchema(ProjectBaseSchema):
     archived: bool
 
 
-class ProjectDBSchema(EntityDBSchema, ProjectCreateSchema):
+class ProjectDBSchema(EntityDBSchema, ProjectCreateSchema, ProjectUpdateSchema):
     """Project data in the database."""
 
     author_id: int
