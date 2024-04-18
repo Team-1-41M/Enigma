@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import EditHeader from '~/components/EditHeader.vue';
+import { EditMode } from '~/types/editMode';
 
 const userStore = useUserStore();
 await userStore.fetchUser();
@@ -23,7 +24,8 @@ await socketStore.socket; // FIXME show "Connecting..." modal (or toast, or anyt
         <EditHeader class="header" />
         <ComponentTree :tree="socketStore.elements" />
         <EditWidget />
-        <AttributesEdit />
+        <Comments v-if="socketStore.currentMode === EditMode.Comments"/>
+        <AttributesEdit v-else  />
     </div>
     <Notifications/>
 </template>

@@ -741,6 +741,11 @@ const ClickType = {
      * Нажатие выбирает куда поместить текст.
      */
     PlacingText: 'placingText',
+
+    /**
+     * Нажатие по элементу эммитит координаты клика, чтобы открыть по ним меню с созданием комментария
+     */
+    OpenComments: 'openComments'
 } as const;
 type ClickType = typeof ClickType[keyof typeof ClickType];
 
@@ -748,7 +753,7 @@ type BaseClick = {
     clickType: ClickType,
 };
 
-type AnyClick = CameraClick | ElementsMoveClick | BlockControlClick | BlockDrawClick | SelectClick | PlacingTextClick;
+type AnyClick = CameraClick | ElementsMoveClick | BlockControlClick | BlockDrawClick | SelectClick | PlacingTextClick | OpenCommentsClick;
 
 type CameraClick = BaseClick & {
     clickType: typeof ClickType.Camera,
@@ -781,6 +786,10 @@ type SelectClick = BaseClick & {
 type PlacingTextClick = BaseClick & {
     clickType: typeof ClickType.PlacingText,
 };
+
+type OpenCommentsClick = BaseClick & {
+    clickType: typeof ClickType.OpenComments,
+}
 
 let click: undefined | ClickInfo<AnyClick> = undefined;
 
@@ -870,6 +879,10 @@ const Actions = {
         clickType: ClickType.Camera,
         cameraBeforeClick: [...camera.pos],
     }),
+
+    [EditMode.Comments]: (_event: MouseEvent): OpenCommentsClick => ({
+
+    })
 } as const;
 
 function mouseDown(event: MouseEvent) {
@@ -971,6 +984,11 @@ const Updaters: { [C in ClickType]?: Updater<Extract<AnyClick, { clickType: C }>
         const selectionBox = twoPointsToBox(mouseToWorld(click.start), mouseToWorld(click.end));
         store.selectedElements = store.elements
             .filter(element => boxesIntersect(selectionBox, elementBox(element)));
+    },
+
+    [ClickType.OpenComments]: click => {
+        console.log(click.start)
+        console.log(click.end)
     }
 }
 

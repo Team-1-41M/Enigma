@@ -31,6 +31,9 @@ const openInviteModal = () => {
     inviteModal.openModal();
 }
 
+const handleCommentsClick = ()  => {
+
+}
 </script>
 
 <template>
@@ -60,6 +63,9 @@ const openInviteModal = () => {
         <Icon icon="la:hand-paper-solid"
             :class="{'selected': store.currentMode === EditMode.Camera}"
             @click="store.currentMode = EditMode.Camera"/>
+        <Icon icon="iconamoon:comment-light"
+            :class="{'selected': store.currentMode === EditMode.Comments}"
+            @click="store.currentMode = EditMode.Comments"/>
     </div>
     <h2>
         {{ projectTitle }}
