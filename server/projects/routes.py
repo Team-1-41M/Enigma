@@ -10,6 +10,7 @@ from server.projects import content
 from server.projects.models import Change, Comment, Join, Project
 from server.projects.schemas import (
     AccessSchema,
+    ChangeDBSchema,
     ChangeItemsSchema,
     CommentCreate,
     CommentOut,
@@ -378,12 +379,15 @@ async def manage(
 
                 await project.update({"content": json.dumps(content_list)}, db)
 
-                # FIXME: need a real user's id here
-                await Change.create(
-                    project_id=project.id,
-                    user_id=1,
-                    content=message,
-                )
+                # # FIXME: need a real user's id here
+                # await Change.create(
+                #     ChangeDBSchema(
+                #         project_id=project.id,
+                #         user_id=1,
+                #         content=message,
+                #     ).model_dump(),
+                #     db,
+                # )
 
                 for client in clients:
                     await client.send_text(message)
