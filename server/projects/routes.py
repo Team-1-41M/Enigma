@@ -10,7 +10,6 @@ from server.projects import content
 from server.projects.models import Change, Comment, Join, Project
 from server.projects.schemas import (
     AccessSchema,
-    ChangeDBSchema,
     ChangeItemsSchema,
     CommentCreate,
     CommentOut,
@@ -57,6 +56,13 @@ async def create(
         HTTPException: 400 if some attribute from data
         doesn't exist in the constructed object.
     """
+
+    projects = [_ async for _ in Project.by_author(current_user.id, db)]
+    if len(projects) >= 3:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Can't create more than 3 projects for one user.",
+        )
 
     data = data.model_dump()
     data["author_id"] = current_user.id
