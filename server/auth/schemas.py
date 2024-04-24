@@ -60,7 +60,7 @@ class UserSignUpSchema(UserSignInSchema):
 
     email: EmailStr = Field(
         min_length=3,
-        max_length=256,
+        max_length=255,
     )
 
 

@@ -2,7 +2,7 @@ import datetime
 from typing import Awaitable, Optional
 
 from server.shared.models import Entity
-from sqlalchemy import DateTime, select
+from sqlalchemy import DateTime, String, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -12,8 +12,8 @@ class User(Entity):
 
     __tablename__ = "users"
 
-    name: Mapped[str] = mapped_column(unique=True)
-    email: Mapped[str] = mapped_column(unique=True)
+    name: Mapped[str] = mapped_column(String(32), unique=True)
+    email: Mapped[str] = mapped_column(String(255), unique=True)
     password: Mapped[str]
     is_active: Mapped[bool] = mapped_column(default=True)
     login_at: Mapped[datetime.datetime] = mapped_column(

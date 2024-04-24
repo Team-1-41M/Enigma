@@ -19,9 +19,9 @@ const timeout = (ms: number) => {
     return new Promise(resolve => setTimeout(resolve, ms));
 };
 
-const shallowEqual = (object1: { [key: string]: any }, object2: { [key: string]: any }) => {
-    const keys1 = Object.keys(object1);
-    const keys2 = Object.keys(object2);
+const shallowEqual = (object1: { [key: string]: any }, object2: { [key: string]: any }, ...ignoreFields: string[]) => {
+    const keys1 = Object.keys(object1).filter(key => !ignoreFields.includes(key));
+    const keys2 = Object.keys(object2).filter(key => !ignoreFields.includes(key));
     if (keys1.length !== keys2.length) return false;
     for (const key of keys1)
         if (object1[key] !== object2[key]) return false;
@@ -168,7 +168,7 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
                     break;
                 case SocketCommand.Update:
                     if (syncBuffer.length > 0)
-                        if (shallowEqual(syncBuffer[0], data)) {
+                        if (shallowEqual(syncBuffer[0], data, "command")) {
                             // matching buffer,
                             // remove first element from the buffer and do not do any local changes
                             syncBuffer.shift();

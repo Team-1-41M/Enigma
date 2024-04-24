@@ -1,14 +1,17 @@
 from datetime import datetime
-from typing import Literal
+from typing import Literal, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from server.shared.schemas import EntityDBSchema
 
 
 class ProjectBaseSchema(BaseModel):
     """Minimal information about the project."""
 
-    title: str
+    title: str = Field(
+        min_length=3,
+        max_length=255,
+    )
 
 class ProjectCreateSchema(ProjectBaseSchema):
     """Information that the user must provide to create a project."""
@@ -22,7 +25,7 @@ class ProjectUpdateSchema(ProjectBaseSchema):
     archived: bool
 
 
-class ProjectDBSchema(EntityDBSchema, ProjectCreateSchema):
+class ProjectDBSchema(EntityDBSchema, ProjectCreateSchema, ProjectUpdateSchema):
     """Project data in the database."""
 
     author_id: int
@@ -63,19 +66,25 @@ class JoinDBSchema(JoinCreateSchema, EntityDBSchema):
     project_id: int
 
 
-class CommentCreate(BaseModel):
+class ProjectCommentCreateSchema(BaseModel):
+    component_id: Optional[int]
+    component_name: Optional[str]
     text: str
+    parent_id: Optional[int]
 
-
-class CommentOut(BaseModel):
+class ProjectCommentSchema(BaseModel):
     id: int
     project_id: int
+    component_id: Optional[int]
+    component_name: Optional[str]
     user_id: int
     text: str
+    parent_id: Optional[int]
     created_at: datetime
+    updated_at: datetime
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 
 class AccessSchema(BaseModel):
