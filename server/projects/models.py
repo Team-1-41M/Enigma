@@ -63,13 +63,31 @@ class Join(Entity):
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"))
 
 
-class Comment(Entity):
+class ProjectComment(Entity):
     """
-    Model for user comments on projects.
+    Model for user comments on project components.
     """
 
-    __tablename__ = "comments"
+    __tablename__ = "project_comments"
 
+    id: Mapped[int] = mapped_column(primary_key=True)
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"))
+    component_id: Mapped[int | None] = mapped_column(default=None)
+    component_name: Mapped[str | None] = mapped_column(default=None)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     text: Mapped[str] = mapped_column(Text)
+    parent_id: Mapped[int | None] = mapped_column(default=None)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), onupdate=func.now())
+
+    @staticmethod
+    async def by_project(
+        project_id: int,
+        session: AsyncSession,
+    ) -> AsyncIterator:
+        scalars = await session.stream_scalars(
+            select(ProjectComment).where(ProjectComment.project_id == project_id)
+        )
+
+        async for scalar in scalars:
+            yield scalar

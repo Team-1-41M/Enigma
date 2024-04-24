@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Literal
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 from server.shared.schemas import EntityDBSchema
@@ -66,19 +66,25 @@ class JoinDBSchema(JoinCreateSchema, EntityDBSchema):
     project_id: int
 
 
-class CommentCreate(BaseModel):
+class ProjectCommentCreateSchema(BaseModel):
+    component_id: Optional[int]
+    component_name: Optional[str]
     text: str
+    parent_id: Optional[int]
 
-
-class CommentOut(BaseModel):
+class ProjectCommentSchema(BaseModel):
     id: int
     project_id: int
+    component_id: Optional[int]
+    component_name: Optional[str]
     user_id: int
     text: str
+    parent_id: Optional[int]
     created_at: datetime
+    updated_at: datetime
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 
 class AccessSchema(BaseModel):

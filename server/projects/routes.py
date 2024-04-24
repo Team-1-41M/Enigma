@@ -1,18 +1,19 @@
 import datetime
 import json
 import os
-from typing import Any, Awaitable
+from typing import Any, Awaitable, List
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, WebSocket
 from jose import jwt
 from server.auth.models import User
 from server.projects import content
-from server.projects.models import Change, Comment, Join, Project
+from server.projects.models import Change, ProjectComment, Join, Project
 from server.projects.schemas import (
     AccessSchema,
     ChangeItemsSchema,
-    CommentCreate,
-    CommentOut,
+    ProjectCommentCreateSchema,
+    ProjectCommentSchema,
     JoinCreateSchema,
     JoinDBSchema,
     ProjectCreateSchema,
@@ -124,50 +125,36 @@ async def join(
 
     return join
 
-@router.post("/{project_id}/comments", response_model=CommentOut)
-async def create_comment(
+@router.post("/projects/{project_id}/comments", response_model=ProjectCommentSchema)
+async def create_project_comment(
     project_id: int,
-    comment: CommentCreate,
+    comment_data: ProjectCommentCreateSchema,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-) -> Awaitable[Comment]:
-    """
-    Create comment for project.
+    current_user: int = Depends(get_current_user),
+):
+    project_comment = ProjectComment(
+        project_id=project_id,
+        component_id=comment_data.component_id,
+        component_name=comment_data.component_name,
+        user_id=current_user.id,
+        text=comment_data.text,
+        parent_id=comment_data.parent_id,
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+    )
+    db.add(project_comment)
+    await db.commit()
+    return project_comment
 
-    Args:
-        project_id: project id as integer.
-        comment: comment data as CommentCreate.
-        db: db async session.
-        current_user: current user.
-
-    Returns:
-        Comment: created comment data.
-
-    Raises:
-        HTTPException: 404 if project with specified id not found.
-
-        HTTPException: 400 if some attribute from data
-        doesn't exist in the constructed object.
-    """
-
-    project = await Project.by_id(project_id, db)
-    if project is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Project with id {project_id} doesn't exist.",
-        )
-
-    try:
-        comment = await Comment.create(
-            {"project_id": project_id, "user_id": current_user.id, **comment.dict()}, db
-        )
-    except AttributeError as e:
-        raise HTTPException(
-            detail=str(e),
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
-
-    return comment
+@router.get("/projects/{project_id}/comments", response_model=List[ProjectCommentSchema])
+async def get_project_comments(
+    project_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    comments = []
+    async for comment in ProjectComment.by_project(project_id, db):
+        comments.append(comment)
+    return comments
 
 @router.get("/{item_id}", response_model=ProjectDBSchema)
 async def item(
