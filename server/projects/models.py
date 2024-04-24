@@ -77,8 +77,6 @@ class ProjectComment(Entity):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     text: Mapped[str] = mapped_column(Text)
     parent_id: Mapped[int | None] = mapped_column(default=None)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), onupdate=func.now())
 
     @staticmethod
     async def by_project(
