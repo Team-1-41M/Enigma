@@ -1,11 +1,9 @@
-from datetime import datetime
 from typing import AsyncIterator
 
 from server.shared.models import Entity
-from sqlalchemy import DateTime, ForeignKey, Text, select
+from sqlalchemy import ForeignKey, String, Text, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql import func
 
 
 class Project(Entity):
@@ -19,7 +17,7 @@ class Project(Entity):
     archived: Mapped[bool] = mapped_column(default=False)
     author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     content: Mapped[str]
-    title: Mapped[str]
+    title: Mapped[str] = mapped_column(String(255))
 
     @staticmethod
     async def by_author(
@@ -79,8 +77,6 @@ class ProjectComment(Entity):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     text: Mapped[str] = mapped_column(Text)
     parent_id: Mapped[int | None] = mapped_column(default=None)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), onupdate=func.now())
 
     @staticmethod
     async def by_project(

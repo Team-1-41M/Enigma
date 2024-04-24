@@ -1,22 +1,21 @@
 import datetime
 import json
 import os
-from typing import Any, Awaitable, List
 from datetime import datetime
+from typing import Any, Awaitable, List
 
 from fastapi import APIRouter, Depends, WebSocket
 from jose import jwt
 from server.auth.models import User
 from server.projects import content
-from server.projects.models import Change, ProjectComment, Join, Project
+from server.projects.models import Change, Join, Project, ProjectComment
 from server.projects.schemas import (
     AccessSchema,
-    ChangeDBSchema,
     ChangeItemsSchema,
-    ProjectCommentCreateSchema,
-    ProjectCommentSchema,
     JoinCreateSchema,
     JoinDBSchema,
+    ProjectCommentCreateSchema,
+    ProjectCommentSchema,
     ProjectCreateSchema,
     ProjectDBSchema,
     ProjectUpdateSchema,
@@ -58,6 +57,13 @@ async def create(
         HTTPException: 400 if some attribute from data
         doesn't exist in the constructed object.
     """
+
+    projects = [_ async for _ in Project.by_author(current_user.id, db)]
+    if len(projects) >= 3:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Can't create more than 3 projects for one user.",
+        )
 
     data = data.model_dump()
     data["author_id"] = current_user.id

@@ -1,14 +1,17 @@
 from datetime import datetime
 from typing import Literal, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from server.shared.schemas import EntityDBSchema
 
 
 class ProjectBaseSchema(BaseModel):
     """Minimal information about the project."""
 
-    title: str
+    title: str = Field(
+        min_length=3,
+        max_length=255,
+    )
 
 class ProjectCreateSchema(ProjectBaseSchema):
     """Information that the user must provide to create a project."""
