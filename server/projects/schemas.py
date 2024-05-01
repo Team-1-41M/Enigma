@@ -72,13 +72,10 @@ class ProjectCommentCreateSchema(BaseModel):
     text: str
     parent_id: Optional[int]
 
-class ProjectCommentSchema(ProjectCommentCreateSchema, BaseModel):
-    id: int
+class ProjectCommentSchema(ProjectCommentCreateSchema, EntityDBSchema):
     project_id: int
     user_id: int
     text: str
-    created_at: datetime
-    updated_at: datetime
 
     class Config:
         orm_mode = True
