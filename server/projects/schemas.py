@@ -72,7 +72,7 @@ class ProjectCommentCreateSchema(BaseModel):
     text: str
     parent_id: Optional[int]
 
-class ProjectCommentSchema(ProjectCommentCreateSchema, EntityDBSchema):
+class ProjectCommentDBSchema(ProjectCommentCreateSchema, EntityDBSchema):
     project_id: int
     user_id: int
     text: str
