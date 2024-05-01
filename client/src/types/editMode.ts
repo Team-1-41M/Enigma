@@ -5,6 +5,7 @@
  * @see {@link EditMode.Block}
  * @see {@link EditMode.Text}
  * @see {@link EditMode.Camera}
+ * @see {@link EditMode.Comments}
  */
 export const EditMode = {
     /**
@@ -39,5 +40,11 @@ export const EditMode = {
      * Также включается по нажатию СКМ, возвращает в предыдущий режим по отпусканию.
      */
     Camera: 'camera',
+
+    /**
+     * В режиме "Комментарии" справа открывается список комментариев, а по клику на элемент, открывается инпут для текста комментария.
+     * Открывается именно в холсте, потому что как я понял, Ася задумала в конкретные точки холста их ставить.
+     */
+    Comments: 'comments'
 } as const;
 export type EditMode = typeof EditMode[keyof typeof EditMode];

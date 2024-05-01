@@ -91,7 +91,8 @@ summary h3 {
 
 
 input {
-    width: 82px;
+    width: 100%;    
+    max-width: 82px;
     background-color: transparent;
     border: none;
     color: var(--text);

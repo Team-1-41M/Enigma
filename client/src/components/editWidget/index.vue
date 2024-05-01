@@ -3,6 +3,12 @@ import { EditMode } from '~/types/editMode';
 import type { Border } from '~/types/elements';
 import { ElementType, type Background, type BlockElement, type TextElement, type AnyElement, TextAlignment, type ElementID, type BorderRadius } from '~/types/elements';
 
+interface Emits {
+  (e: 'comment', x: number, y: number, componentId: string): void,
+  (e: 'closeComments'): void,
+}
+const emit = defineEmits<Emits>();
+
 const store = useCurrentProjectStore();
 
 const CONTROLS: [number, number, -1 | 0 | 1, -1 | 0 | 1][] = [
@@ -741,6 +747,11 @@ const ClickType = {
      * Нажатие выбирает куда поместить текст.
      */
     PlacingText: 'placingText',
+
+    /**
+     * Нажатие по элементу эммитит координаты клика, чтобы открыть по ним меню с созданием комментария
+     */
+    OpenComments: 'openComments'
 } as const;
 type ClickType = typeof ClickType[keyof typeof ClickType];
 
@@ -748,7 +759,7 @@ type BaseClick = {
     clickType: ClickType,
 };
 
-type AnyClick = CameraClick | ElementsMoveClick | BlockControlClick | BlockDrawClick | SelectClick | PlacingTextClick;
+type AnyClick = CameraClick | ElementsMoveClick | BlockControlClick | BlockDrawClick | SelectClick | PlacingTextClick | OpenCommentsClick;
 
 type CameraClick = BaseClick & {
     clickType: typeof ClickType.Camera,
@@ -781,6 +792,10 @@ type SelectClick = BaseClick & {
 type PlacingTextClick = BaseClick & {
     clickType: typeof ClickType.PlacingText,
 };
+
+type OpenCommentsClick = BaseClick & {
+    clickType: typeof ClickType.OpenComments,
+}
 
 let click: undefined | ClickInfo<AnyClick> = undefined;
 
@@ -870,6 +885,10 @@ const Actions = {
         clickType: ClickType.Camera,
         cameraBeforeClick: [...camera.pos],
     }),
+
+    [EditMode.Comments]: (_event: MouseEvent): OpenCommentsClick => ({
+        clickType: ClickType.OpenComments
+    })
 } as const;
 
 function mouseDown(event: MouseEvent) {
@@ -971,6 +990,10 @@ const Updaters: { [C in ClickType]?: Updater<Extract<AnyClick, { clickType: C }>
         const selectionBox = twoPointsToBox(mouseToWorld(click.start), mouseToWorld(click.end));
         store.selectedElements = store.elements
             .filter(element => boxesIntersect(selectionBox, elementBox(element)));
+    },
+
+    [ClickType.OpenComments]: click => {
+        return;
     }
 }
 
@@ -1035,6 +1058,18 @@ const Completers: { [C in ClickType]?: Completer<Extract<AnyClick, { clickType: 
         });
         store.selectedElements = [text];
         currentlyEditingText.value = text;
+    },
+
+    [ClickType.OpenComments]: click => {
+        const found = mouseOverElement(click.end);
+        if(found) {
+            emit('comment', click.end[0], click.end[1], found?.id);
+            store.selectedElements = [found];
+        } else {
+            emit('closeComments');
+            store.selectedElements = [];
+        }
+            
     }
 };
 
