@@ -3,22 +3,23 @@ import { useCommentsStore } from './store';
 const store = useCommentsStore();
 const projectsStore = useCurrentProjectStore();
 
-onMounted(() => {
-    store.fetchCommentsAsync();
+onMounted(async () => {
+    
 })
+
+await store.fetchCommentsAsync();
 </script>
 
 <template>
 <div class="comments-wrapper">
     <CommentsItem 
         v-if="projectsStore.selectedElements.length === 0"
-        v-for="item in store.comments"
+        v-for="item in store.comments.filter(c => c.parent_id === null)"
         :comment="item"/>
     <CommentsItem
         v-else
-        v-for="item in store.comments.filter(c => c.componentId == projectsStore.selectedElements[0].id)"
+        v-for="item in store.comments.filter(c => c.component_id == projectsStore.selectedElements[0].id && c.parent_id === null)"
         :comment="item"/>
-
 </div>    
 </template>
 

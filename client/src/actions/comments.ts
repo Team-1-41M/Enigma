@@ -1,13 +1,15 @@
-import type { Comment } from "~/types/comment"
+import type { Comment, CommentCreateRequest } from "~/types/comment"
 
-export const getProjectCommentsAsync = async (): Promise<Comment[]> => {
-    return [{
-        id: 11,
-        componentId: '1',
-        componentName: 'Блок 1',
-        authorName: 'Login',
-        createdAt: '2024-04-17T20:32:04.314Z',
-        text: 'Текст комментария',
-        parentId: null
-    }]
+export const getProjectCommentsAsync = async (projectId: number): Promise<Comment[]> => {
+    const { $api } = useNuxtApp();
+
+    const response = await $api.get(`projects/projects/${projectId}/comments`);
+    return response.data as Comment[];
+}
+
+export const createCommentAsync = async (projectId: number, comment: CommentCreateRequest): Promise<void> => {
+    const { $api } = useNuxtApp();
+
+    await $api.post(`projects/projects/${projectId}/comments`, comment);
+    return ;
 }

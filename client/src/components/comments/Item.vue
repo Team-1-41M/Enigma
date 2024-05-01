@@ -3,28 +3,46 @@ import type { Comment } from '~/types/comment';
 import { Icon } from '@iconify/vue';
 import TimeAgo from 'javascript-time-ago';
 import ru from 'javascript-time-ago/locale/ru';
+import { useCommentsStore } from './store';
 
 const props = defineProps<{
     comment: Comment
 }>();
 
+const store = useCommentsStore();
+
 TimeAgo.addDefaultLocale(ru);
 const timeAgo = new TimeAgo('ru-RU');
 
+const commentsOpened = ref(false);
 
+const commentText = ref<string>('');
 </script>
 
 <template>
-<div class="comment-wrapper">
+<div class="comment-wrapper" @click="commentsOpened = true">
     <Icon class='user-icon' icon="ic:baseline-account-circle"/>
-    <p>{{comment.componentName}}</p>
+    <p>{{comment.component_name}}</p>
     <div class="horisontal-box">
-        <p class="author-name">{{comment.authorName}}</p>
-        <p class="time-text">{{ timeAgo.format(new Date(comment.createdAt)) }}</p>
+        <p class="author-name">{{comment.user_id}}</p>
+        <p class="time-text">{{ timeAgo.format(new Date(comment.created_at)) }}</p>
     </div>
     <p class="comment-text">
         {{ comment.text }}
     </p>
+    <div class="children" v-for="child in store.comments.filter(c => c.parent_id === comment.id)">
+        <Icon class='user-icon' icon="ic:baseline-account-circle"/>
+        <p>{{child.component_name}}</p>
+        <div class="horisontal-box">
+            <p class="author-name">{{child.user_id}}</p>
+            <p class="time-text">{{ timeAgo.format(new Date(child.created_at)) }}</p>
+        </div>
+        <p class="comment-text">
+            {{ child.text }}
+        </p>
+    </div>
+    <CommentsForm v-if="commentsOpened" :parentId="comment.id" @close="commentsOpened = false" v-model:comment='commentText'/>
+
 </div>    
 </template>
 
@@ -61,5 +79,9 @@ p {
     height: 33px;
     width: 33px;
     color: var(--text)
+}
+
+.children {
+    margin-left: 15px;
 }
 </style>

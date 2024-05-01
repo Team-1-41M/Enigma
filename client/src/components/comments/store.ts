@@ -3,11 +3,13 @@ import { getProjectCommentsAsync } from '~/actions/comments';
 import type { Comment } from '~/types/comment';
 
 export const useCommentsStore = defineStore('commentsStore', () => {
-  //TODO: Тип для коммента
   const comments = ref<Comment[]>([]);
 
   const fetchCommentsAsync = async () => {
-    comments.value = await getProjectCommentsAsync();
+    const { projectID } = useCurrentProjectStore();
+    console.log(await getProjectCommentsAsync(projectID!))
+    comments.value = await getProjectCommentsAsync(projectID!);
+    console.log(comments.value)
   }
 
   const createCommentAsync = async () => {

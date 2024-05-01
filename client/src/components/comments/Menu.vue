@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
+import { useCommentsStore } from './store';
 
 const store = useCommentMenuStore();
-
-const emit = defineEmits<{
-}>();
+const commentsStore = useCommentsStore();
 
 const topValue = computed(() => {
   return `${store.yCoord}px`;
@@ -18,15 +17,17 @@ const handleCancellation = () => {
   store.closeMenu();
 }
 
-const handleSave = () => {
-  //emit('rename', store.project!);
+const handleSave = async () => {
+  if (store.comment.length > 0) {
+    await store.saveCommentAsync();
+  }
   store.closeMenu();
+  await commentsStore.fetchCommentsAsync();
 }
 
 const commentInput = ref<HTMLInputElement>();
 
 const onMenuOpen = () => {
-  console.log(commentInput.value);
   (commentInput.value as HTMLInputElement).focus()
 }
 </script>
@@ -42,8 +43,8 @@ const onMenuOpen = () => {
           <div>
             <div class="create-menu-wrapper">
               <Icon class="comment" icon="iconamoon:comment-fill"/>
-              <input type="text" v-model="store.comment" ref="commentInput" @blur="handleSave" placeholder="Введите комментарий">
-              <Icon class="send" icon="ph:arrow-circle-up-fill"/>
+              <input type="text" v-model="store.comment" ref="commentInput" @blur="store.closeMenu" placeholder="Введите комментарий">
+              <Icon class="send" icon="ph:arrow-circle-up-fill" @click.stop="handleSave"/>
             </div>
             <div v-if="store.comment.length > 0">
               <div class="horisontal">

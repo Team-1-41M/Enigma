@@ -67,7 +67,7 @@ class JoinDBSchema(JoinCreateSchema, EntityDBSchema):
 
 
 class ProjectCommentCreateSchema(BaseModel):
-    component_id: Optional[int]
+    component_id: Optional[str]
     component_name: Optional[str]
     text: str
     parent_id: Optional[int]
@@ -75,7 +75,7 @@ class ProjectCommentCreateSchema(BaseModel):
 class ProjectCommentSchema(BaseModel):
     id: int
     project_id: int
-    component_id: Optional[int]
+    component_id: Optional[str]
     component_name: Optional[str]
     user_id: int
     text: str
