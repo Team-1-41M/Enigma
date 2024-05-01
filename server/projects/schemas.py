@@ -72,19 +72,10 @@ class ProjectCommentCreateSchema(BaseModel):
     text: str
     parent_id: Optional[int]
 
-class ProjectCommentSchema(BaseModel):
-    id: int
+class ProjectCommentDBSchema(ProjectCommentCreateSchema, EntityDBSchema):
     project_id: int
-    component_id: Optional[str]
-    component_name: Optional[str]
     user_id: int
     text: str
-    parent_id: Optional[int]
-    created_at: datetime
-    updated_at: datetime
-
-    class Config:
-        orm_mode = True
 
 
 class AccessSchema(BaseModel):
