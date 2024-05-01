@@ -77,9 +77,6 @@ class ProjectCommentSchema(ProjectCommentCreateSchema, EntityDBSchema):
     user_id: int
     text: str
 
-    class Config:
-        orm_mode = True
-
 
 class AccessSchema(BaseModel):
     credential: Literal["read", "edit"]
