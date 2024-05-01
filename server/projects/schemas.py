@@ -72,14 +72,11 @@ class ProjectCommentCreateSchema(BaseModel):
     text: str
     parent_id: Optional[int]
 
-class ProjectCommentSchema(BaseModel):
+class ProjectCommentSchema(ProjectCommentCreateSchema, BaseModel):
     id: int
     project_id: int
-    component_id: Optional[int]
-    component_name: Optional[str]
     user_id: int
     text: str
-    parent_id: Optional[int]
     created_at: datetime
     updated_at: datetime
 
