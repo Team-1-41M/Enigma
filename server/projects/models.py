@@ -72,7 +72,7 @@ class ProjectComment(Entity):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"))
-    component_id: Mapped[int | None] = mapped_column(default=None)
+    component_id: Mapped[str | None] = mapped_column(default=None)
     component_name: Mapped[str | None] = mapped_column(default=None)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     text: Mapped[str] = mapped_column(Text)
