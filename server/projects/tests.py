@@ -1,8 +1,14 @@
 from typing import Any
 
 import pytest
-
-from server.projects.content import create, _is_default, _remove_defaults, put, update, delete
+from server.projects.content import (
+    _is_default,
+    _remove_defaults,
+    create,
+    delete,
+    put,
+    update,
+)
 
 
 def test_create():
