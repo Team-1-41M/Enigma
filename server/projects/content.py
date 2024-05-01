@@ -1,4 +1,5 @@
 def create(content_list, element_data):
+    # TODO: need check id
     id = element_data["id"]
 
     if any(e["id"] == id for e in content_list):
@@ -26,7 +27,7 @@ def _is_default(value) -> bool:
     if isinstance(value, str):
         return value == ""
 
-    return False
+    return False # TODO: is None is False for every type?
 
 
 def _remove_defaults(data: dict) -> dict:
