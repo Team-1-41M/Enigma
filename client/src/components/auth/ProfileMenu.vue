@@ -39,6 +39,7 @@ const handleSignOut = () => {
     background-color: #1E0825;
     color: var(--text);
     cursor: pointer;
+    z-index: 10000000000000000
 }
 
 .name {

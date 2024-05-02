@@ -16,7 +16,10 @@ export const useProjectStore = defineStore('projects', {
       this.projectList = await getProjectsAsync();
     },
     async createProject(title: string) {
-      await createProjectAsync(title);
+      if (!await createProjectAsync(title)) {
+        const notificationsStore = useNotificationsStore();
+        notificationsStore.addNotification('Нельзя создать больше трех проектов', 'error')
+      }
       await this.fetchProjects();
     },
     async deleteProject(id: number) {

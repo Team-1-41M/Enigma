@@ -18,11 +18,15 @@ export const getProjectByIdAsync = async (projectId: string) => {
     return (response.data as any).data as Project;
 }
 
-export const createProjectAsync = async (title: string) : Promise<Project> => { 
+export const createProjectAsync = async (title: string) : Promise<Project | undefined> => { 
     const { $api } = useNuxtApp();
 
-    const response = await $api.post<Project>('projects', { title });
-    return response.data;
+    try {
+        const response = await $api.post<Project>('projects', { title });
+        return response.data;
+    } catch (e) {
+        return undefined;
+    }
 }
 
 export const deleteProjectAsync = async (id: number) => {

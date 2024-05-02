@@ -41,37 +41,41 @@ const openInviteModal = () => {
             @click="navigateTo('/projects')"/>
         <h1>Enigma</h1>
     </div>
-    <div class="mode-switcher">
-        <Icon icon="carbon:move"
-            :class="{'selected': store.currentMode === EditMode.Move}"
-            @click="store.currentMode = EditMode.Move"/>
-        <Icon 
-            icon="radix-icons:frame"
-            :class="{'selected': store.currentMode === EditMode.Block}"
-            @click="store.currentMode = EditMode.Block"/>
-        <!--NOTE: Нужно будет выпадающий селект ебануть (кастомный на дивах, встроенному хуй стили в лучшем браузере на земле хром пропишешь спасибо гугл)-->
-        <!-- <Icon icon="ic:outline-square"
-            :class="{'selected': store.currentMode === EditMode.Square}"
-            @click="store.currentMode = EditMode.Square"/> -->
-        <Icon icon="fluent:text-t-16-filled" 
-            :class="{'selected': store.currentMode === EditMode.Text}"
-            @click="store.currentMode = EditMode.Text"/>
-        <Icon icon="la:hand-paper-solid"
-            :class="{'selected': store.currentMode === EditMode.Camera}"
-            @click="store.currentMode = EditMode.Camera"/>
-        <Icon icon="iconamoon:comment-light"
-            :class="{'selected': store.currentMode === EditMode.Comments}"
-            @click="store.currentMode = EditMode.Comments"/>
-    </div>
+    
     <h2>
         {{ projectTitle }}
     </h2>
-    <div class="share-button"
-        @click="openInviteModal">
-        Поделиться
+    <div class="middle-container">
+        <div class="mode-switcher">
+            <Icon icon="carbon:move"
+                :class="{'selected': store.currentMode === EditMode.Move}"
+                @click="store.currentMode = EditMode.Move"/>
+            <Icon 
+                icon="radix-icons:frame"
+                :class="{'selected': store.currentMode === EditMode.Block}"
+                @click="store.currentMode = EditMode.Block"/>
+            <!--NOTE: Нужно будет выпадающий селект ебануть (кастомный на дивах, встроенному хуй стили в лучшем браузере на земле хром пропишешь спасибо гугл)-->
+            <!-- <Icon icon="ic:outline-square"
+                :class="{'selected': store.currentMode === EditMode.Square}"
+                @click="store.currentMode = EditMode.Square"/> -->
+            <Icon icon="fluent:text-t-16-filled" 
+                :class="{'selected': store.currentMode === EditMode.Text}"
+                @click="store.currentMode = EditMode.Text"/>
+            <Icon icon="la:hand-paper-solid"
+                :class="{'selected': store.currentMode === EditMode.Camera}"
+                @click="store.currentMode = EditMode.Camera"/>
+            <Icon icon="iconamoon:comment-light"
+                :class="{'selected': store.currentMode === EditMode.Comments}"
+                @click="store.currentMode = EditMode.Comments"/>
+        </div>
+        <div class="share-button"
+            @click="openInviteModal">
+            Поделиться
+        </div>
     </div>
+    
     <div class="user-display-container">
-        <UserDisplay @click="handleDisplayClick" />
+        <UserDisplay class="user-display" @click="handleDisplayClick" />
         <ProfileMenu
             @sign-out="handleSignOut" />
         <AuthSignOutModal />
@@ -117,24 +121,30 @@ h2 {
     color: var(--text);
     cursor: pointer;
     border-radius: 4px;
+    padding: 4px;
+    height: fit-content;
+    align-self: center;
 }
 
 .logo {
     display: flex;
-    flex: 0.3
+    flex: 0.15
 }
 
 .user-display-container {
-    
-    flex: 0.3;
+    flex: 0.15;
+    display: flex;
+    justify-content: center;
 }
 
 .user-display {
-    padding-right: 32px;
+    width: 40%;
 }
 
-.mode-switcher {
-    flex: 1
+.middle-container {
+    flex: 0.7;
+    display: flex;
+    justify-content: space-between;
 }
 
 .mode-switcher svg {
