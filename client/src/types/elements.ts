@@ -225,16 +225,21 @@ export type Border = {
 };
 
 /**
- * Описание всех границ блока.
- * 
- * Если указана только одна сторона, то она будет применена ко всем сторонам.
+ * Границы блока (каждая сторона).
  */
-export type Borders = Border | {
+export type MultiBorders = {
     top?: Border,
     right?: Border,
     bottom?: Border,
     left?: Border,
-};
+}
+
+/**
+ * Описание всех границ блока.
+ * 
+ * Если указана только одна сторона, то она будет применена ко всем сторонам.
+ */
+export type Borders = Border | MultiBorders;
 
 /**
  * Тень блока.
