@@ -1,11 +1,19 @@
 <script setup lang="ts">
-import { EditMode } from '~/types/editMode';
-import type { Border } from '~/types/elements';
-import { ElementType, type Background, type BlockElement, type TextElement, type AnyElement, TextAlignment, type ElementID, type BorderRadius } from '~/types/elements';
+import { EditMode } from "~/types/editMode";
+import type { Border } from "~/types/elements";
+import {
+    ElementType,
+    type Background,
+    type BlockElement,
+    type TextElement,
+    type AnyElement,
+    TextAlignment,
+    type BorderRadius,
+} from "~/types/elements";
 
 interface Emits {
-  (e: 'comment', x: number, y: number, componentId: string): void,
-  (e: 'closeComments'): void,
+    (e: "comment", x: number, y: number, componentId: string): void;
+    (e: "closeComments"): void;
 }
 const emit = defineEmits<Emits>();
 
@@ -25,9 +33,11 @@ const CONTROLS: [number, number, -1 | 0 | 1, -1 | 0 | 1][] = [
 const CONTROL_RADIUS = 5;
 
 function isControlClicked(cx: -1 | 0 | 1, cy: -1 | 0 | 1): boolean {
-    return click?.clicked.clickType === 'blockControl'
-        && click.clicked.cx === cx
-        && click.clicked.cy === cy;
+    return (
+        click?.clicked.clickType === "blockControl" &&
+        click.clicked.cx === cx &&
+        click.clicked.cy === cy
+    );
 }
 
 //
@@ -36,34 +46,28 @@ function isControlClicked(cx: -1 | 0 | 1, cy: -1 | 0 | 1): boolean {
 
 type Point = [number, number];
 type Box = {
-    x: number,
-    y: number,
-    w: number,
-    h: number,
+    x: number;
+    y: number;
+    w: number;
+    h: number;
 };
 
 function vecAdd(...point: Point[]): Point {
     return point.reduce((p, [x, y]) => [p[0] + x, p[1] + y], [0, 0]);
 }
 
-function vecMul(
-    [x, y]: Point,
-    scalar: number,
-): Point {
+function vecMul([x, y]: Point, scalar: number): Point {
     return [x * scalar, y * scalar];
 }
 
 // piecewise vector product (not dot product, not cross product)
-function vecScale(
-    [x, y]: Point,
-    [sx, sy]: Point,
-): Point {
+function vecScale([x, y]: Point, [sx, sy]: Point): Point {
     return [x * sx, y * sy];
 }
 
 type Camera = {
-    pos: Point,
-    zoom: number,
+    pos: Point;
+    zoom: number;
 };
 const camera = reactive<Camera>({
     pos: [0, 0],
@@ -76,30 +80,23 @@ function mousePos(event: MouseEvent): Point {
     return [pageX - x, pageY - y];
 }
 
-function mouseToWorld(
-    [x, y]: Point,
-): Point {
-    const { pos: [hx, hy], zoom: hz } = camera;
-    return [
-        (x + hx) / hz,
-        (y + hy) / hz,
-    ];
+function mouseToWorld([x, y]: Point): Point {
+    const {
+        pos: [hx, hy],
+        zoom: hz,
+    } = camera;
+    return [(x + hx) / hz, (y + hy) / hz];
 }
 
-function worldToMouse(
-    [x, y]: Point,
-): Point {
-    const { pos: [hx, hy], zoom: hz } = camera;
-    return [
-        x * hz - hx,
-        y * hz - hy,
-    ];
+function worldToMouse([x, y]: Point): Point {
+    const {
+        pos: [hx, hy],
+        zoom: hz,
+    } = camera;
+    return [x * hz - hx, y * hz - hy];
 }
 
-function twoPointsToBox(
-    [x1, y1]: Point,
-    [x2, y2]: Point,
-): Box {
+function twoPointsToBox([x1, y1]: Point, [x2, y2]: Point): Box {
     return {
         x: Math.min(x1, x2),
         y: Math.min(y1, y2),
@@ -108,22 +105,20 @@ function twoPointsToBox(
     };
 }
 
-function mouseOverElement(
-    mousePos: Point,
-    elements?: AnyElement[],
-): AnyElement | undefined {
+function mouseOverElement(mousePos: Point, elements?: AnyElement[]): AnyElement | undefined {
     const point = mouseToWorld(mousePos);
-    return store.traversedTree()
-        .map(e => store.findElement(e) as AnyElement)
-        .filter(e => elements === undefined || elements.includes(e))
+    return store
+        .traversedTree()
+        .map((e) => store.findElement(e) as AnyElement)
+        .filter((e) => elements === undefined || elements.includes(e))
         .toReversed()
-        .find(el => inside(point, elementBox(el)));
+        .find((el) => inside(point, elementBox(el)));
 }
 
 function mouseOverBlockControl(
     mousePos: Point,
-    element?: BlockElement,
-): { element: BlockElement, cx: -1 | 0 | 1, cy: -1 | 0 | 1 } | undefined {
+    element?: BlockElement
+): { element: BlockElement; cx: -1 | 0 | 1; cy: -1 | 0 | 1 } | undefined {
     const [mx, my] = mouseToWorld(mousePos);
 
     for (const el of element === undefined ? store.elements : [element]) {
@@ -143,20 +138,13 @@ function mouseOverBlockControl(
 
 function boxesIntersect(
     { x: x1, y: y1, w: w1, h: h1 }: Box,
-    { x: x2, y: y2, w: w2, h: h2 }: Box,
+    { x: x2, y: y2, w: w2, h: h2 }: Box
 ): boolean {
-    return x1 <= x2 + w2
-        && x1 + w1 >= x2
-        && y1 <= y2 + h2
-        && y1 + h1 >= y2;
+    return x1 <= x2 + w2 && x1 + w1 >= x2 && y1 <= y2 + h2 && y1 + h1 >= y2;
 }
 
-function inside(
-    [px, py]: Point,
-    { x, y, w, h }: Box,
-): boolean {
-    return x <= px && px <= x + w
-        && y <= py && py <= y + h;
+function inside([px, py]: Point, { x, y, w, h }: Box): boolean {
+    return x <= px && px <= x + w && y <= py && py <= y + h;
 }
 
 function textWidth(ctx: CanvasRenderingContext2D, text: string, scale?: true): number {
@@ -173,24 +161,25 @@ function elementBox(element: AnyElement): Box {
 
     switch (element.type) {
         case ElementType.Text:
-            let ctx = canvas.value!.getContext('2d')!;
+            let ctx = canvas.value!.getContext("2d")!;
             setFont(ctx, element);
             width = textWidth(ctx, element.content);
             const metrics = ctx.measureText(element.content);
-            height
-                = (metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent)
-                * ((element.content.match(/\r\n|\r|\n/g) || '').length + 1)
+            height =
+                (metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent) *
+                ((element.content.match(/\r\n|\r|\n/g) || "").length + 1);
             break;
         case ElementType.Block:
             width = element.width;
             height = element.height;
             break;
-    };
+    }
 
     let [x, y] = store.globalPosition(element);
 
     return {
-        x, y,
+        x,
+        y,
         w: width,
         h: height,
     };
@@ -205,7 +194,7 @@ const canvas = ref<HTMLCanvasElement>();
 onMounted(draw);
 
 function colorToColor(color: Background): string {
-    if (typeof (color) === 'object' && 'r' in color && 'g' in color && 'b' in color)
+    if (typeof color === "object" && "r" in color && "g" in color && "b" in color)
         return `rgb(${color.r}, ${color.g}, ${color.b})`;
     return color;
 }
@@ -214,7 +203,8 @@ function setFont(hasFont: { font: string }, text: TextElement, scale?: true) {
     hasFont.font =
         `${text.italic ? "italic" : ""} ` +
         `${text.fontWeight ?? ""}` +
-        (scale ? `calc(${text.fontSize}pt * ${camera.zoom})` : `${text.fontSize}pt`) + ` ` +
+        (scale ? `calc(${text.fontSize}pt * ${camera.zoom})` : `${text.fontSize}pt`) +
+        ` ` +
         `${text.fontFamily}`;
 }
 
@@ -244,7 +234,14 @@ function drawText(ctx: CanvasRenderingContext2D, element: TextElement) {
 
     const topLeft = worldToMouse([x, y]);
     const bottomRight = worldToMouse([x + w, y + lineHeight * (lines.length + 1)]);
-    if (!boxesIntersect(twoPointsToBox(topLeft, bottomRight), { x: 0, y: 0, w: ctx.canvas.width, h: ctx.canvas.height }))
+    if (
+        !boxesIntersect(twoPointsToBox(topLeft, bottomRight), {
+            x: 0,
+            y: 0,
+            w: ctx.canvas.width,
+            h: ctx.canvas.height,
+        })
+    )
         return;
 
     for (const [i, line] of lines.entries())
@@ -254,23 +251,27 @@ function drawText(ctx: CanvasRenderingContext2D, element: TextElement) {
 // corner - amount of [width, height] to add to [x, y] to get a rect corner
 // centerVector - diagonal vector from corner to center
 //   (should I calculate that instead ? for ellipses...)
-const CORNER_ADDITIONS: { corner: Point, centerVector: Point, towardNextVector: Point }[] = [
-    { // top-left
+const CORNER_ADDITIONS: { corner: Point; centerVector: Point; towardNextVector: Point }[] = [
+    {
+        // top-left
         corner: [0, 0],
         centerVector: [1, 1],
         towardNextVector: [1, 0],
     },
-    { // top-right
+    {
+        // top-right
         corner: [1, 0],
         centerVector: [-1, 1],
         towardNextVector: [0, 1],
     },
-    { // bottom-right
+    {
+        // bottom-right
         corner: [1, 1],
         centerVector: [-1, -1],
         towardNextVector: [-1, 0],
     },
-    { // bottom-left
+    {
+        // bottom-left
         corner: [0, 1],
         centerVector: [1, -1],
         towardNextVector: [0, -1],
@@ -282,36 +283,49 @@ const CORNER_ADDITIONS: { corner: Point, centerVector: Point, towardNextVector: 
 //   (ifLargerNextVector = -ifLargerPrevVector)
 // prevAngles - angles of the arc of the prev corner (counter-clockwise)
 // nextAngles - angles of the arc of the next corner (clockwise)
-const BORDER_ADDITIONS: { ifSmallerVector: Point, ifLargerPrevVector: Point, prevAngles: [number, number], nextAngles: [number, number] }[] = [
-    { // top
+const BORDER_ADDITIONS: {
+    ifSmallerVector: Point;
+    ifLargerPrevVector: Point;
+    prevAngles: [number, number];
+    nextAngles: [number, number];
+}[] = [
+    {
+        // top
         ifSmallerVector: [0, -1],
         ifLargerPrevVector: [-1, 0],
-        prevAngles: [Math.PI / 2, 3 * Math.PI / 4],
+        prevAngles: [Math.PI / 2, (3 * Math.PI) / 4],
         nextAngles: [Math.PI / 2, Math.PI / 4],
     },
-    { // right
+    {
+        // right
         ifSmallerVector: [1, 0],
         ifLargerPrevVector: [0, -1],
         prevAngles: [0, Math.PI / 4],
         nextAngles: [0, -Math.PI / 4],
     },
-    { // bottom
+    {
+        // bottom
         ifSmallerVector: [0, 1],
         ifLargerPrevVector: [1, 0],
         prevAngles: [-Math.PI / 2, -Math.PI / 4],
-        nextAngles: [-Math.PI / 2, -3 * Math.PI / 4],
+        nextAngles: [-Math.PI / 2, (-3 * Math.PI) / 4],
     },
-    { // left
+    {
+        // left
         ifSmallerVector: [-1, 0],
         ifLargerPrevVector: [0, 1],
-        prevAngles: [-Math.PI, -3 * Math.PI / 4],
-        nextAngles: [Math.PI, 3 * Math.PI / 4],
+        prevAngles: [-Math.PI, (-3 * Math.PI) / 4],
+        nextAngles: [Math.PI, (3 * Math.PI) / 4],
     },
 ] as const;
 
-function radii(width: number, height: number, radius: BorderRadius): [number, number, number, number] {
+function radii(
+    width: number,
+    height: number,
+    radius: BorderRadius
+): [number, number, number, number] {
     let topLeftRadius, topRightRadius, bottomRightRadius, bottomLeftRadius;
-    if (typeof (radius) === 'number')
+    if (typeof radius === "number")
         topLeftRadius = topRightRadius = bottomRightRadius = bottomLeftRadius = radius;
     else {
         topLeftRadius = radius.topLeft;
@@ -320,13 +334,14 @@ function radii(width: number, height: number, radius: BorderRadius): [number, nu
         bottomLeftRadius = radius.bottomLeft;
     }
 
-    const radiusDivisor
-        = Math.max(
-            width, height,
+    const radiusDivisor =
+        Math.max(
+            width,
+            height,
             topLeftRadius + topRightRadius,
             topLeftRadius + bottomLeftRadius,
             bottomLeftRadius + bottomRightRadius,
-            bottomRightRadius + topRightRadius,
+            bottomRightRadius + topRightRadius
         ) / Math.min(width, height);
 
     return [
@@ -343,14 +358,18 @@ function fillPathWithRoundedCorners(
     y: number,
     width: number,
     height: number,
-    radius?: BorderRadius,
+    radius?: BorderRadius
 ) {
     if (radius === undefined) {
         path.rect(x, y, width, height);
         return;
     }
 
-    const [topLeftRadius, topRightRadius, bottomRightRadius, bottomLeftRadius] = radii(width, height, radius);
+    const [topLeftRadius, topRightRadius, bottomRightRadius, bottomLeftRadius] = radii(
+        width,
+        height,
+        radius
+    );
 
     // top, top-right
     path.moveTo(x + topLeftRadius, y);
@@ -375,12 +394,26 @@ function drawBlock(ctx: CanvasRenderingContext2D, element: BlockElement) {
 
     const topLeft = worldToMouse([x, y]);
     const bottomRight = worldToMouse([x + element.width, y + element.height]);
-    if (!boxesIntersect(twoPointsToBox(topLeft, bottomRight), { x: 0, y: 0, w: ctx.canvas.width, h: ctx.canvas.height }))
+    if (
+        !boxesIntersect(twoPointsToBox(topLeft, bottomRight), {
+            x: 0,
+            y: 0,
+            w: ctx.canvas.width,
+            h: ctx.canvas.height,
+        })
+    )
         return;
 
     ctx.fillStyle = colorToColor(element.background);
     ctx.beginPath();
-    fillPathWithRoundedCorners(ctx, x, y, element.width, element.height, element.borderRadius);
+    fillPathWithRoundedCorners(
+        ctx,
+        x,
+        y,
+        element.width,
+        element.height,
+        (element.borderRadius as any) === "" ? undefined : element.borderRadius
+    );
     ctx.fill();
 
     if (element.borders !== undefined) {
@@ -388,7 +421,7 @@ function drawBlock(ctx: CanvasRenderingContext2D, element: BlockElement) {
         let rightBorder: Border | undefined;
         let bottomBorder: Border | undefined;
         let leftBorder: Border | undefined;
-        if ('color' in element.borders)
+        if ("color" in element.borders)
             topBorder = rightBorder = bottomBorder = leftBorder = element.borders;
         else {
             topBorder = element.borders.top;
@@ -400,19 +433,22 @@ function drawBlock(ctx: CanvasRenderingContext2D, element: BlockElement) {
         ctx.save();
 
         const borders = [topBorder, rightBorder, bottomBorder, leftBorder];
-        const radiuses = element.borderRadius === undefined ? [0, 0, 0, 0] : radii(element.width, element.height, element.borderRadius);
+        const radiuses =
+            element.borderRadius === undefined
+                ? [0, 0, 0, 0]
+                : radii(element.width, element.height, element.borderRadius);
         for (const [i, border] of borders.entries()) {
-            if (border === undefined) continue;
+            if (border === undefined || border.width === 0) continue;
 
             let lineDash: number[];
             switch (border.style) {
-                case 'solid':
+                case "solid":
                     lineDash = [];
                     break;
-                case 'dotted':
+                case "dotted":
                     lineDash = [border.width, border.width];
                     break;
-                case 'dashed':
+                case "dashed":
                     lineDash = [border.width * 3, border.width * 3];
                     break;
             }
@@ -432,17 +468,11 @@ function drawBlock(ctx: CanvasRenderingContext2D, element: BlockElement) {
             // points at the corners of the rect (unadjusted)
             const prevCornerPre = vecAdd(
                 [x, y],
-                vecScale(
-                    prevCornerAdditions.corner,
-                    [element.width, element.height],
-                ),
+                vecScale(prevCornerAdditions.corner, [element.width, element.height])
             );
             const nextCornerPre = vecAdd(
                 [x, y],
-                vecScale(
-                    nextCornerAdditions.corner,
-                    [element.width, element.height],
-                ),
+                vecScale(nextCornerAdditions.corner, [element.width, element.height])
             );
 
             // maxWidth determines the shift of the corners
@@ -454,13 +484,13 @@ function drawBlock(ctx: CanvasRenderingContext2D, element: BlockElement) {
                 border.width < prevMaxWidth
                     ? borderAdditions.ifSmallerVector
                     : borderAdditions.ifLargerPrevVector,
-                Math.abs(prevBorder.width - border.width),
+                Math.abs(prevBorder.width - border.width)
             );
             const nextVector = vecMul(
                 border.width < nextMaxWidth
                     ? borderAdditions.ifSmallerVector
                     : vecMul(borderAdditions.ifLargerPrevVector, -1),
-                Math.abs(nextBorder.width - border.width),
+                Math.abs(nextBorder.width - border.width)
             );
 
             // points at the corners of the rect (adjusted)
@@ -470,11 +500,11 @@ function drawBlock(ctx: CanvasRenderingContext2D, element: BlockElement) {
             // points at the inside of the arc
             const prevCenter = vecAdd(
                 prevCorner,
-                vecMul(prevCornerAdditions.centerVector, prevRadius),
+                vecMul(prevCornerAdditions.centerVector, prevRadius)
             );
             const nextCenter = vecAdd(
                 nextCorner,
-                vecMul(nextCornerAdditions.centerVector, nextRadius),
+                vecMul(nextCornerAdditions.centerVector, nextRadius)
             );
 
             // vectors that point from each corner toward each opposite corner of the same border
@@ -486,7 +516,14 @@ function drawBlock(ctx: CanvasRenderingContext2D, element: BlockElement) {
             // prev corner arc
             ctx.beginPath();
             ctx.moveTo(prevCornerPre[0] + prevToNext[0], prevCornerPre[1] + prevToNext[1]);
-            ctx.arc(prevCenter[0], prevCenter[1], prevRadius, -borderAdditions.prevAngles[0] + ANGLE_FIDDLE, -borderAdditions.prevAngles[1] - ANGLE_FIDDLE, true);
+            ctx.arc(
+                prevCenter[0],
+                prevCenter[1],
+                prevRadius,
+                -borderAdditions.prevAngles[0] + ANGLE_FIDDLE,
+                -borderAdditions.prevAngles[1] - ANGLE_FIDDLE,
+                true
+            );
             ctx.lineWidth = prevMaxWidth * 2;
             ctx.stroke();
 
@@ -500,7 +537,13 @@ function drawBlock(ctx: CanvasRenderingContext2D, element: BlockElement) {
             // next corner arc
             ctx.beginPath();
             ctx.moveTo(nextCornerPre[0] + nextToPrev[0], nextCornerPre[1] + nextToPrev[1]);
-            ctx.arc(nextCenter[0], nextCenter[1], nextRadius, -borderAdditions.nextAngles[0] - ANGLE_FIDDLE, -borderAdditions.nextAngles[1] + ANGLE_FIDDLE);
+            ctx.arc(
+                nextCenter[0],
+                nextCenter[1],
+                nextRadius,
+                -borderAdditions.nextAngles[0] - ANGLE_FIDDLE,
+                -borderAdditions.nextAngles[1] + ANGLE_FIDDLE
+            );
             ctx.lineWidth = nextMaxWidth * 2;
             ctx.stroke();
         }
@@ -514,9 +557,9 @@ function drawBlockShadow(ctx: CanvasRenderingContext2D, element: BlockElement) {
 
     ctx.save();
 
-    const foundParent = element.parent === undefined ? undefined : store.findElement<AnyElement>(element.parent);
-    if (foundParent !== undefined)
-        clipElementDrawingArea(ctx, foundParent);
+    const foundParent =
+        element.parent === undefined ? undefined : store.findElement<AnyElement>(element.parent);
+    if (foundParent !== undefined) clipElementDrawingArea(ctx, foundParent);
 
     const [x, y] = store.globalPosition(element);
 
@@ -529,30 +572,50 @@ function drawBlockShadow(ctx: CanvasRenderingContext2D, element: BlockElement) {
         y + element.shadow.offsetY - element.shadow.spread,
         element.width + element.shadow.spread * 2,
         element.height + element.shadow.spread * 2,
-        element.borderRadius
+        (element.borderRadius as any) === "" ? undefined : element.borderRadius
     );
     ctx.fill();
 
     ctx.restore();
 }
 
+function drawBlockName(ctx: CanvasRenderingContext2D, element: BlockElement) {
+    if (!element.name || element.parent) return;
+
+    const [x, y] = store.globalPosition(element);
+    ctx.font = "italic 13px Inter";
+    ctx.fillStyle = "#676767";
+    ctx.fillText(element.name, x, y - 10);
+}
+
 function clipElementDrawingArea(ctx: CanvasRenderingContext2D, element: AnyElement) {
     let { x, y, w, h } = elementBox(element);
     const path = new Path2D();
-    fillPathWithRoundedCorners(path, x, y, w, h, 'borderRadius' in element ? element.borderRadius : undefined);
+    fillPathWithRoundedCorners(
+        path,
+        x,
+        y,
+        w,
+        h,
+        "borderRadius" in element && (element.borderRadius as any) !== ""
+            ? element.borderRadius
+            : undefined
+    );
     ctx.clip(path);
 
-    const foundParent = element.parent === undefined ? undefined : store.findElement<AnyElement>(element.parent);
-    if (foundParent !== undefined)
-        clipElementDrawingArea(ctx, foundParent);
+    const foundParent =
+        element.parent === undefined ? undefined : store.findElement<AnyElement>(element.parent);
+    if (foundParent !== undefined) clipElementDrawingArea(ctx, foundParent);
 }
 
 function drawElements(ctx: CanvasRenderingContext2D) {
-    store.traversedTree().forEach(id => {
+    store.traversedTree().forEach((id) => {
         const element = store.findElement(id) as AnyElement;
 
-        if (element.type === ElementType.Block)
+        if (element.type === ElementType.Block) {
             drawBlockShadow(ctx, element);
+            drawBlockName(ctx, element);
+        }
 
         ctx.save();
 
@@ -569,30 +632,26 @@ function drawElements(ctx: CanvasRenderingContext2D) {
 
         ctx.restore();
 
-        if (store.selectedElements.find(e => e.id === element.id))
+        if (store.selectedElements.find((e) => e.id === element.id))
             drawSelectionBox(ctx, elementBox(element));
     });
 }
 
-function drawSelectionBox(
-    ctx: CanvasRenderingContext2D,
-    box: Box,
-    alpha?: true,
-) {
+function drawSelectionBox(ctx: CanvasRenderingContext2D, box: Box, alpha?: true) {
     const SELECTION_BOX_LINE_WIDTH = 7;
 
     if (alpha) {
-        ctx.fillStyle = '#C63E3E' + (alpha ? '33' : '');
+        ctx.fillStyle = "#C63E3E" + (alpha ? "33" : "");
         ctx.fillRect(box.x, box.y, box.w, box.h);
     }
 
-    ctx.strokeStyle = '#C63E3E' + (alpha ? '77' : '');
+    ctx.strokeStyle = "#C63E3E" + (alpha ? "77" : "");
     ctx.lineWidth = SELECTION_BOX_LINE_WIDTH;
     ctx.strokeRect(
         box.x - SELECTION_BOX_LINE_WIDTH / 2,
         box.y - SELECTION_BOX_LINE_WIDTH / 2,
         box.w + SELECTION_BOX_LINE_WIDTH,
-        box.h + SELECTION_BOX_LINE_WIDTH,
+        box.h + SELECTION_BOX_LINE_WIDTH
     );
 }
 
@@ -606,7 +665,7 @@ function drawBlockControls(ctx: CanvasRenderingContext2D) {
 
     for (const [ptx, pty, cx, cy] of CONTROLS) {
         ctx.lineWidth = 2;
-        ctx.fillStyle = isControlClicked(cx, cy) ? '#FFF' : '#D9D9D9';
+        ctx.fillStyle = isControlClicked(cx, cy) ? "#FFF" : "#D9D9D9";
         const radius = isControlClicked(cx, cy) ? 10 : 7;
         const [elx, ely] = store.globalPosition(element);
         const x = elx + ptx * element.width + cx * (cy === 0 ? 8 : 6);
@@ -619,14 +678,17 @@ function drawBlockControls(ctx: CanvasRenderingContext2D) {
 }
 
 function draw() {
-    const ctx = canvas.value!.getContext('2d')!;
+    const ctx = canvas.value!.getContext("2d")!;
     ctx.canvas.width = ctx.canvas.clientWidth;
     ctx.canvas.height = ctx.canvas.clientHeight;
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
     ctx.save();
 
-    const { pos: [hx, hy], zoom: hz } = camera;
+    const {
+        pos: [hx, hy],
+        zoom: hz,
+    } = camera;
     ctx.translate(-hx, -hy);
     ctx.scale(hz, hz);
     drawElements(ctx);
@@ -654,7 +716,7 @@ const textEditor = ref<HTMLTextAreaElement>();
 
 watch([currentlyEditingText, camera], () => updateTextEditor());
 
-watch(currentlyEditingText, currentlyEditingText => {
+watch(currentlyEditingText, (currentlyEditingText) => {
     if (currentlyEditingText === undefined) return;
     setTimeout(() => textEditor.value!.focus(), 0);
 });
@@ -664,10 +726,10 @@ function updateTextEditor() {
 
     const text = currentlyEditingText.value;
     if (text === undefined) {
-        area.style.display = 'none';
+        area.style.display = "none";
         return;
     }
-    area.style.display = 'initial';
+    area.style.display = "initial";
 
     area.style.textAlign = text.alignment;
     setFont(area.style, text, true);
@@ -676,12 +738,13 @@ function updateTextEditor() {
     area.style.left = `${left}px`;
     area.style.top = `${top}px`;
 
-    const ctx = canvas.value!.getContext('2d')!;
+    const ctx = canvas.value!.getContext("2d")!;
     setFont(ctx, text);
     const metrics = ctx.measureText(text.content);
     const width = textWidth(ctx, text.content, true);
-    const lineHeight = (metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent) * camera.zoom;
-    const height = lineHeight * ((text.content.match(/\r\n|\r|\n/g) || '').length + 1);
+    const lineHeight =
+        (metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent) * camera.zoom;
+    const height = lineHeight * ((text.content.match(/\r\n|\r|\n/g) || "").length + 1);
 
     area.style.width = `${width}px`;
     area.style.height = `${height}px`;
@@ -709,8 +772,7 @@ async function finishTextEdit() {
 watch(store, () => {
     const text = currentlyEditingText.value;
     if (text === undefined) return;
-    if (!store.selectedElements.some(el => el.id === text.id))
-        finishTextEdit();
+    if (!store.selectedElements.some((el) => el.id === text.id)) finishTextEdit();
 });
 
 //
@@ -721,81 +783,88 @@ const ClickType = {
     /**
      * Нажатие перемещает камеру.
      */
-    Camera: 'camera',
+    Camera: "camera",
 
     /**
      * Нажатие перемещает элемент.
      */
-    ElementsMove: 'elementsMove',
+    ElementsMove: "elementsMove",
 
     /**
      * Нажатие перемещает контроль блока (угол или сторона, для расширения).
      */
-    BlockControl: 'blockControl',
+    BlockControl: "blockControl",
 
     /**
      * Нажатие рисует блок.
      */
-    BlockDraw: 'blockDraw',
+    BlockDraw: "blockDraw",
 
     /**
      * Нажатие выбирает элементы.
      */
-    Select: 'select',
+    Select: "select",
 
     /**
      * Нажатие выбирает куда поместить текст.
      */
-    PlacingText: 'placingText',
+    PlacingText: "placingText",
 
     /**
-     * Нажатие по элементу эммитит координаты клика, чтобы открыть по ним меню с созданием комментария
+     * Нажатие по элементу эмиттит координаты клика, чтобы открыть по ним меню с созданием комментария
      */
-    OpenComments: 'openComments'
+    OpenComments: "openComments",
 } as const;
-type ClickType = typeof ClickType[keyof typeof ClickType];
+type ClickType = (typeof ClickType)[keyof typeof ClickType];
 
 type BaseClick = {
-    clickType: ClickType,
+    clickType: ClickType;
 };
 
-type AnyClick = CameraClick | ElementsMoveClick | BlockControlClick | BlockDrawClick | SelectClick | PlacingTextClick | OpenCommentsClick;
+type AnyClick =
+    | CameraClick
+    | ElementsMoveClick
+    | BlockControlClick
+    | BlockDrawClick
+    | SelectClick
+    | PlacingTextClick
+    | OpenCommentsClick;
 
 type CameraClick = BaseClick & {
-    clickType: typeof ClickType.Camera,
-    cameraBeforeClick: Point,
+    clickType: typeof ClickType.Camera;
+    cameraBeforeClick: Point;
 };
 
 type ElementsMoveClick = BaseClick & {
-    clickType: typeof ClickType.ElementsMove,
-    elementsPosBeforeClick: Point[],
+    clickType: typeof ClickType.ElementsMove;
+    elementsPosBeforeClick: Point[];
 };
 
 type BlockControlClick = BaseClick & {
-    clickType: typeof ClickType.BlockControl,
-    x: number,
-    y: number,
-    w: number,
-    h: number,
-    cx: -1 | 0 | 1,
-    cy: -1 | 0 | 1,
+    clickType: typeof ClickType.BlockControl;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    cx: -1 | 0 | 1;
+    cy: -1 | 0 | 1;
 };
 
 type BlockDrawClick = BaseClick & {
-    clickType: typeof ClickType.BlockDraw,
+    clickType: typeof ClickType.BlockDraw;
 };
 
 type SelectClick = BaseClick & {
-    clickType: typeof ClickType.Select,
+    clickType: typeof ClickType.Select;
 };
 
 type PlacingTextClick = BaseClick & {
-    clickType: typeof ClickType.PlacingText,
+    clickType: typeof ClickType.PlacingText;
 };
 
 type OpenCommentsClick = BaseClick & {
-    clickType: typeof ClickType.OpenComments,
-}
+    clickType: typeof ClickType.OpenComments;
+};
 
 let click: undefined | ClickInfo<AnyClick> = undefined;
 
@@ -823,7 +892,7 @@ type ClickInfo<C extends AnyClick> = {
     /**
      * Дополнительные данные о клике.
      */
-    clicked: C,
+    clicked: C;
 };
 
 // Actions (mouse down)
@@ -840,15 +909,18 @@ const Actions = {
             if (control === undefined) break checkControls;
             const {
                 element: { x, y, width, height },
-                cx, cy,
+                cx,
+                cy,
             } = control;
 
             const result: BlockControlClick = {
                 clickType: ClickType.BlockControl,
-                x, y,
+                x,
+                y,
                 w: width,
                 h: height,
-                cx, cy,
+                cx,
+                cy,
             };
             return result;
         }
@@ -857,12 +929,12 @@ const Actions = {
             const found = mouseOverElement(mp);
             if (found === undefined) break moveElements;
 
-            if (!store.selectedElements.find(e => e.id === found.id))
+            if (!store.selectedElements.find((e) => e.id === found.id))
                 store.selectedElements = [found];
 
             const result: ElementsMoveClick = {
                 clickType: ClickType.ElementsMove,
-                elementsPosBeforeClick: store.selectedElements.map(e => store.globalPosition(e)),
+                elementsPosBeforeClick: store.selectedElements.map((e) => store.globalPosition(e)),
             };
             return result;
         }
@@ -887,8 +959,8 @@ const Actions = {
     }),
 
     [EditMode.Comments]: (_event: MouseEvent): OpenCommentsClick => ({
-        clickType: ClickType.OpenComments
-    })
+        clickType: ClickType.OpenComments,
+    }),
 } as const;
 
 function mouseDown(event: MouseEvent) {
@@ -919,11 +991,13 @@ function mouseDown(event: MouseEvent) {
 
 type Updater<C extends AnyClick> = (click: ClickInfo<C>) => void;
 const Updaters: { [C in ClickType]?: Updater<Extract<AnyClick, { clickType: C }>> } = {
-    [ClickType.Camera]: click => {
+    [ClickType.Camera]: (click) => {
         const {
             start: [sx, sy],
             end: [ex, ey],
-            clicked: { cameraBeforeClick: [hx, hy] },
+            clicked: {
+                cameraBeforeClick: [hx, hy],
+            },
         } = click;
         camera.pos = [
             // `cam - ...` because camera movement is opposite to its coords
@@ -932,33 +1006,47 @@ const Updaters: { [C in ClickType]?: Updater<Extract<AnyClick, { clickType: C }>
         ];
     },
 
-    [ClickType.ElementsMove]: click => {
+    [ClickType.ElementsMove]: (click) => {
         store.selectedElements.forEach((element, i) => {
-            const { start, end, clicked: { elementsPosBeforeClick } } = click;
+            const {
+                start,
+                end,
+                clicked: { elementsPosBeforeClick },
+            } = click;
             const [sx, sy] = mouseToWorld(start);
             const [ex, ey] = mouseToWorld(end);
             const globalPos: Point = [
                 Math.round(elementsPosBeforeClick[i][0] + (ex - sx)),
                 Math.round(elementsPosBeforeClick[i][1] + (ey - sy)),
             ];
-            const foundParent = element.parent === undefined ? undefined : store.findElement<AnyElement>(element.parent);
-            const localPos = foundParent === undefined ? globalPos : store.localPosition(globalPos, foundParent);
+            const foundParent =
+                element.parent === undefined
+                    ? undefined
+                    : store.findElement<AnyElement>(element.parent);
+            const localPos =
+                foundParent === undefined ? globalPos : store.localPosition(globalPos, foundParent);
             element.x = localPos[0];
             element.y = localPos[1];
-            store.updateElement(element, 'x', 'y');
+            store.updateElement(element, "x", "y");
         });
 
         const newParent = mouseOverElement(
             click.end,
-            store.elements.filter(e => e.type === ElementType.Block && !store.selectedElements.some(s => s.id === e.id))
+            store.elements.filter(
+                (e) =>
+                    e.type === ElementType.Block &&
+                    !store.selectedElements.some((s) => s.id === e.id)
+            )
         );
 
         store.selectedElements
-            .map(e => e.id)
-            .forEach(id => store.makeChild(id, newParent === undefined ? undefined : newParent.id));
+            .map((e) => e.id)
+            .forEach((id) =>
+                store.makeChild(id, newParent === undefined ? undefined : newParent.id)
+            );
     },
 
-    [ClickType.BlockControl]: click => {
+    [ClickType.BlockControl]: (click) => {
         const element = store.selectedElements[0];
         if (element.type !== ElementType.Block) return;
 
@@ -983,19 +1071,20 @@ const Updaters: { [C in ClickType]?: Updater<Extract<AnyClick, { clickType: C }>
             element.height = Math.max(1, Math.round(h + dy));
         }
 
-        store.updateElement(element, 'x', 'y', 'width', 'height');
+        store.updateElement(element, "x", "y", "width", "height");
     },
 
-    [ClickType.Select]: click => {
+    [ClickType.Select]: (click) => {
         const selectionBox = twoPointsToBox(mouseToWorld(click.start), mouseToWorld(click.end));
-        store.selectedElements = store.elements
-            .filter(element => boxesIntersect(selectionBox, elementBox(element)));
+        store.selectedElements = store.elements.filter((element) =>
+            boxesIntersect(selectionBox, elementBox(element))
+        );
     },
 
-    [ClickType.OpenComments]: click => {
+    [ClickType.OpenComments]: (click) => {
         return;
-    }
-}
+    },
+};
 
 function mouseMove(event: MouseEvent) {
     if (click == null) return;
@@ -1004,9 +1093,7 @@ function mouseMove(event: MouseEvent) {
     // (e.g. selecting a block)
     const [sx, sy] = click.start;
     const [mx, my] = mousePos(event);
-    click.draggedEnough
-        ||= Math.abs(mx - sx) > 5
-        || Math.abs(my - sy) > 5;
+    click.draggedEnough ||= Math.abs(mx - sx) > 5 || Math.abs(my - sy) > 5;
     if (!click.draggedEnough) return;
 
     click.end = [mx, my];
@@ -1019,7 +1106,7 @@ function mouseMove(event: MouseEvent) {
 
 type Completer<C extends AnyClick> = (click: ClickInfo<C>) => void;
 const Completers: { [C in ClickType]?: Completer<Extract<AnyClick, { clickType: C }>> } = {
-    [ClickType.BlockDraw]: click => {
+    [ClickType.BlockDraw]: (click) => {
         const { start, end } = click;
 
         let { x, y, w, h } = twoPointsToBox(mouseToWorld(start), mouseToWorld(end));
@@ -1028,7 +1115,7 @@ const Completers: { [C in ClickType]?: Completer<Extract<AnyClick, { clickType: 
         h = Math.round(h);
         if (w < 1 || h < 1) return;
 
-        store.addBlock(el => {
+        store.addBlock((el) => {
             el.x = Math.round(x);
             el.y = Math.round(y);
             el.width = w;
@@ -1036,21 +1123,21 @@ const Completers: { [C in ClickType]?: Completer<Extract<AnyClick, { clickType: 
         });
     },
 
-    [ClickType.ElementsMove]: click => {
+    [ClickType.ElementsMove]: (click) => {
         if (click.draggedEnough) return;
         const found = mouseOverElement(click.end);
         store.selectedElements = found !== undefined ? [found] : [];
     },
 
-    [ClickType.Select]: click => {
+    [ClickType.Select]: (click) => {
         if (click.draggedEnough) return;
         const found = mouseOverElement(click.end);
-        store.selectedElements = found !== undefined ? [found] : [];
+        store.$patch({ selectedElements: found !== undefined ? [found] : [] });
     },
 
-    [ClickType.PlacingText]: async click => {
+    [ClickType.PlacingText]: async (click) => {
         const [x, y] = mouseToWorld(click.end);
-        let text = await store.addText(el => {
+        let text = await store.addText((el) => {
             el.x = Math.round(x);
             el.y = Math.round(y);
             el.alignment = lastTextAlignment;
@@ -1060,17 +1147,16 @@ const Completers: { [C in ClickType]?: Completer<Extract<AnyClick, { clickType: 
         currentlyEditingText.value = text;
     },
 
-    [ClickType.OpenComments]: click => {
+    [ClickType.OpenComments]: (click) => {
         const found = mouseOverElement(click.end);
-        if(found) {
-            emit('comment', click.end[0], click.end[1], found?.id);
+        if (found) {
+            emit("comment", click.end[0], click.end[1], found?.id);
             store.selectedElements = [found];
         } else {
-            emit('closeComments');
+            emit("closeComments");
             store.selectedElements = [];
         }
-            
-    }
+    },
 };
 
 function mouseUp() {
@@ -1079,8 +1165,7 @@ function mouseUp() {
     const completer = Completers[click.clicked.clickType];
     if (completer !== undefined) completer(click as any);
 
-    if (click.returnToMode !== undefined)
-        store.currentMode = click.returnToMode;
+    if (click.returnToMode !== undefined) store.currentMode = click.returnToMode;
 
     click = undefined;
 }
@@ -1091,22 +1176,33 @@ type Renderer<C extends AnyClick> = (ctx: CanvasRenderingContext2D, click: Click
 const Renderers: { [C in ClickType]?: Renderer<Extract<AnyClick, { clickType: C }>> } = {
     [ClickType.BlockDraw]: (ctx, click) => {
         // FIXME draw styled block instead, or add block element at click and resize actual created block
-        drawSelectionBox(ctx, twoPointsToBox(mouseToWorld(click.start), mouseToWorld(click.end)), true);
+        drawSelectionBox(
+            ctx,
+            twoPointsToBox(mouseToWorld(click.start), mouseToWorld(click.end)),
+            true
+        );
     },
 
     [ClickType.Select]: (ctx, click) => {
         if (!click.draggedEnough) return;
-        drawSelectionBox(ctx, twoPointsToBox(mouseToWorld(click.start), mouseToWorld(click.end)), true);
+        drawSelectionBox(
+            ctx,
+            twoPointsToBox(mouseToWorld(click.start), mouseToWorld(click.end)),
+            true
+        );
     },
 
     [ClickType.PlacingText]: (ctx, click) => {
         const [x, y] = mouseToWorld(click.end);
         const box = {
-            x, y,
+            x,
+            y,
             w: lastFontSize / 1.5,
             h: lastFontSize,
         };
-        switch (lastTextAlignment) {
+        switch (
+            lastTextAlignment as TextAlignment // idk why but as TextAlignment
+        ) {
             case TextAlignment.Center:
                 box.x -= box.w / 2;
                 break;
@@ -1117,7 +1213,7 @@ const Renderers: { [C in ClickType]?: Renderer<Extract<AnyClick, { clickType: C 
                 break;
         }
         drawSelectionBox(ctx, box, true);
-    }
+    },
 };
 
 function drawClicks(ctx: CanvasRenderingContext2D) {
@@ -1130,25 +1226,28 @@ function drawClicks(ctx: CanvasRenderingContext2D) {
 // Other
 
 function doubleClick(event: MouseEvent) {
-    if (store.currentMode !== EditMode.Move
-        || store.selectedElements.length != 1) return;
+    if (store.currentMode !== EditMode.Move || store.selectedElements.length != 1) return;
 
     // enter editing mode if clicked on selected text
     const found = mouseOverElement(mousePos(event));
-    if (found !== undefined
-        && found.type === ElementType.Text
-
-        && found.id == store.selectedElements[0].id) {
+    if (
+        found !== undefined &&
+        found.type === ElementType.Text &&
+        found.id == store.selectedElements[0].id
+    ) {
         currentlyEditingText.value = found;
         return;
     }
 }
 
 function keyEnter(event: KeyboardEvent) {
-    if (event.key !== "Enter"
-        || click !== undefined
-        || store.selectedElements.length !== 1
-        || store.selectedElements[0].type !== ElementType.Text) return;
+    if (
+        event.key !== "Enter" ||
+        click !== undefined ||
+        store.selectedElements.length !== 1 ||
+        store.selectedElements[0].type !== ElementType.Text
+    )
+        return;
 
     currentlyEditingText.value = store.selectedElements[0];
 }
@@ -1156,20 +1255,19 @@ function keyEnter(event: KeyboardEvent) {
 function keyDelete(event: KeyboardEvent) {
     if (event.key !== "Delete") return;
 
-    for (const element of [...store.selectedElements])
-        store.removeElement(element.id);
+    for (const element of [...store.selectedElements]) store.removeElement(element.id);
 }
 
-window.addEventListener('mousemove', mouseMove);
-window.addEventListener('mouseup', mouseUp);
-window.addEventListener('keyup', keyEnter);
-window.addEventListener('keyup', keyDelete);
+window.addEventListener("mousemove", mouseMove);
+window.addEventListener("mouseup", mouseUp);
+window.addEventListener("keyup", keyEnter);
+window.addEventListener("keyup", keyDelete);
 
 onUnmounted(() => {
-    window.removeEventListener('mousemove', mouseMove);
-    window.removeEventListener('mouseup', mouseUp);
-    window.removeEventListener('keyup', keyEnter);
-    window.removeEventListener('keyup', keyDelete);
+    window.removeEventListener("mousemove", mouseMove);
+    window.removeEventListener("mouseup", mouseUp);
+    window.removeEventListener("keyup", keyEnter);
+    window.removeEventListener("keyup", keyDelete);
 });
 
 // Wheel
@@ -1185,16 +1283,22 @@ function wheel(event: WheelEvent) {
     const zoomBefore = camera.zoom;
     camera.zoom = Math.min(2, Math.max(0.5, camera.zoom - event.deltaY / 1000));
     camera.pos = [
-        (mx + camera.pos[0]) * camera.zoom / zoomBefore - mx,
-        (my + camera.pos[1]) * camera.zoom / zoomBefore - my,
+        ((mx + camera.pos[0]) * camera.zoom) / zoomBefore - mx,
+        ((my + camera.pos[1]) * camera.zoom) / zoomBefore - my,
     ];
 }
 </script>
 
 <template>
     <div>
-        <textarea ref="textEditor" :value="currentlyEditingText?.content" @input="updateText" @blur="finishTextEdit"
-            @keydown.esc="finishTextEdit" style="display: none" />
+        <textarea
+            ref="textEditor"
+            :value="currentlyEditingText?.content"
+            @input="updateText"
+            @blur="finishTextEdit"
+            @keydown.esc="finishTextEdit"
+            style="display: none"
+        />
         <canvas ref="canvas" @mousedown="mouseDown" @dblclick="doubleClick" @wheel="wheel" />
     </div>
 </template>

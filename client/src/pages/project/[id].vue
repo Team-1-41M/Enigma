@@ -43,7 +43,7 @@ const openCommentMenu = (x: number, y: number, id: string) => {
 .project-page-wrapper {
     height: 100%;
     display: grid;
-    grid-template-columns: 15% 70% 15%;
+    grid-template-columns: 275px auto 275px;
     grid-template-rows: 0.06fr 1fr;
     grid-template-areas:
         "header header header"
