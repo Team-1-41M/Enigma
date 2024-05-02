@@ -130,7 +130,7 @@ h2 {
 }
 
 .user-display {
-    padding-right: 32px;
+    width: 40%;
 }
 
 .mode-switcher {
