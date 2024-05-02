@@ -184,7 +184,7 @@ export const useCurrentProjectStore = defineStore('currentProject', () => {
                     updateItem(el);
 
                     el = selectedElements.value.find(e => e.id === id);
-                    updateItem(el as any);
+                    if (el !== undefined) updateItem(el);
 
                     break;
                 case SocketCommand.Delete:

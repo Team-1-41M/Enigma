@@ -17,6 +17,7 @@ store.fetchProjects();
     <Header/>
     <ProjectLayout
         :list="store.projectList"/>
+    <Notifications/>
 </template>
 
 <style>

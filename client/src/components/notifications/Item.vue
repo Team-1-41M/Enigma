@@ -57,6 +57,7 @@ const duration = computed(() => {
   padding-left: 1rem;
   border-radius: 8px;
   position: relative;
+  width: calc(35em - 20px);
   color: white;
 }
 

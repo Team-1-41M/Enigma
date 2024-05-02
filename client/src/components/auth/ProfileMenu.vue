@@ -71,5 +71,6 @@ const handleSignOut = () => {
     top: 59px;
     right: 32px;
     border-radius: 7px;
+    z-index: 1;
 }
 </style>

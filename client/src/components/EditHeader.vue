@@ -33,51 +33,48 @@ const openInviteModal = () => {
 </script>
 
 <template>
-<header>
-    <div class="logo">
-        <img 
-            src="~/assets/icons/logo.svg" 
-            style="margin-left: 20px;"
-            @click="navigateTo('/projects')"/>
-        <h1>Enigma</h1>
-    </div>
-    <div class="mode-switcher">
-        <Icon icon="carbon:move"
-            :class="{'selected': store.currentMode === EditMode.Move}"
-            @click="store.currentMode = EditMode.Move"/>
-        <Icon 
-            icon="radix-icons:frame"
-            :class="{'selected': store.currentMode === EditMode.Block}"
-            @click="store.currentMode = EditMode.Block"/>
-        <!--NOTE: Нужно будет выпадающий селект ебануть (кастомный на дивах, встроенному хуй стили в лучшем браузере на земле хром пропишешь спасибо гугл)-->
-        <!-- <Icon icon="ic:outline-square"
-            :class="{'selected': store.currentMode === EditMode.Square}"
-            @click="store.currentMode = EditMode.Square"/> -->
-        <Icon icon="fluent:text-t-16-filled" 
-            :class="{'selected': store.currentMode === EditMode.Text}"
-            @click="store.currentMode = EditMode.Text"/>
-        <Icon icon="la:hand-paper-solid"
-            :class="{'selected': store.currentMode === EditMode.Camera}"
-            @click="store.currentMode = EditMode.Camera"/>
-        <Icon icon="iconamoon:comment-light"
-            :class="{'selected': store.currentMode === EditMode.Comments}"
-            @click="store.currentMode = EditMode.Comments"/>
-    </div>
-    <h2>
-        {{ projectTitle }}
-    </h2>
-    <div class="share-button"
-        @click="openInviteModal">
-        Поделиться
-    </div>
-    <div class="user-display-container">
-        <UserDisplay @click="handleDisplayClick" />
-        <ProfileMenu
-            @sign-out="handleSignOut" />
-        <AuthSignOutModal />
-    </div>
-    <InviteModal/>
-</header>
+    <header>
+        <div class="logo">
+            <img src="~/assets/icons/logo.svg" style="margin-left: 20px;" @click="navigateTo('/projects')" />
+            <h1>Enigma</h1>
+        </div>
+        <div class="mode-switcher">
+            <span :class="{ 'selected': store.currentMode === EditMode.Move }"
+                @click="store.currentMode = EditMode.Move">
+                <Icon icon="carbon:move" />
+            </span>
+            <span :class="{ 'selected': store.currentMode === EditMode.Block }"
+                @click="store.currentMode = EditMode.Block">
+                <Icon icon="radix-icons:frame" />
+            </span>
+            <span :class="{ 'selected': store.currentMode === EditMode.Text }"
+                @click="store.currentMode = EditMode.Text">
+                <Icon icon="fluent:text-t-16-filled" />
+            </span>
+            <span :class="{ 'selected': store.currentMode === EditMode.Camera }"
+                @click="store.currentMode = EditMode.Camera">
+                <Icon icon="la:hand-paper-solid" />
+            </span>
+            <span :class="{ 'selected': store.currentMode === EditMode.Comments }"
+                @click="store.currentMode = EditMode.Comments">
+                <Icon icon="iconamoon:comment-light" />
+            </span>
+        </div>
+        <h2>
+            {{ projectTitle }}
+        </h2>
+        <div class="share-button" @click="openInviteModal">
+            Поделиться
+        </div>
+        <div class="user-display-container">
+            <div>
+                <UserDisplay @click="handleDisplayClick" />
+                <ProfileMenu @sign-out="handleSignOut" />
+                <AuthSignOutModal />
+            </div>
+        </div>
+        <InviteModal />
+    </header>
 
 </template>
 
@@ -102,7 +99,7 @@ h1 {
 h2 {
     position: absolute;
     left: 50%;
-    transform: translateX(-50%);  
+    transform: translateX(-50%);
     font-family: Inter;
     font-size: 24px;
     font-style: italic;
@@ -117,16 +114,19 @@ h2 {
     color: var(--text);
     cursor: pointer;
     border-radius: 4px;
+    padding: 5px 7px;
 }
 
 .logo {
+    width: 275px;
     display: flex;
-    flex: 0.3
 }
 
 .user-display-container {
-    
-    flex: 0.3;
+    width: 275px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .user-display {
@@ -134,22 +134,33 @@ h2 {
 }
 
 .mode-switcher {
-    flex: 1
+    flex: 1;
+}
+
+.mode-switcher span {
+    display: inline-flex;
+    height: 75px;
+    width: 50px;
+    align-items: center;
+    justify-content: center;
 }
 
 .mode-switcher svg {
-    height: 75px;
-    width: 40px;
-    color: var(--text)
+    color: var(--text);
+    height: 45px;
+    width: 45px;
 }
 
-.mode-switcher svg:hover {
+.mode-switcher span:hover {
     transform: scale(1.1);
+    filter: brightness(1.2);
+}
+
+.mode-switcher span:not(.selected):hover {
     background-color: var(--primary-darker);
-}   
+}
 
 .selected {
-    /*TODO*/
-    border: 2px solid white
+    background-color: var(--accent);
 }
 </style>
