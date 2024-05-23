@@ -1,7 +1,6 @@
 import datetime
 import json
 import os
-from datetime import datetime
 from typing import Any, Awaitable, List
 
 from fastapi import APIRouter, Depends, WebSocket
@@ -139,8 +138,8 @@ async def create_project_comment(
         user_id=current_user.id,
         text=comment_data.text,
         parent_id=comment_data.parent_id,
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
+        created_at=datetime.datetime.now(),
+        updated_at=datetime.datetime.now(),
     )
     db.add(project_comment)
     await db.commit()
