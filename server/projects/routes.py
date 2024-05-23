@@ -124,7 +124,7 @@ async def join(
 
     return join
 
-@router.post("/projects/{project_id}/comments", response_model=ProjectCommentDBSchema)
+@router.post("/{project_id}/comments", response_model=ProjectCommentDBSchema)
 async def create_project_comment(
     project_id: int,
     comment_data: ProjectCommentCreateSchema,
@@ -145,7 +145,7 @@ async def create_project_comment(
     await db.commit()
     return project_comment
 
-@router.get("/projects/{project_id}/comments", response_model=List[ProjectCommentDBSchema])
+@router.get("/{project_id}/comments", response_model=List[ProjectCommentDBSchema])
 async def get_project_comments(
     project_id: int,
     db: AsyncSession = Depends(get_db),
