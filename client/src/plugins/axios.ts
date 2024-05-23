@@ -8,6 +8,7 @@ export default defineNuxtPlugin(() => {
 
 	return {
 		provide: {
+			axios,
 			api: api
 		}
 	};

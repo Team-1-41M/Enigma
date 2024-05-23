@@ -2,7 +2,6 @@
 import type { Comment } from '~/types/comment';
 import { Icon } from '@iconify/vue';
 import TimeAgo from 'javascript-time-ago';
-import ru from 'javascript-time-ago/locale/ru';
 import { useCommentsStore } from './store';
 
 const props = defineProps<{
@@ -11,7 +10,6 @@ const props = defineProps<{
 
 const store = useCommentsStore();
 
-TimeAgo.addDefaultLocale(ru);
 const timeAgo = new TimeAgo('ru-RU');
 
 const commentsOpened = ref(false);

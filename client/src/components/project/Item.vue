@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import TimeAgo from 'javascript-time-ago';
 import { useProjectContextMenuStore } from '~/stores/projectContextMenu';
 import type { Project } from '~/types/project';
 
@@ -6,6 +7,8 @@ interface Props {
     project: Project,
 }
 const props = defineProps<Props>();
+
+const timeAgo = new TimeAgo('ru-RU');
 
 const contextMenuStore = useProjectContextMenuStore();
 
@@ -26,9 +29,9 @@ const handleRightClick = (event: MouseEvent) => {
       >
       <div class="cover-image"></div>
       <label class="project-name"> {{ project.title }} </label>
-      <label class="project-last-updated">Изменено 0 д. назад</label>
+      <label class="project-last-updated" v-if="project.updated_at">{{timeAgo.format(new Date(project.updated_at))}}</label>
+      <label class="project-last-updated" v-else>{{timeAgo.format(new Date(project.created_at))}}</label>
       <!--
-        TODO:Считать время для строчки сверху (сейчас мне лень)
         NOTE: Что-нибудь такое для обложек
         <img class="cover-image" 
         :src="`${config.public.baseUrl}/uploads/images/`" /> 
@@ -41,7 +44,6 @@ const handleRightClick = (event: MouseEvent) => {
 .project-wrapper {
   width: 19em;
   height: 14em;
-  position: relative;
   background-color: #2F0D3B;
   border-radius: 9px;
 }
@@ -70,14 +72,6 @@ const handleRightClick = (event: MouseEvent) => {
   border-radius: 7px;
   align-self: center;
   background-color: gray;
-}
-
-.delete-project-button {
-  position: absolute;
-  z-index: 10;
-  bottom: 4px;
-  right: 4px;
-
 }
 
 label {
