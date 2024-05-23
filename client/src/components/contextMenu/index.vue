@@ -1,5 +1,6 @@
 <script setup lang="ts">
 interface Props {
+  openHandler?: () => void,
   closeHandler: () => void;
 }
 const props = defineProps<Props>();
@@ -7,6 +8,9 @@ const props = defineProps<Props>();
 const dropdown = ref(null)
 
 onMounted(() => {
+  if (props.openHandler) {
+    props.openHandler();
+  } else
   (dropdown.value! as HTMLUListElement).focus()
 })
 </script>

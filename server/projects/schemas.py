@@ -67,24 +67,15 @@ class JoinDBSchema(JoinCreateSchema, EntityDBSchema):
 
 
 class ProjectCommentCreateSchema(BaseModel):
-    component_id: Optional[int]
+    component_id: Optional[str]
     component_name: Optional[str]
     text: str
     parent_id: Optional[int]
 
-class ProjectCommentSchema(BaseModel):
-    id: int
+class ProjectCommentDBSchema(ProjectCommentCreateSchema, EntityDBSchema):
     project_id: int
-    component_id: Optional[int]
-    component_name: Optional[str]
     user_id: int
     text: str
-    parent_id: Optional[int]
-    created_at: datetime
-    updated_at: datetime
-
-    class Config:
-        orm_mode = True
 
 
 class AccessSchema(BaseModel):
